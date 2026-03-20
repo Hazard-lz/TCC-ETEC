@@ -1,0 +1,226 @@
+/* =========================================
+   APP-CLIENTE.CSS - VISUAL MOBILE E DESKTOP (APP SHELL)
+   ========================================= */
+
+/* Fundo da página e centralizador */
+.app-wrapper {
+    background-color: var(--bg-color);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center; /* No PC, centra o ecrã na vertical */
+    transition: background-color var(--transition-default);
+}
+
+/* O "Corpo" do Aplicativo (Arquitetura App Shell) */
+.mobile-container {
+    width: 100%;
+    max-width: 480px; /* Padrão Mobile */
+    background-color: var(--surface-color);
+    
+    /* TRANSFORMA O CONTAINER NUMA CAIXA FLEXÍVEL */
+    display: flex;
+    flex-direction: column;
+    height: 100vh; /* Ocupa 100% do ecrã no telemóvel */
+    overflow: hidden; /* Impede que a página inteira role, prendendo tudo aqui dentro */
+    
+    position: relative;
+    box-shadow: 0 0 20px rgba(0,0,0,0.05);
+    transition: background-color var(--transition-default), box-shadow var(--transition-default);
+}
+
+/* =========================================
+   CABEÇALHO DO APP (FIXO NO TOPO)
+   ========================================= */
+.app-header {
+    background-color: var(--surface-color);
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    
+    flex-shrink: 0; /* Impede o cabeçalho de ser esmagado */
+    z-index: 10;
+}
+
+.greeting h2 {
+    font-size: 1.3rem;
+    color: var(--text-main);
+}
+
+.greeting p {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+/* Avatar redondo do utilizador */
+.avatar {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background: var(--gradient-brand);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1.2rem;
+    box-shadow: 0 4px 10px rgba(139, 92, 246, 0.3);
+}
+
+/* =========================================
+   CONTEÚDO PRINCIPAL (MAIN - FAZ SCROLL)
+   ========================================= */
+.app-content {
+    padding: 1.5rem;
+    
+    flex-grow: 1; /* Ocupa todo o espaço restante no meio */
+    overflow-y: auto; /* Adiciona barra de rolagem APENAS ao conteúdo */
+}
+
+/* Personaliza a barra de rolagem (Fica com aspeto de App) */
+.app-content::-webkit-scrollbar {
+    width: 6px;
+}
+.app-content::-webkit-scrollbar-track {
+    background: transparent;
+}
+.app-content::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 10px;
+}
+
+.section-title {
+    font-size: 1.1rem;
+    color: var(--text-main);
+    margin-bottom: 1rem;
+    font-weight: 700;
+}
+
+/* Cartão do Próximo Agendamento */
+.next-appointment-card {
+    background: var(--gradient-brand);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    color: white;
+    box-shadow: 0 10px 20px rgba(139, 92, 246, 0.3);
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.next-appointment-card::after {
+    content: '';
+    position: absolute;
+    right: -20px;
+    top: -20px;
+    width: 100px;
+    height: 100px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+}
+
+.appointment-date {
+    font-size: 0.9rem;
+    opacity: 0.9;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.appointment-service {
+    font-size: 1.4rem;
+    font-weight: bold;
+    margin-bottom: 0.2rem;
+}
+
+.appointment-pro {
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+/* Botão de Ação Gigante */
+.btn-agendar-agora {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background-color: var(--surface-color);
+    color: var(--color-purple);
+    border: 2px dashed var(--color-purple);
+    padding: 1.2rem;
+    border-radius: var(--radius-lg);
+    width: 100%;
+    font-size: 1.1rem;
+    font-weight: bold;
+    text-decoration: none;
+    transition: all 0.2s;
+    margin-bottom: 2rem;
+}
+
+.btn-agendar-agora:hover {
+    background-color: var(--color-purple);
+    color: white;
+}
+
+/* =========================================
+   MENU INFERIOR (FIXO NO RODAPÉ)
+   ========================================= */
+.bottom-nav {
+    background-color: var(--surface-color);
+    display: flex;
+    justify-content: space-around;
+    padding: 0.8rem 0;
+    border-top: 1px solid var(--border-color);
+    box-shadow: 0 -5px 20px rgba(0,0,0,0.02);
+    
+    flex-shrink: 0; /* Impede que o menu seja esmagado */
+    z-index: 10;
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    gap: 0.3rem;
+    transition: color 0.2s;
+}
+
+.nav-item.active, .nav-item:hover {
+    color: var(--color-purple);
+    font-weight: 600;
+}
+
+.nav-icon {
+    font-size: 1.4rem;
+}
+
+/* =========================================
+   RESPONSIVIDADE PARA DESKTOP (PC / TCC)
+   ========================================= */
+@media (min-width: 769px) {
+    /* No PC, o container ganha bordas e uma altura máxima para parecer um painel */
+    .mobile-container {
+        max-width: 1000px;
+        height: 85vh; /* Altura fixa no PC para não encostar nas bordas do ecrã */
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border-color);
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+    }
+
+    .app-content {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        align-items: start;
+        padding: 2.5rem;
+    }
+
+    /* O botão de agendar e títulos ocupam as duas colunas inteiras */
+    .btn-agendar-agora, .section-title {
+        grid-column: 1 / -1;
+    }
+}

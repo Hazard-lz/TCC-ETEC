@@ -1,0 +1,21 @@
+# Dependências do Composer
+/vendor/
+
+# Variáveis de Ambiente e Arquivos Sensíveis
+.env
+*.log
+error_log
+
+# Arquivos de Sistema Operacional (Windows / Mac)
+desktop.ini
+Thumbs.db
+.DS_Store
+
+# Arquivos de IDEs e Editores
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

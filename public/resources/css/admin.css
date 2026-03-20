@@ -1,0 +1,277 @@
+/* =========================================
+   ADMIN.CSS - LAYOUT DO PAINEL
+   ========================================= */
+
+.admin-wrapper {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  overflow-x: hidden; /* Evita rolagem horizontal no site inteiro */
+  background-color: var(--bg-color);
+}
+
+/* SIDEBAR */
+.sidebar {
+  width: 260px;
+  background-color: var(--surface-color);
+  border-right: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  height: 100vh;
+  transition: transform 0.3s ease;
+  z-index: 1000;
+}
+
+.sidebar-header {
+  padding: 2rem 1.5rem;
+  text-align: center;
+  border-bottom: 1px solid var(--border-color);
+}
+.sidebar-logo {
+  max-width: 140px;
+}
+.sidebar-nav {
+  flex-grow: 1;
+  padding: 1.5rem 0;
+}
+.sidebar-nav ul {
+  list-style: none;
+}
+
+.nav-link {
+  display: block;
+  padding: 1rem 1.5rem;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-weight: 500;
+  border-left: 4px solid transparent;
+  transition: all var(--transition-default);
+}
+.nav-link:hover {
+  background-color: var(--bg-color);
+  color: var(--color-purple);
+  padding-left: 1.8rem;
+}
+.nav-link.active {
+  background-color: rgba(139, 92, 246, 0.08);
+  color: var(--color-purple);
+  border-left-color: var(--color-purple);
+  font-weight: 600;
+}
+
+.sidebar-footer {
+  padding: 1rem 0;
+  border-top: 1px solid var(--border-color);
+}
+.logout-link {
+  color: var(--color-pink);
+}
+.logout-link:hover {
+  color: #d64550;
+  background-color: rgba(244, 91, 105, 0.08);
+}
+
+/* ÁREA PRINCIPAL */
+.main-content {
+  flex-grow: 1;
+  margin-left: 260px; /* Espaço da sidebar no PC */
+  display: flex;
+  flex-direction: column;
+  width: calc(100% - 260px);
+  transition:
+    margin-left 0.3s ease,
+    width 0.3s ease;
+}
+
+.topbar {
+  background-color: var(--surface-color);
+  padding: 1.5rem 2.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border-color);
+}
+.topbar h2 {
+  color: var(--text-main);
+  font-size: 1.4rem;
+}
+.user-profile {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+.avatar {
+  width: 40px;
+  height: 40px;
+  background: var(--gradient-brand);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+.content-area {
+  padding: 2.5rem;
+  flex-grow: 1;
+}
+
+/* Botão Mobile (Escondido no PC) */
+.menu-toggle {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 1.8rem;
+  color: var(--text-main);
+  cursor: pointer;
+}
+
+/* RESPONSIVIDADE DO ADMIN (CELULAR) */
+@media (max-width: 768px) {
+  .menu-toggle {
+    display: block;
+  }
+
+  .sidebar {
+    transform: translateX(-100%);
+  } /* Esconde a sidebar */
+  .sidebar.show {
+    transform: translateX(0);
+    box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
+  }
+
+  .main-content {
+    margin-left: 0;
+    width: 100%;
+  } /* Ocupa a tela toda */
+
+  .topbar {
+    padding: 1rem;
+  }
+  .user-profile span {
+    display: none;
+  } /* Esconde nome do admin */
+  .content-area {
+    padding: 1rem;
+  }
+}
+
+/* =========================================
+   SIDEBAR (MENU LATERAL FIXO E ROLÁVEL)
+   ========================================= */
+.sidebar {
+    width: 260px;
+    background-color: var(--surface-color);
+    border-right: 1px solid var(--border-color);
+    height: 100vh; /* Ocupa 100% da altura da tela do PC */
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 1000;
+    
+    /* TRANSFORMA A SIDEBAR NUMA CAIXA FLEXÍVEL */
+    display: flex;
+    flex-direction: column;
+    transition: transform var(--transition-default), background var(--transition-default);
+}
+
+/* 1. O Logótipo no topo (Fixo) */
+.sidebar-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+    flex-shrink: 0; /* Impede que o topo seja esmagado */
+}
+
+.sidebar-logo {
+    max-width: 150px;
+    height: auto;
+}
+
+/* 2. O Miolo com os Links (Ganha barra de rolagem se a tela for pequena) */
+.sidebar-nav {
+    flex-grow: 1; /* Ocupa todo o espaço restante do meio */
+    overflow-y: auto; /* Cria barra de rolagem APENAS nos links */
+    padding: 1.5rem 0;
+}
+
+/* Estiliza a barra de rolagem do menu para ficar fina e elegante */
+.sidebar-nav::-webkit-scrollbar {
+    width: 6px;
+}
+.sidebar-nav::-webkit-scrollbar-track {
+    background: transparent;
+}
+.sidebar-nav::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 10px;
+}
+
+.sidebar-nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sidebar-nav li {
+    margin-bottom: 0.5rem;
+}
+
+.nav-link {
+    display: flex;
+    align-items: center;
+    padding: 0.8rem 1.5rem;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+    border-right: 3px solid transparent;
+}
+
+.nav-link:hover, .nav-link.active {
+    color: var(--color-purple);
+    background-color: rgba(139, 92, 246, 0.05);
+    border-right-color: var(--color-purple);
+}
+
+/* 3. O Botão de Sair no fundo (Fixo) */
+.sidebar-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--border-color);
+    
+    flex-shrink: 0; /* Impede que o rodapé seja esmagado e suma */
+}
+
+.logout-link {
+    color: var(--color-pink);
+}
+
+.logout-link:hover {
+    color: white;
+    background-color: var(--color-pink);
+    border-right: none;
+    border-radius: var(--radius-md);
+}
+
+/* =========================================
+   RESPONSIVIDADE (CELULARES)
+   ========================================= */
+@media (max-width: 768px) {
+    /* No telemóvel, a barra esconde-se do lado esquerdo */
+    .sidebar {
+        transform: translateX(-100%);
+    }
+    
+    /* Classe que o JavaScript adiciona para mostrar a barra quando o botão ☰ é clicado */
+    .sidebar.open {
+        transform: translateX(0);
+        box-shadow: 5px 0 15px rgba(0,0,0,0.1);
+    }
+}

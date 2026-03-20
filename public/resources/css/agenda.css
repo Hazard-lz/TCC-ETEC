@@ -1,0 +1,244 @@
+/* =========================================
+   AGENDA.CSS - CALENDÁRIO ESTILO GOOGLE
+   ========================================= */
+
+.calendar-wrapper {
+    background: var(--surface-color);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Esconde o que vazar das bordas arredondadas */
+}
+
+/* Cabeçalho do Calendário (Controles) */
+.calendar-toolbar {
+    padding: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.calendar-nav {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.btn-icon {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 0.4rem 0.8rem;
+    cursor: pointer;
+    color: var(--text-main);
+    transition: background 0.2s;
+}
+
+.btn-icon:hover {
+    background: var(--bg-color);
+}
+
+/* =========================================
+   A GRADE DO CALENDÁRIO
+   ========================================= */
+.calendar-scroll-area {
+    width: 100%;
+    overflow-x: auto; /* Permite rolar para os lados no celular */
+    -webkit-overflow-scrolling: touch;
+}
+
+.calendar-grid {
+    display: grid;
+    /* 1 coluna para os horários (60px) + 6 colunas para os dias (Seg a Sab) */
+    grid-template-columns: 60px repeat(6, minmax(140px, 1fr));
+    min-width: 900px; /* Força a tabela a não esmagar no mobile */
+}
+
+/* Linha com os nomes dos dias (Segunda, Terça...) */
+.calendar-days-header {
+    display: contents; /* Ignora a div e aplica o grid aos filhos */
+}
+
+.day-header {
+    text-align: center;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--border-color);
+    border-right: 1px solid var(--border-color);
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 0.9rem;
+    background: #f8fafc;
+}
+
+.day-header.today {
+    color: var(--color-purple);
+    font-weight: 700;
+}
+
+.day-header.today span {
+    display: inline-block;
+    background: var(--color-purple);
+    color: white;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    line-height: 30px;
+    margin-top: 5px;
+}
+
+/* Corpo do Calendário */
+.calendar-body {
+    display: contents;
+}
+
+/* Coluna lateral de Horários (09:00, 10:00...) */
+.time-column {
+    border-right: 1px solid var(--border-color);
+    background: #fcfcfc;
+}
+
+.time-slot-label {
+    height: 60px; /* Cada hora tem 60px de altura */
+    text-align: right;
+    padding-right: 0.5rem;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border-color);
+    /* Desloca o texto um pouco pra cima para alinhar com a linha */
+    transform: translateY(-50%); 
+}
+
+/* Colunas verticais dos Dias (Onde os eventos entram) */
+.day-column {
+    border-right: 1px solid var(--border-color);
+    position: relative; /* CRUCIAL: Permite posicionar os eventos dentro de forma absoluta */
+    /* 10 horas de trabalho (09h às 18h) * 60px por hora = 600px de altura total */
+    height: 600px; 
+    
+    /* Desenha as linhas horizontais de fundo a cada 60px */
+    background-image: linear-gradient(to bottom, var(--border-color) 1px, transparent 1px);
+    background-size: 100% 60px;
+}
+
+/* =========================================
+   OS EVENTOS (BLOCOS COLORIDOS)
+   ========================================= */
+.event-block {
+    position: absolute; /* Posiciona flutuando dentro da coluna do dia */
+    left: 4px;
+    right: 4px;
+    border-radius: 6px;
+    padding: 0.4rem;
+    font-size: 0.8rem;
+    color: white;
+    cursor: pointer;
+    overflow: hidden;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+    z-index: 10;
+}
+
+.event-block:hover {
+    transform: scale(1.02);
+    z-index: 20;
+}
+
+.event-title {
+    font-weight: 700;
+    margin-bottom: 0.2rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.event-time {
+    font-size: 0.7rem;
+    opacity: 0.9;
+}
+
+/* Cores baseadas no Status do Agendamento */
+.event-marcado { background: linear-gradient(135deg, #a78bfa, var(--color-purple)); }
+.event-concluido { background: linear-gradient(135deg, #2ecc71, #27ae60); }
+.event-pendente { background: linear-gradient(135deg, #f45b69, #e74c3c); }
+
+/* =========================================
+   RESPONSIVIDADE DO CALENDÁRIO (CELULAR)
+   ========================================= */
+
+/* Habilita o "deslizamento magnético" (Snap) na área de rolagem */
+.calendar-scroll-area {
+    scroll-snap-type: x mandatory; 
+    scroll-padding-left: 60px; /* Desconta o espaço da coluna de horários */
+}
+
+/* Faz cada dia "puxar" a tela para si quando o usuário parar de rolar */
+.day-column, .day-header {
+    scroll-snap-align: start;
+}
+
+@media (max-width: 768px) {
+    /* Empilha os botões do cabeçalho */
+    .calendar-toolbar {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch; /* Faz os itens esticarem */
+    }
+
+    .calendar-nav {
+        justify-content: space-between;
+    }
+
+    /* O botão ocupa a largura toda no celular */
+    .calendar-toolbar .btn-primary {
+        width: 100% !important;
+        justify-content: center;
+    }
+
+    /* Aumenta a largura mínima da grade para garantir que no celular 
+       você veja apenas 1 ou 2 dias por vez, melhorando a leitura */
+    .calendar-grid {
+        min-width: 1200px; 
+    }
+}
+
+/* 
+   BLOCO DE HORÁRIO BLOQUEADO 
+    */
+.event-bloqueado { 
+    /* Fundo listrado cinza para indicar que está indisponível */
+    background: repeating-linear-gradient(
+        45deg,
+        #f1f5f9,
+        #f1f5f9 10px,
+        #e2e8f0 10px,
+        #e2e8f0 20px
+    );
+    color: #475569;
+    border: 1px solid #cbd5e1;
+    box-shadow: none;
+}
+
+.event-bloqueado:hover {
+    transform: none; /* Não aumenta ao passar o mouse */
+    z-index: 5;
+}
+
+.event-bloqueado .event-title {
+    color: #475569;
+    font-weight: 600;
+}
+
+/* Ajuste no cabeçalho do calendário para caber 2 botões */
+.calendar-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+@media (max-width: 768px) {
+    .calendar-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+}

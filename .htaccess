@@ -1,0 +1,11 @@
+# Ativa o motor de reescrita de URLs do Apache
+RewriteEngine On
+
+# Se o que o usuário digitou NÃO for um arquivo real (como uma imagem ou CSS)
+RewriteCond %{REQUEST_FILENAME} !-f
+
+# Se o que o usuário digitou NÃO for uma pasta real
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Redireciona tudo que sobrou silenciosamente para o index.php
+RewriteRule ^(.*)$ index.php [QSA,L]

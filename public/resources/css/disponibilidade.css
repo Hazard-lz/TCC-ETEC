@@ -1,0 +1,82 @@
+/* =========================================
+   DISPONIBILIDADE.CSS - PAINEL DO FUNCIONÁRIO
+   ========================================= */
+
+/* Estrutura para os campos de hora ficarem lado a lado no PC */
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+/* Container dos Dias da Semana */
+.days-container {
+    display: flex;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+    margin-bottom: 2rem;
+}
+
+/* Esconder a checkbox padrão (feia) do navegador */
+.day-checkbox {
+    display: none; 
+}
+
+/* Transformar a Label num botão moderno (estilo "Pílula") */
+.day-label {
+    background-color: var(--bg-color);
+    border: 2px solid var(--border-color);
+    color: var(--text-muted);
+    padding: 0.6rem 1.2rem;
+    border-radius: 25px; 
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: all var(--transition-default);
+    user-select: none;
+    display: inline-block;
+}
+
+/* Efeito ao passar o rato (Hover) */
+.day-label:hover {
+    border-color: var(--color-purple);
+    color: var(--color-purple);
+    background-color: rgba(139, 92, 246, 0.05);
+}
+
+/* Estado Ativo (Quando o dia está selecionado) */
+.day-checkbox:checked + .day-label {
+    background-color: var(--color-purple);
+    border-color: var(--color-purple);
+    color: white;
+    box-shadow: 0 4px 10px rgba(139, 92, 246, 0.3);
+}
+
+/* Ajuste nos inputs de tempo para ficarem com visual limpo e centralizado */
+input[type="time"].form-control {
+    font-family: inherit;
+    font-size: 1.1rem;
+    text-align: center;
+    letter-spacing: 1px;
+}
+
+/* =========================================
+   RESPONSIVIDADE (CELULARES)
+   ========================================= */
+@media (max-width: 768px) {
+    .form-grid {
+        grid-template-columns: 1fr; /* Empilha os horários no telemóvel (um debaixo do outro) */
+        gap: 1rem;
+    }
+    
+    .days-container {
+        gap: 0.5rem;
+        justify-content: center; /* Centraliza os botões de dias no telemóvel */
+    }
+    
+    .day-label {
+        padding: 0.5rem 0.9rem;
+        font-size: 0.85rem;
+    }
+}

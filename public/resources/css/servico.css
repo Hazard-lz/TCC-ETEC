@@ -1,0 +1,109 @@
+/* =========================================
+   SERVICO.CSS - CADASTRO DE SERVIÇOS
+   ========================================= */
+
+/* O cartão de serviços precisa ser mais largo para caber as colunas e centralizado */
+.servico-card {
+  max-width: 600px;
+  margin: 0 auto; /* Centraliza o formulário na tela do admin */
+}
+
+/* Cria uma linha com campos lado a lado (Preço e Duração) */
+.form-row {
+  display: flex;
+  gap: 1.5rem;
+}
+
+/* Configuração específica para o campo de texto grande (Descrição) */
+textarea.form-control {
+  resize: vertical;
+  min-height: 100px;
+}
+
+/* Adiciona uma setinha personalizada no campo de Seleção (Status) */
+select.form-control {
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23718096' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 1em;
+  padding-right: 2.5rem;
+  cursor: pointer;
+}
+
+/* RESPONSIVIDADE PARA O FORMULÁRIO (CELULAR) */
+@media (max-width: 768px) {
+  .form-row {
+    flex-direction: column; /* Coloca um campo em cima do outro no celular */
+    gap: 0; /* Tira o espaço extra pois a classe form-group já tem margem */
+  }
+}
+
+/* =========================================
+   TABELA RESPONSIVA EM DUAS LINHAS (CELULAR)
+   ========================================= */
+@media (max-width: 768px) {
+    /* Remove a barra de rolagem horizontal */
+    .table-responsive {
+        overflow-x: hidden !important;
+    }
+    
+    /* Quebra o limite mínimo de largura da tabela padrão */
+    .data-table {
+        min-width: 100% !important;
+        display: block;
+    }
+    
+    /* Esconde o cabeçalho original da tabela (Nome, Preço, etc) */
+    .data-table thead {
+        display: none;
+    }
+    
+    .data-table tbody {
+        display: block;
+        width: 100%;
+    }
+    
+    /* Transforma a linha da tabela em um flex container que aceita quebra de linha */
+    .data-table tr {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        padding: 1rem 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    /* 1ª LINHA: Nome do Serviço (Força 100% da largura para empurrar o resto para baixo) */
+    .data-table td:nth-child(1) {
+        width: 100%;
+        border: none;
+        padding: 0 0 0.5rem 0;
+        font-size: 1.1rem;
+    }
+    
+    /* 2ª LINHA: Preço, Duração e Status (Ficam lado a lado) */
+    .data-table td:nth-child(2),
+    .data-table td:nth-child(3),
+    .data-table td:nth-child(4) {
+        width: auto;
+        border: none;
+        padding: 0;
+        font-size: 0.9rem;
+        color: var(--text-muted);
+        margin-right: 0.8rem;
+    }
+    
+    /* Adiciona um "•" (pontinho) entre o Preço e a Duração para ficar elegante */
+    .data-table td:nth-child(2)::after {
+        content: " • ";
+        margin-left: 0.8rem;
+    }
+    
+    /* 2ª LINHA: Botões de Editar/Excluir (Empurra eles para o canto direito) */
+    .data-table td:nth-child(5) {
+        width: auto;
+        border: none;
+        padding: 0;
+        margin-left: auto; /* Truque mágico que empurra os botões para a extrema direita */
+    }
+}

@@ -1,0 +1,150 @@
+/* =========================================
+   PERFIL.CSS - TELA DE PERFIL COM ABAS
+   ========================================= */
+
+.profile-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1rem 0 2rem 0;
+    text-align: center;
+}
+
+.profile-avatar-large {
+    width: 90px;
+    height: 90px;
+    background: var(--gradient-brand);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    box-shadow: 0 10px 20px rgba(139, 92, 246, 0.3);
+}
+
+.profile-name {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.profile-email {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+/* =========================================
+   ESTILOS DAS ABAS (TABS)
+   ========================================= */
+.tabs-container {
+    width: 100%;
+    margin-bottom: 1.5rem;
+}
+
+.tabs-header {
+    display: flex;
+    border-bottom: 2px solid var(--border-color);
+    margin-bottom: 1.5rem;
+}
+
+.tab-btn {
+    flex: 1;
+    background: transparent;
+    border: none;
+    padding: 1rem 0.5rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px; /* Faz a borda sobrepor a linha inferior */
+    transition: all var(--transition-default);
+}
+
+.tab-btn:hover {
+    color: var(--color-purple);
+}
+
+.tab-btn.active {
+    color: var(--color-purple);
+    border-bottom-color: var(--color-purple);
+}
+
+/* Oculta as abas inativas e cria animação de surgimento */
+.tab-pane {
+    display: none;
+    animation: fadeSlideUp 0.3s ease forwards;
+}
+
+.tab-pane.active {
+    display: block;
+}
+
+@keyframes fadeSlideUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* =========================================
+   CONTAINER DOS FORMULÁRIOS
+   ========================================= */
+.profile-section {
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+    transition: background var(--transition-default), border-color var(--transition-default);
+}
+
+/* Botão de Sair (Logout) */
+.btn-logout {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 1rem;
+    background-color: transparent;
+    border: 2px solid var(--color-pink);
+    color: var(--color-pink);
+    border-radius: var(--radius-md);
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 1rem;
+    margin-bottom: 2rem;
+}
+
+.btn-logout:hover {
+    background-color: var(--color-pink);
+    color: white;
+}
+
+/* =========================================
+   RESPONSIVIDADE (DESKTOP)
+   ========================================= */
+@media (min-width: 769px) {
+    /* Força os elementos principais a ocuparem as duas colunas inteiras do grid */
+    .profile-header,
+    .tabs-container,
+    .btn-logout {
+        grid-column: 1 / -1;
+    }
+
+    .tabs-container {
+        max-width: 700px;
+        margin: 0 auto 1.5rem auto;
+        width: 100%;
+    }
+    
+    /* Centraliza o botão e impede que fique muito esticado no monitor */
+    .btn-logout {
+        max-width: 350px;
+        margin: 1rem auto 2rem auto;
+    }
+}

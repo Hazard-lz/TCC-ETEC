@@ -1,0 +1,73 @@
+/* =========================================
+   LOGIN.CSS - TELA DE AUTENTICAÇÃO
+   ========================================= */
+
+/* Fundo da tela que centraliza o cartão vertical e horizontalmente */
+.login-wrapper {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem; /* Evita que o cartão cole nas bordas do telemóvel */
+    background: var(--gradient-brand); /* Fundo com a identidade visual do salão */
+}
+
+/* Limita o tamanho do cartão branco e centraliza o texto global dele */
+.login-card {
+    width: 100%;
+    max-width: 420px;
+    text-align: center;
+}
+
+/* Tamanho específico do logo na tela de login */
+.login-logo {
+    max-width: 160px;
+    margin-bottom: 2rem;
+}
+
+/* Ajustes do formulário para alinhar o texto à esquerda (labels e inputs) */
+.login-form {
+    text-align: left;
+}
+
+/* Container para alinhar o link "Esqueceu a senha?" à direita */
+.forgot-password-container {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 0.6rem;
+}
+
+/* Estilo do link de recuperação */
+.forgot-password {
+    font-size: 0.85rem;
+    color: var(--color-purple);
+    text-decoration: none;
+    font-weight: 600;
+    transition: color var(--transition-default);
+}
+
+.forgot-password:hover {
+    color: var(--color-pink);
+    text-decoration: underline;
+}
+
+/* Botão Secundário (Cadastre-se) */
+.btn-secondary {
+    display: block;
+    width: 100%;
+    text-align: center;
+    padding: 0.9rem;
+    margin-top: 1rem;
+    background: transparent;
+    border: 2px solid var(--color-purple);
+    border-radius: var(--radius-md);
+    color: var(--color-purple);
+    font-size: 1.05rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all var(--transition-default);
+}
+
+.btn-secondary:hover {
+    background: rgba(139, 92, 246, 0.05);
+}

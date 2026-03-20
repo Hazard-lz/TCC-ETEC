@@ -1,0 +1,153 @@
+/* =========================================
+   AGENDAR.CSS - FLUXO DE AGENDAMENTO
+   ========================================= */
+
+.progress-container {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    position: relative;
+}
+
+.progress-container::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: var(--border-color);
+    z-index: 1;
+    transform: translateY(-50%);
+    transition: background var(--transition-default);
+}
+
+.step-indicator {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--surface-color);
+    border: 2px solid var(--border-color);
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.9rem;
+    z-index: 2;
+    transition: all 0.3s;
+}
+
+.step-indicator.active {
+    background: var(--color-purple);
+    border-color: var(--color-purple);
+    color: white;
+}
+
+.step-indicator.completed {
+    background: #2ecc71;
+    border-color: #2ecc71;
+    color: white;
+}
+
+.step-content {
+    display: none;
+    animation: fadeInRight 0.3s ease forwards;
+}
+
+.step-content.active {
+    display: block;
+}
+
+/* Cartões Selecionáveis */
+.cards-grid {
+    display: grid;
+    gap: 1rem;
+}
+
+.selectable-card {
+    background: var(--surface-color);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 1.2rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.selectable-card:hover {
+    border-color: rgba(139, 92, 246, 0.5);
+    transform: translateY(-2px);
+}
+
+.selectable-card.selected {
+    border-color: var(--color-purple);
+    background: rgba(139, 92, 246, 0.05);
+}
+
+.card-title {
+    font-weight: 700;
+    color: var(--text-main);
+    margin-bottom: 0.2rem;
+}
+
+.card-subtitle {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+/* Grade de Horários */
+.time-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.8rem;
+    margin-top: 1rem;
+}
+
+.time-slot {
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+    padding: 0.8rem 0;
+    border-radius: var(--radius-md);
+    text-align: center;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.time-slot:hover {
+    border-color: var(--color-purple);
+}
+
+.time-slot.selected {
+    background: var(--color-purple);
+    color: white;
+    border-color: var(--color-purple);
+}
+
+.step-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+@keyframes fadeInRight {
+    from { opacity: 0; transform: translateX(20px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+/* =========================================
+   RESPONSIVIDADE (DESKTOP)
+   ========================================= */
+@media (min-width: 769px) {
+    .cards-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    .time-grid {
+        grid-template-columns: repeat(5, 1fr);
+    }
+}
