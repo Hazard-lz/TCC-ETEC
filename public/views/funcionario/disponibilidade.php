@@ -67,7 +67,7 @@ $diasSemana = [
             gap: 10px;
             align-items: center;
         }
-        .day-row input[type="time"], .day-row select {
+        .day-row input[type="time"] {
             width: auto;
             padding: 6px 10px;
         }
@@ -75,6 +75,20 @@ $diasSemana = [
             border-left: 2px solid var(--border-color);
             padding-left: 15px;
             margin-left: 5px;
+        }
+        .btn-limpar-pausa {
+            background: none;
+            border: none;
+            color: #dc3545;
+            font-size: 0.8rem;
+            cursor: pointer;
+            font-weight: bold;
+            padding: 0 5px;
+            text-decoration: underline;
+            transition: color 0.2s;
+        }
+        .btn-limpar-pausa:hover {
+            color: #a71d2a;
         }
         
         /* Layout responsivo para telas menores */
@@ -111,13 +125,13 @@ $diasSemana = [
                     </div>
                 <?php endif; ?>
 
-                <div class="base-card" style="max-width: 900px; padding: 2rem;">
+                <div class="base-card" style="max-width: 1000px; padding: 2rem;">
                     
                     <form action="<?= BASE_URL ?>/funcionario/disponibilidade/salvar" method="POST">
                         <input type="hidden" name="id_disponibilidade" value="<?= $idDisponibilidade ?>">
                         
                         <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.5rem;">
-                            Marque a caixa de seleção nos dias em que trabalha. Para pausas, preencha caso necessário.
+                            Marque a caixa de seleção nos dias em que trabalha. Para pausas e férias, pode alterar temporariamente o status desmarcando a caixa.
                         </p>
 
                         <div class="dias-grid">
@@ -147,9 +161,11 @@ $diasSemana = [
 
                                     <div class="time-input-group divider">
                                         <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: bold;">Pausa das</span>
-                                        <input type="time" name="dias[<?= $sigla ?>][intervalo_inicio]" value="<?= $d['int_inicio'] ?>" class="form-control">
+                                        <input type="time" id="int_ini_<?= $sigla ?>" name="dias[<?= $sigla ?>][intervalo_inicio]" value="<?= $d['int_inicio'] ?>" class="form-control">
                                         <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: bold;">às</span>
-                                        <input type="time" name="dias[<?= $sigla ?>][intervalo_fim]" value="<?= $d['int_fim'] ?>" class="form-control">
+                                        <input type="time" id="int_fim_<?= $sigla ?>" name="dias[<?= $sigla ?>][intervalo_fim]" value="<?= $d['int_fim'] ?>" class="form-control">
+                                        
+                                        <button type="button" class="btn-limpar-pausa" onclick="limparPausa('<?= $sigla ?>')" title="Remover horário de pausa">Limpar pausa</button>
                                     </div>
 
                                 </div>
@@ -162,7 +178,7 @@ $diasSemana = [
                             </button>
 
                             <?php if (!empty($idDisponibilidade)): ?>
-                                <button type="button" class="btn-danger" style="max-width: 250px; background-color: #dc3545; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;" onclick="if(confirm('Tem certeza que deseja marcar toda a sua grelha como indisponível?')) { document.getElementById('form-excluir').submit(); }">
+                                <button type="button" class="btn-danger" style="max-width: 250px; background-color: #dc3545; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;" onclick="if(confirm('Tem certeza que deseja inativar toda a sua grelha?')) { document.getElementById('form-excluir').submit(); }">
                                     Inativar Grelha Inteira
                                 </button>
                             <?php endif; ?>
@@ -186,14 +202,23 @@ $diasSemana = [
     <script src="<?= BASE_URL ?>/public/resources/js/app-cliente.js"></script>
     
     <script>
+        // Função visual para apagar/acender a linha ao clicar na checkbox
         function toggleDayRow(sigla) {
             const checkbox = document.getElementById('dia_' + sigla);
             const row = document.getElementById('row_' + sigla);
             if (checkbox.checked) {
                 row.style.opacity = '1';
+                row.style.filter = 'none';
             } else {
-                row.style.opacity = '0.6';
+                row.style.opacity = '0.5';
+                row.style.filter = 'grayscale(100%)';
             }
+        }
+
+        // NOVA FUNÇÃO: Limpa os campos de pausa do dia específico
+        function limparPausa(sigla) {
+            document.getElementById('int_ini_' + sigla).value = '';
+            document.getElementById('int_fim_' + sigla).value = '';
         }
     </script>
 </body>
