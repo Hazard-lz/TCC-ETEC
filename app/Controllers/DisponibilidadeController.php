@@ -39,15 +39,18 @@ class DisponibilidadeController
             
             // Filtra o formulário para processar apenas os dias que o utilizador marcou com a checkbox 'ativo'
             foreach ($diasPost as $dia => $dados) {
-                if (isset($dados['ativo']) && $dados['ativo'] == '1') {
-                    $diasConfigurados[$dia] = [
-                        'inicio' => $dados['hora_inicio'] ?? '',
-                        'fim' => $dados['hora_fim'] ?? '',
-                        'int_inicio' => $dados['intervalo_inicio'] ?? '',
-                        'int_fim' => $dados['intervalo_fim'] ?? '',
-                        'status' => $dados['status'] ?? 'disponivel'
-                    ];
-                }
+                
+                // Se a checkbox 'ativo' foi marcada, é true. Se não, é false.
+                $isAtivo = isset($dados['ativo']) && $dados['ativo'] == '1';
+                
+                $diasConfigurados[$dia] = [
+                    'inicio' => $dados['hora_inicio'] ?? '',
+                    'fim' => $dados['hora_fim'] ?? '',
+                    'int_inicio' => $dados['intervalo_inicio'] ?? '',
+                    'int_fim' => $dados['intervalo_fim'] ?? '',
+                    // AQUI ESTÁ A MUDANÇA: O status agora é 100% controlado pela checkbox
+                    'status' => $isAtivo ? 'disponivel' : 'indisponivel'
+                ];
             }
 
             // O Service agora orquestra tudo sozinho num único método

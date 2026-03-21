@@ -117,41 +117,38 @@ $diasSemana = [
                         <input type="hidden" name="id_disponibilidade" value="<?= $idDisponibilidade ?>">
                         
                         <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.5rem;">
-                            Marque a caixa de seleção nos dias em que trabalha. Para pausas e férias, pode alterar temporariamente o status para "Indisponível".
+                            Marque a caixa de seleção nos dias em que trabalha. Para pausas, preencha caso necessário.
                         </p>
 
                         <div class="dias-grid">
                             <?php foreach($diasSemana as $sigla => $rotulo): 
-                                // Verifica se o dia existe na base de dados (está ativo na grelha do utilizador)
-                                $ativo = isset($dadosDias[$sigla]);
-                                // Preenche com os dados reais ou com valores padrão vazios
-                                $d = $ativo ? $dadosDias[$sigla] : ['inicio'=>'', 'fim'=>'', 'int_inicio'=>'', 'int_fim'=>'', 'status'=>'disponivel'];
+                                // 1. Verifica se o dia já foi salvo no banco alguma vez
+                                $existe = isset($dadosDias[$sigla]);
+                                
+                                // 2. Preenche com os dados reais ou com valores em branco
+                                $d = $existe ? $dadosDias[$sigla] : ['inicio'=>'', 'fim'=>'', 'int_inicio'=>'', 'int_fim'=>'', 'status'=>'disponivel'];
+                                
+                                // 3. A caixa SÓ deve ficar marcada se o dia existe E o status for 'disponivel'
+                                $ativo = $existe && $d['status'] === 'disponivel';
                             ?>
-                                <div class="day-row" id="row_<?= $sigla ?>" style="<?= !$ativo ? 'opacity: 0.6;' : '' ?>">
+                                <div class="day-row" id="row_<?= $sigla ?>" style="<?= !$ativo ? 'opacity: 0.5; filter: grayscale(100%);' : '' ?>">
                                     
-                                    <div style="min-width: 140px; display: flex; align-items: center; gap: 10px;">
-                                        <input type="checkbox" name="dias[<?= $sigla ?>][ativo]" value="1" id="dia_<?= $sigla ?>" <?= $ativo ? 'checked' : '' ?> style="transform: scale(1.3); cursor: pointer;" onchange="toggleDayRow('<?= $sigla ?>')">
-                                        <label for="dia_<?= $sigla ?>" style="font-weight: 600; color: var(--text-main); cursor:pointer; font-size: 1.05rem;"><?= $rotulo ?></label>
-                                    </div>
-
-                                    <div>
-                                        <select name="dias[<?= $sigla ?>][status]" class="form-control" style="font-weight: 500;">
-                                            <option value="disponivel" <?= $d['status'] === 'disponivel' ? 'selected' : '' ?>>✅ Disponível</option>
-                                            <option value="indisponivel" <?= $d['status'] === 'indisponivel' ? 'selected' : '' ?>>⛔ Indisponível</option>
-                                        </select>
+                                    <div style="min-width: 160px; display: flex; align-items: center; gap: 10px;">
+                                        <input type="checkbox" name="dias[<?= $sigla ?>][ativo]" value="1" id="dia_<?= $sigla ?>" <?= $ativo ? 'checked' : '' ?> style="transform: scale(1.4); cursor: pointer;" onchange="toggleDayRow('<?= $sigla ?>')">
+                                        <label for="dia_<?= $sigla ?>" style="font-weight: 600; color: var(--text-main); cursor:pointer; font-size: 1.1rem;"><?= $rotulo ?></label>
                                     </div>
 
                                     <div class="time-input-group">
-                                        <span style="font-size: 0.85rem; color: var(--text-muted);">Das</span>
+                                        <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: bold;">Trabalha das</span>
                                         <input type="time" name="dias[<?= $sigla ?>][hora_inicio]" value="<?= $d['inicio'] ?>" class="form-control">
-                                        <span style="font-size: 0.85rem; color: var(--text-muted);">às</span>
+                                        <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: bold;">às</span>
                                         <input type="time" name="dias[<?= $sigla ?>][hora_fim]" value="<?= $d['fim'] ?>" class="form-control">
                                     </div>
 
                                     <div class="time-input-group divider">
-                                        <span style="font-size: 0.85rem; color: var(--text-muted);">Almoço:</span>
+                                        <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: bold;">Pausa das</span>
                                         <input type="time" name="dias[<?= $sigla ?>][intervalo_inicio]" value="<?= $d['int_inicio'] ?>" class="form-control">
-                                        <span style="font-size: 0.85rem; color: var(--text-muted);">até</span>
+                                        <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: bold;">às</span>
                                         <input type="time" name="dias[<?= $sigla ?>][intervalo_fim]" value="<?= $d['int_fim'] ?>" class="form-control">
                                     </div>
 
