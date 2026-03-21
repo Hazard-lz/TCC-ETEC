@@ -98,6 +98,19 @@ switch ($uri) {
     // ROTAS DE CLIENTES
     // ------------------------------------------
     case '/':
+        // 1. Verifica se existe um utilizador logado e se ele possui a flag de funcionário/admin na sessão.
+        // O uso do isset() previne erros de "Undefined array key" caso o visitante não esteja logado.
+        if (isset($_SESSION['usuario_id']) && isset($_SESSION['is_funcionario']) && $_SESSION['is_funcionario'] === true) {
+            
+            // 2. Sendo da equipe, forçamos o redirecionamento para o dashboard correto.
+            header("Location: " . BASE_URL . "/funcionario/dashboard");
+            
+            // Isso garante que o servidor pare de processar o resto do ficheiro index.php imediatamente,
+            exit; 
+        }
+
+        // 4. Se o fluxo passou pelo 'if' sem entrar, significa que é um visitante anônimo ou um cliente comum.
+        // Portanto, carregamos a página principal pública.
         include __DIR__ . '/public/views/cliente/main.php';
         break;
     case '/perfil':
@@ -234,10 +247,33 @@ switch ($uri) {
     case '/funcionario/servicos':
         include __DIR__ . '/public/views/funcionario/servicos.php';
         break;
+    // ------------------------------------------
+    // ROTAS DE DISPONIBILIDADE
+    // ------------------------------------------
     case '/funcionario/disponibilidade':
         include __DIR__ . '/public/views/funcionario/disponibilidade.php';
         break;
-        
+
+    case '/funcionario/disponibilidade/salvar':
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // Para não esquecer: O arquivo do Controller já deve ser carregado pelo seu spl_autoload_register
+            $controller = new DisponibilidadeController();
+            $controller->salvar();
+        } else {
+            header("Location: " . BASE_URL . "/funcionario/disponibilidade");
+            exit;
+        }
+        break;
+
+    case '/funcionario/disponibilidade/excluir':
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $controller = new DisponibilidadeController();
+            $controller->excluir();
+        } else {
+            header("Location: " . BASE_URL . "/funcionario/disponibilidade");
+            exit;
+        }
+        break; 
     // Rota lógica para salvar as especialidades do funcionário
     case '/funcionario/servicos/salvar':
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {

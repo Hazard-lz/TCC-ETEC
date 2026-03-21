@@ -1,3 +1,39 @@
+<?php
+// 1. Inicia a sessão
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// 2. Busca os dados existentes da grelha do funcionário
+require_once __DIR__ . '/../../../app/Models/Disponibilidade.php';
+$dispModel = new Disponibilidade();
+$gradeExistente = $dispModel->buscarPorFuncionario($_SESSION['usuario_id']);
+
+$idDisponibilidade = '';
+$dadosDias = []; 
+
+// Se o funcionário já tem horários, mapeamos os dados para um array fácil de ler na View
+if (!empty($gradeExistente)) {
+    $idDisponibilidade = $gradeExistente[0]['id_disponibilidade'];
+    
+    foreach ($gradeExistente as $row) {
+        $dadosDias[$row['dia_semana']] = [
+            'inicio' => substr($row['hora_inicio_trabalho'], 0, 5),
+            'fim' => substr($row['hora_fim_trabalho'], 0, 5),
+            'int_inicio' => !empty($row['intervalo_inicio']) ? substr($row['intervalo_inicio'], 0, 5) : '',
+            'int_fim' => !empty($row['intervalo_fim']) ? substr($row['intervalo_fim'], 0, 5) : '',
+            'status' => $row['status']
+        ];
+    }
+}
+
+// Lista fixa de dias para gerar o formulário
+$diasSemana = [
+    'Dom' => 'Domingo', 'Seg' => 'Segunda', 'Ter' => 'Terça', 
+    'Qua' => 'Quarta', 'Qui' => 'Quinta', 'Sex' => 'Sexta', 'Sab' => 'Sábado'
+];
+?>
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -8,6 +44,45 @@
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/root.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/admin-layout.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/disponibilidade.css">
+    
+    <style>
+        .day-row {
+            background: var(--bg-secondary);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 15px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        .day-row:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .time-input-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .day-row input[type="time"], .day-row select {
+            width: auto;
+            padding: 6px 10px;
+        }
+        .divider {
+            border-left: 2px solid var(--border-color);
+            padding-left: 15px;
+            margin-left: 5px;
+        }
+        
+        /* Layout responsivo para telas menores */
+        @media (max-width: 768px) {
+            .divider { border-left: none; padding-left: 0; margin-left: 0; border-top: 1px dashed var(--border-color); padding-top: 10px; width: 100%; }
+            .day-row { flex-direction: column; align-items: flex-start; }
+        }
+    </style>
 </head>
 <body>
     <div class="admin-wrapper">
@@ -20,60 +95,89 @@
                 <div class="page-header" style="margin-bottom: 2rem;">
                     <div class="page-title">
                         <h2 style="color: var(--text-main); margin-bottom: 0.5rem;">Minha Disponibilidade</h2>
-                        <p style="color: var(--text-muted);">Configure os seus dias e horários de atendimento.</p>
+                        <p style="color: var(--text-muted);">Configure os seus dias e horários de atendimento de forma individual.</p>
                     </div>
                 </div>
 
-                <div class="base-card" style="max-width: 700px; padding: 2rem;">
+                <?php if (isset($_SESSION['msg_sucesso'])): ?>
+                    <div class="alert alert-success" style="background: #d4edda; color: #155724; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                        <?= $_SESSION['msg_sucesso']; unset($_SESSION['msg_sucesso']); ?>
+                    </div>
+                <?php endif; ?>
+
+                <?php if (isset($_SESSION['msg_erro'])): ?>
+                    <div class="alert alert-danger" style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                        <?= $_SESSION['msg_erro']; unset($_SESSION['msg_erro']); ?>
+                    </div>
+                <?php endif; ?>
+
+                <div class="base-card" style="max-width: 900px; padding: 2rem;">
+                    
                     <form action="<?= BASE_URL ?>/funcionario/disponibilidade/salvar" method="POST">
+                        <input type="hidden" name="id_disponibilidade" value="<?= $idDisponibilidade ?>">
                         
-                        <h3 class="section-title" style="margin-bottom: 1rem; color: var(--text-main);">Dias de Trabalho</h3>
-                        
-                        <div class="days-container">
-                            <?php 
-                            $dias = [
-                                'Seg' => 'Segunda', 
-                                'Ter' => 'Terça', 
-                                'Qua' => 'Quarta', 
-                                'Qui' => 'Quinta', 
-                                'Sex' => 'Sexta', 
-                                'Sab' => 'Sábado', 
-                                'Dom' => 'Domingo'
-                            ];
-                            foreach($dias as $valor => $rotulo): ?>
-                                <div>
-                                    <input type="checkbox" name="dias_semana[]" value="<?= $valor ?>" id="dia_<?= $valor ?>" class="day-checkbox">
-                                    <label for="dia_<?= $valor ?>" class="day-label"><?= $rotulo ?></label>
+                        <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.5rem;">
+                            Marque a caixa de seleção nos dias em que trabalha. Para pausas e férias, pode alterar temporariamente o status para "Indisponível".
+                        </p>
+
+                        <div class="dias-grid">
+                            <?php foreach($diasSemana as $sigla => $rotulo): 
+                                // Verifica se o dia existe na base de dados (está ativo na grelha do utilizador)
+                                $ativo = isset($dadosDias[$sigla]);
+                                // Preenche com os dados reais ou com valores padrão vazios
+                                $d = $ativo ? $dadosDias[$sigla] : ['inicio'=>'', 'fim'=>'', 'int_inicio'=>'', 'int_fim'=>'', 'status'=>'disponivel'];
+                            ?>
+                                <div class="day-row" id="row_<?= $sigla ?>" style="<?= !$ativo ? 'opacity: 0.6;' : '' ?>">
+                                    
+                                    <div style="min-width: 140px; display: flex; align-items: center; gap: 10px;">
+                                        <input type="checkbox" name="dias[<?= $sigla ?>][ativo]" value="1" id="dia_<?= $sigla ?>" <?= $ativo ? 'checked' : '' ?> style="transform: scale(1.3); cursor: pointer;" onchange="toggleDayRow('<?= $sigla ?>')">
+                                        <label for="dia_<?= $sigla ?>" style="font-weight: 600; color: var(--text-main); cursor:pointer; font-size: 1.05rem;"><?= $rotulo ?></label>
+                                    </div>
+
+                                    <div>
+                                        <select name="dias[<?= $sigla ?>][status]" class="form-control" style="font-weight: 500;">
+                                            <option value="disponivel" <?= $d['status'] === 'disponivel' ? 'selected' : '' ?>>✅ Disponível</option>
+                                            <option value="indisponivel" <?= $d['status'] === 'indisponivel' ? 'selected' : '' ?>>⛔ Indisponível</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="time-input-group">
+                                        <span style="font-size: 0.85rem; color: var(--text-muted);">Das</span>
+                                        <input type="time" name="dias[<?= $sigla ?>][hora_inicio]" value="<?= $d['inicio'] ?>" class="form-control">
+                                        <span style="font-size: 0.85rem; color: var(--text-muted);">às</span>
+                                        <input type="time" name="dias[<?= $sigla ?>][hora_fim]" value="<?= $d['fim'] ?>" class="form-control">
+                                    </div>
+
+                                    <div class="time-input-group divider">
+                                        <span style="font-size: 0.85rem; color: var(--text-muted);">Almoço:</span>
+                                        <input type="time" name="dias[<?= $sigla ?>][intervalo_inicio]" value="<?= $d['int_inicio'] ?>" class="form-control">
+                                        <span style="font-size: 0.85rem; color: var(--text-muted);">até</span>
+                                        <input type="time" name="dias[<?= $sigla ?>][intervalo_fim]" value="<?= $d['int_fim'] ?>" class="form-control">
+                                    </div>
+
                                 </div>
                             <?php endforeach; ?>
                         </div>
 
-                        <h3 class="section-title" style="margin-bottom: 1rem; margin-top: 2rem; color: var(--text-main);">Horário de Expediente</h3>
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label for="hora_inicio">Início do Turno</label>
-                                <input type="time" name="hora_inicio" id="hora_inicio" class="form-control" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="hora_fim">Término do Turno</label>
-                                <input type="time" name="hora_fim" id="hora_fim" class="form-control" required>
-                            </div>
-                        </div>
+                        <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                            <button type="submit" class="btn-primary" style="max-width: 300px;">
+                                <?= empty($idDisponibilidade) ? 'Salvar Configurações' : 'Atualizar Horários' ?>
+                            </button>
 
-                        <h3 class="section-title" style="margin-bottom: 1rem; margin-top: 1rem; color: var(--text-main);">Horário de Intervalo (Opcional)</h3>
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label for="intervalo_inicio">Saída para o Intervalo</label>
-                                <input type="time" name="intervalo_inicio" id="intervalo_inicio" class="form-control">
-                            </div>
-                            <div class="form-group">
-                                <label for="intervalo_fim">Retorno do Intervalo</label>
-                                <input type="time" name="intervalo_fim" id="intervalo_fim" class="form-control">
-                            </div>
+                            <?php if (!empty($idDisponibilidade)): ?>
+                                <button type="button" class="btn-danger" style="max-width: 250px; background-color: #dc3545; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;" onclick="if(confirm('Tem certeza que deseja marcar toda a sua grelha como indisponível?')) { document.getElementById('form-excluir').submit(); }">
+                                    Inativar Grelha Inteira
+                                </button>
+                            <?php endif; ?>
                         </div>
-
-                        <button type="submit" class="btn-primary" style="max-width: 300px;">Salvar Disponibilidade</button>
                     </form>
+
+                    <?php if (!empty($idDisponibilidade)): ?>
+                    <form id="form-excluir" action="<?= BASE_URL ?>/funcionario/disponibilidade/excluir" method="POST" style="display: none;">
+                        <input type="hidden" name="id_disponibilidade" value="<?= $idDisponibilidade ?>">
+                    </form>
+                    <?php endif; ?>
+
                 </div>
             </section>
         </main>
@@ -83,5 +187,17 @@
 
     <script src="<?= BASE_URL ?>/public/resources/js/admin-layout.js"></script>
     <script src="<?= BASE_URL ?>/public/resources/js/app-cliente.js"></script>
+    
+    <script>
+        function toggleDayRow(sigla) {
+            const checkbox = document.getElementById('dia_' + sigla);
+            const row = document.getElementById('row_' + sigla);
+            if (checkbox.checked) {
+                row.style.opacity = '1';
+            } else {
+                row.style.opacity = '0.6';
+            }
+        }
+    </script>
 </body>
 </html>
