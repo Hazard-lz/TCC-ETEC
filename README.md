@@ -48,7 +48,7 @@ Você precisa colocar o projeto dentro da pasta pública do seu servidor local (
 Abra o terminal dentro da pasta `htdocs` e rode o comando:
 
 ```bash
-git clone https://github.com/SEU_USUARIO/web_salao.git
+git clone https://github.com/Hazard-lz/TCC-ETEC.git
 ```
 
 #### Opção B (Via ZIP)
