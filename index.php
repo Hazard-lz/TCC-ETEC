@@ -264,6 +264,18 @@ switch ($uri) {
             exit;
         }
         break;
+    // ARQUITETURA: Rota para ativar uma grelha de horários com 1 clique
+    case '/funcionario/disponibilidade/ativar':
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            require_once __DIR__ . '/app/Controllers/DisponibilidadeController.php';
+            $controller = new DisponibilidadeController();
+            $controller->ativar();
+        } else {
+            // Se tentarem aceder diretamente pelo URL (GET), devolvemos para a página
+            header("Location: " . BASE_URL . "/funcionario/disponibilidade");
+            exit;
+        }
+        break;
 
     case '/funcionario/disponibilidade/excluir':
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {

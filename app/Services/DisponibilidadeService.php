@@ -7,17 +7,13 @@ require_once __DIR__ . '/../Models/Agendamento.php';
 class DisponibilidadeService {
 
     private $disponibilidadeModel;
-    private $agendamentoModel; // Adicionado
+    private $agendamentoModel;
 
     public function __construct() {
         $this->disponibilidadeModel = new Disponibilidade();
-        $this->agendamentoModel = new Agendamento(); // Injeção da dependência
+        $this->agendamentoModel = new Agendamento(); 
     }
 
-    // =========================================================================
-    // ARQUITETURA: DRY (Don't Repeat Yourself)
-    // Centraliza a validação rigorosa de tempos.
-    // =========================================================================
     private function validarLogicaDeHorarios($inicio, $fim, $int_inicio, $int_fim) {
         if (empty($inicio) || empty($fim)) {
             return ['sucesso' => false, 'mensagem' => 'A hora de início e fim do expediente são obrigatórias.'];
@@ -51,24 +47,53 @@ class DisponibilidadeService {
     }
 
     // =========================================================================
-    // ARQUITETURA: UNIFICAÇÃO (INSERT E UPDATE JUNTOS)
+    // ARQUITETURA: Orquestração de Grades (Criação/Atualização)
     // =========================================================================
-    public function salvarGrade($idFuncionario, $idDisponibilidade, $diasConfigurados) {
+    public function salvarGrade($idFuncionario, $idDisponibilidade, $nomeGrade, $isAtiva, $diasConfigurados) {
         if (empty($idFuncionario)) { return ['sucesso' => false, 'mensagem' => 'ID do funcionário não informado.']; }
+        if (empty($nomeGrade)) { return ['sucesso' => false, 'mensagem' => 'O nome da grade é obrigatório.']; }
         if (empty($diasConfigurados) || !is_array($diasConfigurados)) { return ['sucesso' => false, 'mensagem' => 'Nenhum dia configurado.']; }
 
-        if (empty($idDisponibilidade)) {
-            $idDisponibilidade = $this->disponibilidadeModel->cadastrar($idFuncionario);
-            if (!$idDisponibilidade) {
-                return ['sucesso' => false, 'mensagem' => 'Erro interno ao criar a grade do funcionário.'];
-            }
+        // ---------------------------------------------------------------------
+        // VALIDAÇÕES DEFENSIVAS (PREVENÇÃO DE PAYLOAD INJECTION)
+        // ---------------------------------------------------------------------
+        
+        // 1. Limite de Dias: Uma semana só tem 7 dias. Impede que arrays gigantes sobrecarreguem o loop.
+        if (count($diasConfigurados) > 7) {
+            return ['sucesso' => false, 'mensagem' => 'Tentativa inválida. Uma grade não pode conter mais de 7 dias.'];
         }
 
+        // 2. Whitelist de Dias: Garante que as chaves do array batem exatamente com o ENUM do MySQL.
+        $diasPermitidos = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'];
+        foreach (array_keys($diasConfigurados) as $diaRecebido) {
+            if (!in_array($diaRecebido, $diasPermitidos)) {
+                return ['sucesso' => false, 'mensagem' => "O dia '{$diaRecebido}' não é válido para a grade de horários."];
+            }
+        }
+        // ---------------------------------------------------------------------
+
+        // 1. Se não houver ID, é uma grade nova. Criamos a "Capa".
+        if (empty($idDisponibilidade)) {
+            $idDisponibilidade = $this->disponibilidadeModel->criarNovaGrade($idFuncionario, $nomeGrade);
+            if (!$idDisponibilidade) {
+                return ['sucesso' => false, 'mensagem' => 'Erro interno ao criar a nova grade.'];
+            }
+        } else {
+            // Se já existe, apenas atualizamos o nome por precaução
+            $this->disponibilidadeModel->atualizarNomeGrade($idDisponibilidade, $nomeGrade);
+        }
+
+        // 2. Se o utilizador marcou a checkbox para ativar esta grade agora
+        if ($isAtiva) {
+            $this->disponibilidadeModel->definirGradeAtiva($idFuncionario, $idDisponibilidade);
+        }
+
+        // 3. Salva os dias da semana associados a esta Grade
         foreach ($diasConfigurados as $dia => $tempos) {
             if ($tempos['status'] === 'disponivel') {
                 $validacao = $this->validarLogicaDeHorarios($tempos['inicio'], $tempos['fim'], $tempos['int_inicio'], $tempos['int_fim']);
                 if (!$validacao['sucesso']) {
-                    return ['sucesso' => false, 'mensagem' => "Erro no dia {$dia}: " . $validacao['mensagem']];
+                    return ['sucesso' => false, 'mensagem' => "Erro na {$dia}: " . $validacao['mensagem']];
                 }
             } else {
                 if (empty($tempos['inicio'])) { $tempos['inicio'] = '00:00'; }
@@ -92,18 +117,19 @@ class DisponibilidadeService {
         return ['sucesso' => true, 'mensagem' => 'Grade de horários salva com sucesso!'];
     }
 
-    public function excluirGrade($id_disponibilidade) {
-        if (empty($id_disponibilidade)) { return ['sucesso' => false, 'mensagem' => 'ID da grade não informado.']; }
-        
-        $excluiu = $this->disponibilidadeModel->inativarDias($id_disponibilidade);
-        
-        return $excluiu ? 
-            ['sucesso' => true, 'mensagem' => 'A sua grade inteira foi marcada como indisponível.'] : 
-            ['sucesso' => false, 'mensagem' => 'Erro ao tentar inativar a grade de horários.'];
+    /**
+     * Alterna a grade ativa via clique num botão da View.
+     */
+    public function ativarGrade($idFuncionario, $idDisponibilidade) {
+        $ativou = $this->disponibilidadeModel->definirGradeAtiva($idFuncionario, $idDisponibilidade);
+        return $ativou ? 
+            ['sucesso' => true, 'mensagem' => 'Grade ativada com sucesso. Esta é agora a sua regra principal.'] : 
+            ['sucesso' => false, 'mensagem' => 'Falha ao ativar a grade.'];
     }
 
+
     // =========================================================================
-    // MOTOR DE CÁLCULO DE HORÁRIOS LIVRES (INTEGRAÇÃO CONCLUÍDA)
+    // MOTOR DE CÁLCULO DE HORÁRIOS LIVRES (ATUALIZADO PARA LER APENAS A ATIVA)
     // =========================================================================
     public function calcularHorariosLivres($idFuncionario, $dataDesejada, $idServico) {
         
@@ -120,26 +146,29 @@ class DisponibilidadeService {
         $mapaDias = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'];
         $diaSemanaStr = $mapaDias[$data->format('w')];
 
-        // 1. Busca os horários teóricos do funcionário (a grelha de trabalho pura)
-        $gradeDoDia = $this->disponibilidadeModel->buscarGradePorDia($idFuncionario, $diaSemanaStr);
-
-        if (!$gradeDoDia) {
-            return []; // O funcionário não trabalha neste dia
+        // 1. O NÚCLEO DA ATUALIZAÇÃO: Descobrimos qual a grade que manda hoje
+        $gradeAtiva = $this->disponibilidadeModel->buscarGradeAtiva($idFuncionario);
+        
+        if (!$gradeAtiva) {
+            return []; // O funcionário não tem nenhuma grade ativa, logo não trabalha.
         }
 
-        // 2. Fatiamos o dia de trabalho em blocos baseados na duração do serviço
+        // 2. Busca os horários teóricos DENTRO DESSA GRADE ESPECÍFICA
+        $gradeDoDia = $this->disponibilidadeModel->buscarGradePorDia($gradeAtiva['id_disponibilidade'], $diaSemanaStr);
+
+        if (!$gradeDoDia) {
+            return []; // Folga
+        }
+
+        // 3. Fatiamento em slots e verificação de conflitos reais
         $slotsPossiveis = $this->gerarSlotsPossiveis($gradeDoDia, $duracaoServicoMinutos);
 
-        // 3. INTEGRAÇÃO REAL: Busca o que já está marcado na base de dados para este funcionário neste dia
-        // A função 'listarAgendaFuncionario' já devolve apenas os agendamentos ativos (não cancelados)
         $agendamentosDoDia = $this->agendamentoModel->listarAgendaFuncionario($idFuncionario, $dataDesejada);
         
-        // Se a query retornar falso/vazio, garantimos que é um array vazio para o foreach seguinte não quebrar
-        if (!$agendamentosDoDia) {
+        if (!is_array($agendamentosDoDia)) {
             $agendamentosDoDia = [];
         }
 
-        // 4. Removemos os blocos que colidem com os agendamentos reais
         $horariosLivres = $this->filtrarHorariosValidos($slotsPossiveis, $agendamentosDoDia, $dataDesejada, $duracaoServicoMinutos);
 
         return array_values($horariosLivres);
@@ -156,22 +185,18 @@ class DisponibilidadeService {
 
         $ponteiroAtual = $inicioExpediente;
 
-        // PORQUE: Vai saltando de bloco em bloco (Ex: 09:00, 09:30, 10:00) 
-        // consoante a duração do serviço selecionado pelo cliente.
         while (($ponteiroAtual + ($duracaoMinutos * 60)) <= $fimExpediente) {
             $horaDoSlot = date('H:i', $ponteiroAtual);
             $fimDoSlot = $ponteiroAtual + ($duracaoMinutos * 60);
             $conflitoComIntervalo = false;
 
             if ($temIntervalo) {
-                // Lógica de interseção para garantir que um serviço de 1 hora não comece 
-                // 30 minutos antes do intervalo de almoço do funcionário.
                 if (($ponteiroAtual >= $inicioIntervalo && $ponteiroAtual < $fimIntervalo) || 
                     ($fimDoSlot > $inicioIntervalo && $fimDoSlot <= $fimIntervalo) ||
                     ($ponteiroAtual <= $inicioIntervalo && $fimDoSlot >= $fimIntervalo)) {
                     
                     $conflitoComIntervalo = true;
-                    $ponteiroAtual = $fimIntervalo; // Salta diretamente para o regresso do almoço
+                    $ponteiroAtual = $fimIntervalo; 
                 }
             }
 
@@ -190,7 +215,6 @@ class DisponibilidadeService {
         $horariosFiltrados = [];
 
         foreach ($slots as $slot) {
-            // Regra de Negócio: Não deixar marcar para horários que já passaram no dia de hoje
             if ($isHoje && $slot <= $horaAtual) { continue; }
 
             $conflito = false;
@@ -201,9 +225,6 @@ class DisponibilidadeService {
                 $inicioAgendado = strtotime($agendado['hora_inicio']);
                 $fimAgendado = strtotime($agendado['hora_fim']);
 
-                // ARQUITETURA: Detenção de Colisão (Bounding Box)
-                // A mesma fórmula matemática usada no SQL do Model, agora aplicada no PHP em memória.
-                // Se (InícioA < FimB) E (FimA > InícioB) -> Ocorre uma sobreposição de tempo.
                 if ($inicioNovo < $fimAgendado && $fimNovo > $inicioAgendado) {
                     $conflito = true;
                     break; 
@@ -215,6 +236,32 @@ class DisponibilidadeService {
             }
         }
         return $horariosFiltrados;
+    }
+
+    /**
+     * ARQUITETURA: Remoção de Grade com Trava de Segurança
+     */
+    public function excluirGrade($idDisponibilidade, $idFuncionario) {
+        if (empty($idDisponibilidade)) { 
+            return ['sucesso' => false, 'mensagem' => 'ID da grelha não informado.']; 
+        }
+        
+        // 1. TRAVA DE SEGURANÇA: Verifica se a grade que ele quer apagar é a ativa
+        $gradeAtual = $this->disponibilidadeModel->buscarGradeAtiva($idFuncionario);
+        
+        if ($gradeAtual && $gradeAtual['id_disponibilidade'] == $idDisponibilidade) {
+            return [
+                'sucesso' => false,
+                'mensagem' => 'Você não pode excluir a grade que está ativa no momento. Ative outra grelha de horários primeiro para poder excluir esta.'
+            ];
+        }
+
+        // 2. Se não for a ativa, prossegue com o Hard Delete
+        $excluiu = $this->disponibilidadeModel->excluirGrade($idDisponibilidade, $idFuncionario);
+        
+        return $excluiu ? 
+            ['sucesso' => true, 'mensagem' => 'A grelha foi permanentemente excluída.'] : 
+            ['sucesso' => false, 'mensagem' => 'Erro ao tentar excluir a grelha de horários.'];
     }
 }
 ?>

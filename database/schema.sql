@@ -47,7 +47,9 @@ CREATE TABLE funcionarios (
 CREATE TABLE disponibilidade (
     id_disponibilidade INT AUTO_INCREMENT PRIMARY KEY,
     cod_funcionario INT NOT NULL,
-    -- CASCADE no funcionário (se o funcionário for deletado sua disponibilidade também vai ser)
+    nome_grade VARCHAR(100) NOT NULL DEFAULT 'Horário Padrão',
+    is_ativa TINYINT(1) NOT NULL DEFAULT 0,
+    data_criacao TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (cod_funcionario) REFERENCES funcionarios(id_funcionario) ON DELETE CASCADE
 );
 
