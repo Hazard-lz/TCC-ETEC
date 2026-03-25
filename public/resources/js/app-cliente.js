@@ -35,26 +35,25 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    // 2. Lógica do Modo Escuro (Dark Mode)
+  // 2. Lógica do Modo Escuro (Dark Mode) COM CHAVINHA
     const themeToggle = document.getElementById("themeToggle");
     const currentTheme = localStorage.getItem("theme") || "light";
     
     // Verifica qual tema está salvo no PC/Celular do usuário ao carregar a página
     if (currentTheme === "dark") {
         document.documentElement.setAttribute("data-theme", "dark");
+        if (themeToggle) themeToggle.checked = true; // Deixa a chavinha visualmente ligada
     }
     
-    // Evento de clique no botão flutuante
+    // Evento de mudança (change) na chavinha
     if (themeToggle) {
-        themeToggle.addEventListener("click", () => {
-            let theme = document.documentElement.getAttribute("data-theme");
-            
-            if (theme === "dark") {
-                document.documentElement.removeAttribute("data-theme");
-                localStorage.setItem("theme", "light"); // Salva tema claro
-            } else {
+        themeToggle.addEventListener("change", function() {
+            if (this.checked) {
                 document.documentElement.setAttribute("data-theme", "dark");
                 localStorage.setItem("theme", "dark"); // Salva tema escuro
+            } else {
+                document.documentElement.removeAttribute("data-theme");
+                localStorage.setItem("theme", "light"); // Salva tema claro
             }
         });
     }

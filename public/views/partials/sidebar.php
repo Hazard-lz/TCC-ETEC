@@ -22,4 +22,8 @@
     <div class="sidebar-footer">
         <a href="<?= BASE_URL ?>/login/sair" class="nav-link logout-link">Sair do Sistema</a>
     </div>
+    
 </aside>
+<script src="<?= BASE_URL ?>/public/resources/js/admin-layout.js" ></script>
+<script src="<?= BASE_URL ?>/public/resources/js/header.js" ></script>
+<script src="<?= BASE_URL ?>/public/resources/js/admin.js" ></script>

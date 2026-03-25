@@ -20,7 +20,7 @@ session_start();
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-define('BASE_URL', '/web_salao');
+define('BASE_URL', '/TCC-ETEC');
 
 // =========================================================================
 // 1. ARQUITETURA: AUTOLOADER (Carregamento Dinâmico de Classes)

@@ -14,7 +14,13 @@ $inicial = substr($nomeCabecalho, 0, 1);
         <h2 style="color: var(--text-main); font-size: 1.2rem;">Painel de Controle</h2>
     </div>
     
-    <div class="user-profile">
+    <div class="user-profile" style="display: flex; align-items: center; gap: 1rem;">
+        
+        <label class="theme-switch" title="Alternar Modo Escuro">
+            <input type="checkbox" id="themeToggle">
+            <span class="slider"></span>
+        </label>
+
         <span><?= htmlspecialchars($nomeCabecalho) ?></span> 
         
         <div class="avatar" style="width: 40px; height: 40px; border-radius: 50%; background: var(--gradient-brand); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem;">

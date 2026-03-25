@@ -13,7 +13,7 @@
     border-right: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
-    z-index: 1000;
+    z-index: 1000; /* Sidebar sempre acima de tudo (Mais forte) */
     transition: transform 0.3s ease, background-color var(--transition-default);
 }
 
@@ -87,11 +87,10 @@
     border-bottom: 1px solid var(--border-color);
     position: sticky;
     top: 0;
-    z-index: 900;
+    z-index: 900; /* Fica abaixo do Overlay (999) e Sidebar (1000) */
     transition: background-color var(--transition-default);
 }
 
-/* O botão de hambúrguer fica escondido no computador */
 .menu-toggle {
     display: none;
     background: none;
@@ -107,17 +106,9 @@
     color: var(--color-purple);
 }
 
-.user-profile {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    color: var(--text-main);
-    font-weight: 600;
-}
-
-/* --- ÁREA PRINCIPAL (ONDE FICA O CONTEÚDO) --- */
+/* --- ÁREA PRINCIPAL (CONTEÚDO) --- */
 .main-content {
-    margin-left: 260px; /* Empurra o conteúdo para não ficar debaixo da sidebar */
+    margin-left: 260px;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -130,7 +121,7 @@
     flex-grow: 1;
 }
 
-/* Fundo escuro que aparece atrás do menu no telemóvel */
+/* --- Fundo Escuro (Overlay) no Telemóvel --- */
 .sidebar-overlay {
     display: none;
     position: fixed;
@@ -140,7 +131,7 @@
     height: 100%;
     background: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(2px);
-    z-index: 999;
+    z-index: 999; /* Cobre o cabeçalho (900), mas fica sob o menu (1000) */
 }
 
 .sidebar-overlay.open {
@@ -152,7 +143,6 @@
    RESPONSIVIDADE (CELULARES E TABLETS)
    ========================================= */
 @media (max-width: 992px) {
-    /* Esconde a barra lateral empurrando-a para fora do ecrã */
     .sidebar {
         transform: translateX(-100%);
         box-shadow: none;
@@ -164,13 +154,11 @@
         box-shadow: 5px 0 25px rgba(0,0,0,0.15);
     }
     
-    /* O conteúdo principal volta a ocupar 100% da largura, pois não há menu fixo */
     .main-content {
         margin-left: 0;
         width: 100%;
     }
     
-    /* Mostra o botão hambúrguer no cabeçalho */
     .menu-toggle {
         display: block;
     }
@@ -187,4 +175,59 @@
 @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
+}
+
+/* =========================================
+   CHAVINHA DE MODO ESCURO (SWITCH)
+   ========================================= */
+.theme-switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 26px;
+    margin-right: 10px;
+}
+
+.theme-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #cbd5e1;
+    transition: .4s;
+    border-radius: 34px;
+}
+
+/* Bolinha do Switch (Sol por padrão) */
+.slider:before {
+    position: absolute;
+    content: "☀️";
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 20px;
+    width: 20px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+/* Quando ativado (Modo Escuro) */
+.theme-switch input:checked + .slider {
+    background-color: var(--color-purple);
+}
+
+/* Anima a bolinha para a direita e troca para a Lua */
+.theme-switch input:checked + .slider:before {
+    transform: translateX(24px);
+    content: "🌙";
+    background-color: #1a202c;
 }
