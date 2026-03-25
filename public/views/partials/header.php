@@ -1,4 +1,17 @@
-<?php
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/admin-layout.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/admin.css">
+    
+</head>
+<body>
+    
+</body>
+</html><?php
 // Prevenção: caso a sessão caia ou não exista, define um padrão
 $nomeCompleto = $_SESSION['usuario_nome'] ?? 'Usuário';
 
