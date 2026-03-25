@@ -53,7 +53,7 @@ git clone https://github.com/Hazard-lz/TCC-ETEC.git
 
 #### Opção B (Via ZIP)
 
-Baixe o ZIP do projeto no GitHub, extraia e coloque a pasta com o nome `web_salao` dentro de:
+Baixe o ZIP do projeto no GitHub, extraia e coloque a pasta com o nome `TCC-ETEC` dentro de:
 
 ```
 C:\xampp\htdocs\
@@ -65,7 +65,7 @@ C:\xampp\htdocs\
 
 O sistema utiliza a biblioteca PHPMailer para enviar códigos de verificação e redefinição de senha.
 
-Abra o terminal dentro da pasta do projeto (`web_salao`) e rode o comando:
+Abra o terminal dentro da pasta do projeto (`TCC-ETEC`) e rode o comando:
 
 ```bash
 composer require phpmailer/phpmailer
