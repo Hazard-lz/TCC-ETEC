@@ -2,7 +2,7 @@
 require_once __DIR__ . '/BaseService.php';
 require_once __DIR__ . '/../Models/Agendamento.php';
 require_once __DIR__ . '/../Models/Servico.php';
-require_once __DIR__ . '/../database/Conexao.php';
+require_once __DIR__ . '/../../database/Conexao.php';
 
 class AgendamentoService extends BaseService {
 

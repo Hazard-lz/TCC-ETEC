@@ -85,7 +85,7 @@ class Agendamento extends BaseModel {
                 WHERE a.cod_cliente = :cod_cliente
                 ORDER BY a.data_agendamento DESC, ia.hora_inicio DESC";
                 
-        return $this->executarQuery($sql, [':cod_cliente' => $id_cliente]);
+        return $this->executarQuery($sql, [':cod_cliente' => $id_cliente], 'todos');    
     }
 
     /**
@@ -110,7 +110,7 @@ class Agendamento extends BaseModel {
         return $this->executarQuery($sql, [
             ':cod_funcionario' => $id_funcionario,
             ':data' => $data
-        ]);
+        ], 'todos');
     }
 
     // =========================================================================
