@@ -2,14 +2,16 @@
 
 require_once __DIR__ . '/../Models/Disponibilidade.php';
 require_once __DIR__ . '/../Models/Servico.php'; 
-// require_once __DIR__ . '/../Models/Agendamento.php'; // Remove este comentário quando criares o Model de Agendamentos
+require_once __DIR__ . '/../Models/Agendamento.php'; 
 
 class DisponibilidadeService {
 
     private $disponibilidadeModel;
+    private $agendamentoModel; // Adicionado
 
     public function __construct() {
         $this->disponibilidadeModel = new Disponibilidade();
+        $this->agendamentoModel = new Agendamento(); // Injeção da dependência
     }
 
     // =========================================================================
@@ -29,7 +31,7 @@ class DisponibilidadeService {
         }
 
         if ((empty($int_inicio) && !empty($int_fim)) || (!empty($int_inicio) && empty($int_fim))) {
-            return ['sucesso' => false, 'mensagem' => 'Se houver intervalo, preenche o início e o fim do mesmo.'];
+            return ['sucesso' => false, 'mensagem' => 'Se houver intervalo, preencha o início e o fim do mesmo.'];
         }
 
         if (!empty($int_inicio) && !empty($int_fim)) {
@@ -50,14 +52,11 @@ class DisponibilidadeService {
 
     // =========================================================================
     // ARQUITETURA: UNIFICAÇÃO (INSERT E UPDATE JUNTOS)
-    // O Model agora sabe lidar com a inserção ou atualização sozinho (Upsert).
-    // O Service apenas orquestra, valida os dias e envia para o Model.
     // =========================================================================
     public function salvarGrade($idFuncionario, $idDisponibilidade, $diasConfigurados) {
         if (empty($idFuncionario)) { return ['sucesso' => false, 'mensagem' => 'ID do funcionário não informado.']; }
         if (empty($diasConfigurados) || !is_array($diasConfigurados)) { return ['sucesso' => false, 'mensagem' => 'Nenhum dia configurado.']; }
 
-        // Se não existir a "Capa" da disponibilidade (primeiro acesso do funcionário), nós a criamos.
         if (empty($idDisponibilidade)) {
             $idDisponibilidade = $this->disponibilidadeModel->cadastrar($idFuncionario);
             if (!$idDisponibilidade) {
@@ -66,24 +65,19 @@ class DisponibilidadeService {
         }
 
         foreach ($diasConfigurados as $dia => $tempos) {
-            
-            // Só fazemos a validação rigorosa das horas se o dia for marcado como 'disponivel'
             if ($tempos['status'] === 'disponivel') {
                 $validacao = $this->validarLogicaDeHorarios($tempos['inicio'], $tempos['fim'], $tempos['int_inicio'], $tempos['int_fim']);
                 if (!$validacao['sucesso']) {
                     return ['sucesso' => false, 'mensagem' => "Erro no dia {$dia}: " . $validacao['mensagem']];
                 }
             } else {
-                // Se for indisponível e as horas estiverem vazias, injetamos 00:00 para não quebrar o NOT NULL da base de dados
                 if (empty($tempos['inicio'])) { $tempos['inicio'] = '00:00'; }
                 if (empty($tempos['fim'])) { $tempos['fim'] = '00:00'; }
             }
 
-            // Tratamento de valores vazios para a base de dados (NULL)
             $int_inicio = empty(trim($tempos['int_inicio'])) ? null : $tempos['int_inicio'];
             $int_fim = empty(trim($tempos['int_fim'])) ? null : $tempos['int_fim'];
 
-            // Array limpo para o Upsert do Model
             $dadosDia = [
                 'hora_inicio_trabalho' => $tempos['inicio'],
                 'hora_fim_trabalho' => $tempos['fim'],
@@ -92,7 +86,6 @@ class DisponibilidadeService {
                 'status' => $tempos['status']
             ];
 
-            // Guarda ou atualiza este dia específico
             $this->disponibilidadeModel->salvarDiaConfigurado($idDisponibilidade, $dia, $dadosDia);
         }
 
@@ -102,7 +95,6 @@ class DisponibilidadeService {
     public function excluirGrade($id_disponibilidade) {
         if (empty($id_disponibilidade)) { return ['sucesso' => false, 'mensagem' => 'ID da grade não informado.']; }
         
-        // Agora chamamos o inativarDias (exclusão lógica)
         $excluiu = $this->disponibilidadeModel->inativarDias($id_disponibilidade);
         
         return $excluiu ? 
@@ -111,9 +103,8 @@ class DisponibilidadeService {
     }
 
     // =========================================================================
-    // MOTOR DE CÁLCULO DE HORÁRIOS LIVRES (O NÚCLEO DO AGENDAMENTO)
+    // MOTOR DE CÁLCULO DE HORÁRIOS LIVRES (INTEGRAÇÃO CONCLUÍDA)
     // =========================================================================
-    
     public function calcularHorariosLivres($idFuncionario, $dataDesejada, $idServico) {
         
         $servicoModel = new Servico();
@@ -129,18 +120,26 @@ class DisponibilidadeService {
         $mapaDias = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'];
         $diaSemanaStr = $mapaDias[$data->format('w')];
 
-        // O Model já faz o filtro para só devolver se o status for 'disponivel'
+        // 1. Busca os horários teóricos do funcionário (a grelha de trabalho pura)
         $gradeDoDia = $this->disponibilidadeModel->buscarGradePorDia($idFuncionario, $diaSemanaStr);
 
         if (!$gradeDoDia) {
-            return []; // O funcionário está de folga ou inativo neste dia da semana
+            return []; // O funcionário não trabalha neste dia
         }
 
+        // 2. Fatiamos o dia de trabalho em blocos baseados na duração do serviço
         $slotsPossiveis = $this->gerarSlotsPossiveis($gradeDoDia, $duracaoServicoMinutos);
 
-        // TODO: Substituir por consulta real no Model de Agendamentos para trazer os ocupados
-        $agendamentosDoDia = []; 
+        // 3. INTEGRAÇÃO REAL: Busca o que já está marcado na base de dados para este funcionário neste dia
+        // A função 'listarAgendaFuncionario' já devolve apenas os agendamentos ativos (não cancelados)
+        $agendamentosDoDia = $this->agendamentoModel->listarAgendaFuncionario($idFuncionario, $dataDesejada);
+        
+        // Se a query retornar falso/vazio, garantimos que é um array vazio para o foreach seguinte não quebrar
+        if (!$agendamentosDoDia) {
+            $agendamentosDoDia = [];
+        }
 
+        // 4. Removemos os blocos que colidem com os agendamentos reais
         $horariosLivres = $this->filtrarHorariosValidos($slotsPossiveis, $agendamentosDoDia, $dataDesejada, $duracaoServicoMinutos);
 
         return array_values($horariosLivres);
@@ -157,18 +156,22 @@ class DisponibilidadeService {
 
         $ponteiroAtual = $inicioExpediente;
 
+        // PORQUE: Vai saltando de bloco em bloco (Ex: 09:00, 09:30, 10:00) 
+        // consoante a duração do serviço selecionado pelo cliente.
         while (($ponteiroAtual + ($duracaoMinutos * 60)) <= $fimExpediente) {
             $horaDoSlot = date('H:i', $ponteiroAtual);
             $fimDoSlot = $ponteiroAtual + ($duracaoMinutos * 60);
             $conflitoComIntervalo = false;
 
             if ($temIntervalo) {
+                // Lógica de interseção para garantir que um serviço de 1 hora não comece 
+                // 30 minutos antes do intervalo de almoço do funcionário.
                 if (($ponteiroAtual >= $inicioIntervalo && $ponteiroAtual < $fimIntervalo) || 
                     ($fimDoSlot > $inicioIntervalo && $fimDoSlot <= $fimIntervalo) ||
                     ($ponteiroAtual <= $inicioIntervalo && $fimDoSlot >= $fimIntervalo)) {
                     
                     $conflitoComIntervalo = true;
-                    $ponteiroAtual = $fimIntervalo; 
+                    $ponteiroAtual = $fimIntervalo; // Salta diretamente para o regresso do almoço
                 }
             }
 
@@ -187,6 +190,7 @@ class DisponibilidadeService {
         $horariosFiltrados = [];
 
         foreach ($slots as $slot) {
+            // Regra de Negócio: Não deixar marcar para horários que já passaram no dia de hoje
             if ($isHoje && $slot <= $horaAtual) { continue; }
 
             $conflito = false;
@@ -197,6 +201,9 @@ class DisponibilidadeService {
                 $inicioAgendado = strtotime($agendado['hora_inicio']);
                 $fimAgendado = strtotime($agendado['hora_fim']);
 
+                // ARQUITETURA: Detenção de Colisão (Bounding Box)
+                // A mesma fórmula matemática usada no SQL do Model, agora aplicada no PHP em memória.
+                // Se (InícioA < FimB) E (FimA > InícioB) -> Ocorre uma sobreposição de tempo.
                 if ($inicioNovo < $fimAgendado && $fimNovo > $inicioAgendado) {
                     $conflito = true;
                     break; 
