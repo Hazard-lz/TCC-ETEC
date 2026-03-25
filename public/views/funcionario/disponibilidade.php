@@ -8,15 +8,15 @@ $idFuncionario = $_SESSION['usuario_id'];
 // 1. Busca todas as grades que o funcionário já criou
 $todasGrades = $dispModel->buscarGradesFuncionario($idFuncionario);
 
-// 2. Lógica para saber qual grade exibir
-$idDisponibilidade = $_GET['grade'] ?? '';
+// 2. ARQUITETURA UX (POST em vez de GET): Lemos a grade selecionada da Sessão
+$idDisponibilidade = $_SESSION['grade_visualizada'] ?? '';
 $isNovaGrade = ($idDisponibilidade === 'nova');
 
 $dadosDias = []; 
 $nomeGradeAtual = '';
 $isGradeAtiva = false;
 
-// 3. ARQUITETURA UX: Descobrir qual é a grade REALMENTE ativa para mostrar no painel global
+// 3. Descobrir qual é a grade REALMENTE ativa para mostrar no painel global
 $nomeGradePrincipal = 'Nenhuma';
 if (!empty($todasGrades)) {
     foreach ($todasGrades as $g) {
@@ -121,9 +121,9 @@ $mostrarBotaoEditar = (!$isNovaGrade && !empty($idDisponibilidade)) ? 'block' : 
                 <div style="background: var(--bg-secondary); border: 2px solid <?= $nomeGradePrincipal !== 'Nenhuma' ? '#28a745' : '#dc3545' ?>; padding: 15px 20px; border-radius: 8px; margin-bottom: 25px; display: flex; align-items: center; gap: 15px;">
                     <span style="font-size: 2rem;">📅</span>
                     <div>
-                        <span style="display: block; font-size: 0.85rem; font-weight: bold; color: var(--text-muted); text-transform: uppercase;">Status da Agenda na App</span>
+                        <span style="display: block; font-size: 0.85rem; font-weight: bold; color: var(--text-muted); text-transform: uppercase;">Status da Grade no App</span>
                         <?php if($nomeGradePrincipal !== 'Nenhuma'): ?>
-                            <span style="font-size: 1.1rem; color: var(--text-main);">Os seus clientes estão a marcar horários baseados na grade: <strong style="color: #28a745;"><?= htmlspecialchars($nomeGradePrincipal) ?></strong></span>
+                            <span style="font-size: 1.1rem; color: var(--text-main);">Os seus clientes estão marcando horários baseados na grade: <strong style="color: #28a745;"><?= htmlspecialchars($nomeGradePrincipal) ?></strong></span>
                         <?php else: ?>
                             <span style="font-size: 1.1rem; color: #dc3545; font-weight: bold;">Nenhuma grade ativa. Sua agenda está fechada para novos clientes!</span>
                         <?php endif; ?>
@@ -146,19 +146,25 @@ $mostrarBotaoEditar = (!$isNovaGrade && !empty($idDisponibilidade)) ? 'block' : 
                     <div class="grade-header">
                         <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
                             <label style="font-weight: bold; color: var(--text-main);">Grade Visualizada:</label>
-                            <select class="form-control" style="width: auto; min-width: 250px;" onchange="window.location.href='?grade=' + this.value">
-                                <?php if(empty($todasGrades)): ?>
-                                    <option value="">Nenhuma grade criada</option>
-                                <?php else: ?>
-                                    <?php foreach($todasGrades as $g): ?>
-                                        <option value="<?= $g['id_disponibilidade'] ?>" <?= ($g['id_disponibilidade'] == $idDisponibilidade) ? 'selected' : '' ?>>
-                                            <?= htmlspecialchars($g['nome_grade']) ?> <?= $g['is_ativa'] ? '(ATIVA)' : '' ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                <?php endif; ?>
-                            </select>
                             
-                            <a href="?grade=nova" class="btn-secondary" style="text-decoration: none; padding: 8px 15px; border-radius: 5px; border: 1px solid var(--border-color); color: var(--text-main);">+ Nova Grade</a>
+                            <form action="<?= BASE_URL ?>/funcionario/disponibilidade/selecionar" method="POST" style="margin: 0; display: flex; gap: 15px;">
+                                <select name="grade_selecionada" class="form-control" style="width: auto; min-width: 250px;" onchange="this.form.submit()">
+                                    <?php if(empty($todasGrades)): ?>
+                                        <option value="">Nenhuma grade criada</option>
+                                    <?php else: ?>
+                                        <?php foreach($todasGrades as $g): ?>
+                                            <option value="<?= $g['id_disponibilidade'] ?>" <?= ($g['id_disponibilidade'] == $idDisponibilidade) ? 'selected' : '' ?>>
+                                                <?= htmlspecialchars($g['nome_grade']) ?> <?= $g['is_ativa'] ? '(ATIVA)' : '' ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </select>
+                            </form>
+                            
+                            <form action="<?= BASE_URL ?>/funcionario/disponibilidade/selecionar" method="POST" style="margin: 0;">
+                                <input type="hidden" name="grade_selecionada" value="nova">
+                                <button type="submit" class="btn-secondary" style="padding: 8px 15px; border-radius: 5px; border: 1px solid var(--border-color); color: var(--text-main); background: transparent; cursor: pointer;">+ Nova Grade</button>
+                            </form>
                         </div>
 
                         <?php if(!empty($idDisponibilidade) && !$isGradeAtiva): ?>
@@ -261,6 +267,10 @@ $mostrarBotaoEditar = (!$isNovaGrade && !empty($idDisponibilidade)) ? 'block' : 
                     <form id="form-excluir" action="<?= BASE_URL ?>/funcionario/disponibilidade/excluir" method="POST" style="display: none;">
                         <input type="hidden" name="id_disponibilidade" value="<?= $idDisponibilidade ?>">
                     </form>
+                    
+                    <form id="form-cancelar" action="<?= BASE_URL ?>/funcionario/disponibilidade/selecionar" method="POST" style="display: none;">
+                        <input type="hidden" name="grade_selecionada" value="">
+                    </form>
                     <?php endif; ?>
 
                 </div>
@@ -281,14 +291,13 @@ $mostrarBotaoEditar = (!$isNovaGrade && !empty($idDisponibilidade)) ? 'block' : 
         }
 
         function cancelarEdicao() {
-            // Se estiver a criar uma grelha do zero, cancelar significa voltar à página principal de grelhas
             const isNovaGrade = <?= $isNovaGrade ? 'true' : 'false' ?>;
             if (isNovaGrade) {
-                window.location.href = '<?= BASE_URL ?>/funcionario/disponibilidade';
+                // Se estava a criar, o cancelar reseta a sessão enviando um POST vazio
+                document.getElementById('form-cancelar').submit();
                 return;
             }
 
-            // Se for apenas edição, esconde o form e volta a mostrar o botão
             const area = document.getElementById('area-edicao');
             area.style.opacity = '0';
             
@@ -314,6 +323,35 @@ $mostrarBotaoEditar = (!$isNovaGrade && !empty($idDisponibilidade)) ? 'block' : 
             document.getElementById('int_ini_' + sigla).value = '';
             document.getElementById('int_fim_' + sigla).value = '';
         }
+    </script>
+
+    <script>
+        // =====================================================================
+        // ARQUITETURA UX: PRESERVAÇÃO DE ESTADO DE SCROLL
+        // Evita que a página "pule" para o topo ao trocar de grade no dropdown
+        // =====================================================================
+
+        // 1. Escutador de evento "beforeunload": Dispara um milissegundo antes da página ser recarregada/fechada
+        window.addEventListener("beforeunload", function () {
+            // Guardamos a posição exata (em pixels) do scroll vertical na memória temporária do navegador
+            sessionStorage.setItem("scrollPosition", window.scrollY);
+        });
+
+        // 2. Escutador de evento "load": Dispara assim que a página termina de carregar o HTML e CSS
+        window.addEventListener("load", function () {
+            // Verificamos se existe alguma posição guardada da navegação anterior
+            const scrollPos = sessionStorage.getItem("scrollPosition");
+            
+            if (scrollPos !== null) {
+                // Se existir, forçamos o navegador a rolar a página para a posição anotada
+                window.scrollTo(0, parseInt(scrollPos));
+                
+                // Limpamos a memória para evitar que a página trave nessa posição se o utilizador clicar num link normal
+                sessionStorage.removeItem("scrollPosition"); 
+            }
+        });
+
+        // (O resto das suas funções abrirEdicao(), cancelarEdicao(), etc., continuam aqui para baixo...)
     </script>
 </body>
 </html>

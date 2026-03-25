@@ -264,6 +264,18 @@ switch ($uri) {
             exit;
         }
         break;
+
+    // ARQUITETURA: Rota para alternar a visualização das grelhas sem sujar a URL
+    case '/funcionario/disponibilidade/selecionar':
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            require_once __DIR__ . '/app/Controllers/DisponibilidadeController.php';
+            $controller = new DisponibilidadeController();
+            $controller->selecionarGradeVisao();
+        } else {
+            header("Location: " . BASE_URL . "/funcionario/disponibilidade");
+            exit;
+        }
+        break;
     // ARQUITETURA: Rota para ativar uma grelha de horários com 1 clique
     case '/funcionario/disponibilidade/ativar':
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {

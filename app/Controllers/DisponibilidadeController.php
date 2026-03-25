@@ -81,6 +81,23 @@ class DisponibilidadeController
         }
     }
 
+    /**
+     * ARQUITETURA: Guarda a grelha selecionada na sessão para esconder o ID da URL.
+     */
+    public function selecionarGradeVisao()
+    {
+        if (session_status() === PHP_SESSION_NONE) { session_start(); }
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // Guarda a escolha na sessão do utilizador
+            $_SESSION['grade_visualizada'] = $_POST['grade_selecionada'] ?? '';
+            
+            // Recarrega a página com a URL limpa
+            header("Location: " . BASE_URL . "/funcionario/disponibilidade");
+            exit;
+        }
+    }
+
     public function excluir()
     {
         if (session_status() === PHP_SESSION_NONE) { session_start(); }
