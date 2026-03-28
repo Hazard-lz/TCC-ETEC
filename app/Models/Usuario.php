@@ -70,16 +70,24 @@ class Usuario extends BaseModel {
 
     /**
      * GENÉRICO: Salva um código de 6 dígitos.
-     * Serve TANTO para verificar conta (onde expiracao pode ser NULL)
-     * QUANTO para recuperar senha (onde passamos uma expiração de 30 min).
      */
-    public function salvarCodigo($id_usuario, $codigo, $expiracao = null) {
-        $sql = "UPDATE usuarios SET codigo_verificacao = :codigo, expiracao_codigo = :expiracao WHERE id_usuario = :id";
-        return $this->executarQuery($sql, [
-            ':codigo' => $codigo, 
-            ':expiracao' => $expiracao, 
-            ':id' => $id_usuario
-        ]);
+    public function salvarCodigo($id_usuario, $codigo, $minutosExpiracao = null) {
+        // Se foi passado um tempo, usa o relógio do PRÓPRIO banco de dados para somar os minutos
+        if ($minutosExpiracao) {
+            $sql = "UPDATE usuarios SET codigo_verificacao = :codigo, expiracao_codigo = DATE_ADD(NOW(), INTERVAL :minutos MINUTE) WHERE id_usuario = :id";
+            return $this->executarQuery($sql, [
+                ':codigo' => $codigo, 
+                ':minutos' => $minutosExpiracao, 
+                ':id' => $id_usuario
+            ]);
+        } else {
+            // Se for nulo, grava como nulo (infinito)
+            $sql = "UPDATE usuarios SET codigo_verificacao = :codigo, expiracao_codigo = NULL WHERE id_usuario = :id";
+            return $this->executarQuery($sql, [
+                ':codigo' => $codigo, 
+                ':id' => $id_usuario
+            ]);
+        }
     }
 
     /**

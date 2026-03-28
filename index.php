@@ -201,6 +201,15 @@ switch ($uri) {
             exit;
         }
         break;
+    case '/auth/reenviar-codigo-recuperacao':
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $authController = new AuthController();
+            $authController->reenviarCodigoRecuperacao();
+        } else {
+            header("Location: " . BASE_URL . "/login");
+            exit;
+        }
+        break;
     // ------------------------------------------
     // ROTAS EXCLUSIVAS DO ADMIN (GERÊNCIA)
     // ------------------------------------------
@@ -322,6 +331,15 @@ switch ($uri) {
             $authController->verificarCodigoOculto();
         } else {
             header("Location: " . BASE_URL . "/login");
+            exit;
+        }
+        break;
+    case '/verificar-email/reenviar':
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $authController = new AuthController();
+            $authController->reenviarCodigo();
+        } else {
+            header("Location: " . BASE_URL . "/verificar-email");
             exit;
         }
         break;

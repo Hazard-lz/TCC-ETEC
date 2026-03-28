@@ -59,6 +59,28 @@ class AuthController
             }
             exit();
         } else {
+            // =======================================================================
+            // ARQUITETURA UX: FLUXO AUTOMÁTICO DE VERIFICAÇÃO DE E-MAIL
+            // =======================================================================
+            if (isset($resultado['requer_verificacao']) && $resultado['requer_verificacao'] === true) {
+                if (session_status() === PHP_SESSION_NONE) { session_start(); }
+                
+                $emailNaoVerificado = $resultado['email'];
+                $_SESSION['email_verificacao'] = $emailNaoVerificado;
+                
+                // Chamamos a função inteligente AQUI, protegida pelo POST
+                // Ela verifica se já existe código, se não cria outro, e manda o e-mail.
+                $resultadoReenvio = $this->usuarioService->reenviarCodigoVerificacao($emailNaoVerificado);
+                
+                // Guarda a mensagem de sucesso ("Reenviamos seu código..." ou "Um novo código...")
+                $_SESSION['sucesso_verificacao'] = $resultadoReenvio['mensagem'];
+                
+                // Joga o usuário direto na tela do código!
+                header("Location: " . BASE_URL . "/verificar-email");
+                exit();
+            }
+
+            // Erros normais (senha errada, conta inativa, etc)
             $_SESSION['erro_login'] = $resultado['mensagem'];
             header("Location: " . BASE_URL . "/login");
             exit();
@@ -222,6 +244,53 @@ class AuthController
             $_SESSION['erro_redefinicao'] = $resultado['mensagem'];
             header("Location: " . BASE_URL . "/redefinir-senha");
         }
+        exit;
+    }
+
+    public function reenviarCodigo()
+    {
+        if (session_status() === PHP_SESSION_NONE) { session_start(); }
+        
+        $email = $_SESSION['email_verificacao'] ?? '';
+
+        if (empty($email)) {
+            $_SESSION['erro_login'] = "Sessão expirada. Faça login novamente para gerar um novo código.";
+            header("Location: " . BASE_URL . "/login");
+            exit;
+        }
+
+        $resultado = $this->usuarioService->reenviarCodigoVerificacao($email);
+
+        if ($resultado['sucesso']) {
+            $_SESSION['sucesso_verificacao'] = $resultado['mensagem'];
+        } else {
+            $_SESSION['erro_verificacao'] = $resultado['mensagem'];
+        }
+        
+        header("Location: " . BASE_URL . "/verificar-email");
+        exit;
+    }
+
+    public function reenviarCodigoRecuperacao()
+    {
+        if (session_status() === PHP_SESSION_NONE) { session_start(); }
+        
+        // Pega o e-mail de quem pediu a recuperação lá na primeira tela
+        $email = $_SESSION['email_recuperacao_pendente'] ?? '';
+
+        if (empty($email)) {
+            $_SESSION['erro_recuperacao'] = "Sessão expirada. Por favor, volte e digite seu e-mail novamente.";
+            header("Location: " . BASE_URL . "/recuperar-senha");
+            exit;
+        }
+
+        // Reutilizamos o seu serviço de recuperação que já gera código e envia o e-mail!
+        $resultado = $this->usuarioService->solicitarRecuperacaoSenha($email);
+
+        // Avisa a tela que deu certo
+        $_SESSION['sucesso_recuperacao'] = "Um novo código de recuperação foi enviado para o seu e-mail.";
+        
+        header("Location: " . BASE_URL . "/redefinir-senha");
         exit;
     }
 }

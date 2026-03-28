@@ -16,17 +16,31 @@
             <img src="<?= BASE_URL ?>/public/resources/images/Belezou.png" alt="Belezou App Logo" class="login-logo">
             
             <?php 
-                // FEEDBACK LOOP: Se o Controller enviou uma mensagem de SUCESSO, exibimos a faixa verde!
+                // FEEDBACK LOOP: Mensagem genérica de sucesso
                 if (isset($_SESSION['msg_sucesso'])) {
                     echo '<div style="color: #15803d; background-color: #dcfce7; padding: 10px; border-radius: 8px; text-align: center; margin-bottom: 1rem; font-weight: bold;">';
                     echo htmlspecialchars($_SESSION['msg_sucesso']);
                     echo '</div>';
-                    // Apaga a mensagem para ela sumir se o utilizador atualizar a página
                     unset($_SESSION['msg_sucesso']);
                 }
+
+                // ARQUITETURA UX: Correção do feedback de Redefinição de Senha e Logout
+                if (isset($_SESSION['sucesso_login'])) {
+                    echo '<div style="color: #15803d; background-color: #dcfce7; padding: 10px; border-radius: 8px; text-align: center; margin-bottom: 1rem; font-weight: bold;">';
+                    echo htmlspecialchars($_SESSION['sucesso_login']);
+                    echo '</div>';
+                    unset($_SESSION['sucesso_login']);
+                }
                 
-                // Se o Controller enviou uma mensagem de ERRO DE LOGIN
-                if (isset($_SESSION['erro_login'])) {
+                // Erros com Link HTML (ex: Verificação de E-mail pendente)
+                if (isset($_SESSION['erro_login_html'])) {
+                    echo '<div class="error-message" style="display: block; text-align: center; margin-bottom: 1rem; color: #dc2626; background-color: #fee2e2; padding: 10px; border-radius: 8px;">';
+                    echo $_SESSION['erro_login_html']; 
+                    echo '</div>';
+                    unset($_SESSION['erro_login_html']);
+                }
+                // Erros normais de texto (Senha incorreta, etc)
+                elseif (isset($_SESSION['erro_login'])) {
                     echo '<div class="error-message" style="display: block; text-align: center; margin-bottom: 1rem; color: #dc2626; background-color: #fee2e2; padding: 10px; border-radius: 8px;">';
                     echo htmlspecialchars($_SESSION['erro_login']);
                     echo '</div>';

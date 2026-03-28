@@ -58,9 +58,68 @@
                 <a href="<?= BASE_URL ?>/login" class="btn-secondary">Cancelar e Voltar</a>
                 
             </form>
+
+            <form id="formReenviarRecuperacao" action="<?= BASE_URL ?>/auth/reenviar-codigo-recuperacao" method="POST">
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0; text-align: center;">
+                    Não recebeu o e-mail? <br>
+                    <button id="btnReenviarRecuperacao" type="submit" style="background: none; border: none; color: var(--color-purple); font-weight: bold; text-decoration: underline; cursor: pointer; padding: 5px; margin-top: 5px; transition: all 0.3s;">
+                        Reenviar Código
+                    </button>
+                    <span id="timerCooldownRecuperacao" style="display: none; color: #9ca3af; font-size: 0.8rem; margin-left: 5px;"></span>
+                </p>
+            </form>
         </div>
     </div>
 
     <script src="<?= BASE_URL ?>/public/resources/js/auth.js"></script>
+    <script>
+        // =====================================================================
+        // ARQUITETURA UX: Bloqueio Anti-Spam (60 Segundos) para Recuperação
+        // =====================================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            const formReenviar = document.getElementById('formReenviarRecuperacao');
+            const btnReenviar = document.getElementById('btnReenviarRecuperacao');
+            const spanTimer = document.getElementById('timerCooldownRecuperacao');
+
+            // Usamos uma chave diferente no LocalStorage para não conflitar com a tela de contas novas
+            let lastSent = localStorage.getItem('lastRecoveryCodeSentTimestamp');
+            
+            if (lastSent) {
+                let now = Math.floor(Date.now() / 1000); 
+                let diff = now - parseInt(lastSent);
+                
+                if (diff < 60) {
+                    iniciarBloqueio(60 - diff);
+                } else {
+                    localStorage.removeItem('lastRecoveryCodeSentTimestamp');
+                }
+            }
+
+            formReenviar.addEventListener('submit', function(e) {
+                localStorage.setItem('lastRecoveryCodeSentTimestamp', Math.floor(Date.now() / 1000));
+            });
+
+            function iniciarBloqueio(segundosRestantes) {
+                btnReenviar.disabled = true;
+                btnReenviar.style.color = '#9ca3af'; 
+                btnReenviar.style.cursor = 'not-allowed'; 
+                spanTimer.style.display = 'inline';
+                
+                let interval = setInterval(function() {
+                    spanTimer.innerText = `(Aguarde ${segundosRestantes}s)`;
+                    segundosRestantes--;
+                    
+                    if (segundosRestantes < 0) {
+                        clearInterval(interval);
+                        btnReenviar.disabled = false;
+                        btnReenviar.style.color = 'var(--color-purple)'; 
+                        btnReenviar.style.cursor = 'pointer';
+                        spanTimer.style.display = 'none';
+                        localStorage.removeItem('lastRecoveryCodeSentTimestamp');
+                    }
+                }, 1000); 
+            }
+        });
+    </script>
 </body>
 </html>
