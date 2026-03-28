@@ -43,7 +43,7 @@ function confirmarSaida() {
     if (confirm("Tem certeza que deseja sair do aplicativo?")) {
         // Redireciona para a rota configurada no index.php
         // Usa o caminho relativo a partir da raiz do projeto para evitar erros
-        window.location.href = window.location.origin + "/web_salao/login/sair"; 
+        window.location.href = window.location.origin + "/TCC-ETEC/login/sair"; 
     }
 }
 

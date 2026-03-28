@@ -123,7 +123,7 @@ class DisponibilidadeService {
     public function ativarGrade($idFuncionario, $idDisponibilidade) {
         $ativou = $this->disponibilidadeModel->definirGradeAtiva($idFuncionario, $idDisponibilidade);
         return $ativou ? 
-            ['sucesso' => true, 'mensagem' => 'Grade ativada com sucesso. Esta é agora a sua regra principal.'] : 
+            ['sucesso' => true, 'mensagem' => 'Grade ativada com sucesso.'] : 
             ['sucesso' => false, 'mensagem' => 'Falha ao ativar a grade.'];
     }
 
@@ -243,7 +243,7 @@ class DisponibilidadeService {
      */
     public function excluirGrade($idDisponibilidade, $idFuncionario) {
         if (empty($idDisponibilidade)) { 
-            return ['sucesso' => false, 'mensagem' => 'ID da grelha não informado.']; 
+            return ['sucesso' => false, 'mensagem' => 'ID da grade não informado.']; 
         }
         
         // 1. TRAVA DE SEGURANÇA: Verifica se a grade que ele quer apagar é a ativa
@@ -252,7 +252,7 @@ class DisponibilidadeService {
         if ($gradeAtual && $gradeAtual['id_disponibilidade'] == $idDisponibilidade) {
             return [
                 'sucesso' => false,
-                'mensagem' => 'Você não pode excluir a grade que está ativa no momento. Ative outra grelha de horários primeiro para poder excluir esta.'
+                'mensagem' => 'Você não pode excluir a grade que está ativa no momento. Ative outra grade de horários primeiro para poder excluir esta.'
             ];
         }
 
@@ -260,8 +260,8 @@ class DisponibilidadeService {
         $excluiu = $this->disponibilidadeModel->excluirGrade($idDisponibilidade, $idFuncionario);
         
         return $excluiu ? 
-            ['sucesso' => true, 'mensagem' => 'A grelha foi permanentemente excluída.'] : 
-            ['sucesso' => false, 'mensagem' => 'Erro ao tentar excluir a grelha de horários.'];
+            ['sucesso' => true, 'mensagem' => 'A grade foi permanentemente excluída.'] : 
+            ['sucesso' => false, 'mensagem' => 'Erro ao tentar excluir a grade de horários.'];
     }
 }
 ?>

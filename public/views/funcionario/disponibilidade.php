@@ -1,14 +1,16 @@
 <?php
+// ARQUITETURA: Iniciamos a sessão apenas se ela ainda não existir, evitando erros de "headers already sent"
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
 
 require_once __DIR__ . '/../../../app/Models/Disponibilidade.php';
 $dispModel = new Disponibilidade();
 $idFuncionario = $_SESSION['usuario_id'];
 
-// 1. Busca todas as grades que o funcionário já criou
+// 1. Busca todas as grades que o funcionário já criou no banco de dados
 $todasGrades = $dispModel->buscarGradesFuncionario($idFuncionario);
 
 // 2. ARQUITETURA UX (POST em vez de GET): Lemos a grade selecionada da Sessão
+// Isso mantém a URL limpa (sem parâmetros ?id=123) e protege contra manipulação manual da URL (IDOR)
 $idDisponibilidade = $_SESSION['grade_visualizada'] ?? '';
 $isNovaGrade = ($idDisponibilidade === 'nova');
 
@@ -27,8 +29,9 @@ if (!empty($todasGrades)) {
     }
 }
 
-// 4. Lógica de preenchimento dos campos
+// 4. Lógica de preenchimento dos campos da grade selecionada
 if (!$isNovaGrade && !empty($todasGrades)) {
+    // Se não houver nenhuma selecionada na sessão, pega a ativa ou a primeira da lista
     if (empty($idDisponibilidade)) {
         foreach($todasGrades as $g) {
             if ($g['is_ativa'] == 1) {
@@ -41,6 +44,7 @@ if (!$isNovaGrade && !empty($todasGrades)) {
         }
     }
 
+    // Busca os dados básicos da grade atual
     foreach($todasGrades as $g) {
         if ($g['id_disponibilidade'] == $idDisponibilidade) {
             $nomeGradeAtual = $g['nome_grade'];
@@ -49,6 +53,7 @@ if (!$isNovaGrade && !empty($todasGrades)) {
         }
     }
 
+    // Busca os horários de cada dia para popular a visualização e o formulário
     $diasBanco = $dispModel->buscarDiasDaGrade($idDisponibilidade);
     foreach ($diasBanco as $row) {
         $dadosDias[$row['dia_semana']] = [
@@ -60,15 +65,16 @@ if (!$isNovaGrade && !empty($todasGrades)) {
         ];
     }
 } elseif ($isNovaGrade) {
+    // Garante que o ID está limpo para a criação de um novo registo
     $idDisponibilidade = ''; 
 }
 
+// Array base para garantir que iteramos por todos os dias da semana na ordem correta
 $diasSemana = [
     'Dom' => 'Domingo', 'Seg' => 'Segunda', 'Ter' => 'Terça', 
     'Qua' => 'Quarta', 'Qui' => 'Quinta', 'Sex' => 'Sexta', 'Sab' => 'Sábado'
 ];
 
-$mostrarFormulario = $isNovaGrade ? 'block' : 'none';
 $mostrarBotaoEditar = (!$isNovaGrade && !empty($idDisponibilidade)) ? 'block' : 'none';
 ?>
 
@@ -81,28 +87,7 @@ $mostrarBotaoEditar = (!$isNovaGrade && !empty($idDisponibilidade)) ? 'block' : 
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/root.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/admin-layout.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/disponibilidade.css">
-    <style>
-        .day-row { background: var(--bg-secondary); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 15px; display: flex; flex-wrap: wrap; gap: 15px; align-items: center; transition: all 0.3s ease; }
-        .day-row:hover { border-color: var(--primary-color); box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-        .time-input-group { display: flex; gap: 10px; align-items: center; }
-        .day-row input[type="time"] { width: auto; padding: 6px 10px; }
-        .divider { border-left: 2px solid var(--border-color); padding-left: 15px; margin-left: 5px; }
-        .btn-limpar-pausa { background: none; border: none; color: #dc3545; font-size: 0.8rem; cursor: pointer; font-weight: bold; padding: 0 5px; text-decoration: underline; transition: color 0.2s; }
-        .btn-limpar-pausa:hover { color: #a71d2a; }
-        .grade-header { display: flex; justify-content: space-between; align-items: center; background: var(--bg-secondary); padding: 15px 20px; border-radius: 8px; margin-bottom: 25px; border: 1px solid var(--border-color); }
-        
-        .ux-banner { padding: 15px; border-radius: 6px; margin-bottom: 20px; border-left: 4px solid; display: flex; flex-direction: column; gap: 5px; }
-        .ux-banner-new { background-color: rgba(40, 167, 69, 0.1); border-left-color: #28a745; color: var(--text-main); }
-        .ux-banner-edit { background-color: rgba(23, 162, 184, 0.1); border-left-color: #17a2b8; color: var(--text-main); }
-
-        #area-edicao { transition: opacity 0.4s ease-in-out; }
-
-        @media (max-width: 768px) {
-            .divider { border-left: none; padding-left: 0; margin-left: 0; border-top: 1px dashed var(--border-color); padding-top: 10px; width: 100%; }
-            .day-row { flex-direction: column; align-items: flex-start; }
-            .grade-header { flex-direction: column; align-items: flex-start; gap: 15px; }
-        }
-    </style>
+    <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/modal.css">
 </head>
 <body>
     <div class="admin-wrapper">
@@ -170,108 +155,136 @@ $mostrarBotaoEditar = (!$isNovaGrade && !empty($idDisponibilidade)) ? 'block' : 
                         <?php if(!empty($idDisponibilidade) && !$isGradeAtiva): ?>
                             <form action="<?= BASE_URL ?>/funcionario/disponibilidade/ativar" method="POST" style="margin: 0;">
                                 <input type="hidden" name="id_disponibilidade" value="<?= $idDisponibilidade ?>">
-                                <button type="submit" class="btn-primary" style="background: #28a745; border-color: #28a745; padding: 8px 15px;">🚀 Ativar esta Grade</button>
+                                <button type="submit" class="btn-primary" style="background: #28a745; border-color: #28a745; padding: 8px 15px;">Ativar esta Grade</button>
                             </form>
                         <?php endif; ?>
                     </div>
 
+                    <?php if (!$isNovaGrade && !empty($idDisponibilidade)): ?>
+                        <div class="grade-preview-container">
+                            <?php foreach($diasSemana as $sigla => $rotulo): 
+                                $d = isset($dadosDias[$sigla]) ? $dadosDias[$sigla] : null;
+                                $ativo = $d && $d['status'] === 'disponivel';
+                            ?>
+                                <div class="day-card <?= $ativo ? 'active' : 'inactive' ?>">
+                                    <h4><?= $rotulo ?></h4>
+                                    <?php if($ativo): ?>
+                                        <p>🕒 <?= htmlspecialchars($d['inicio']) ?> às <?= htmlspecialchars($d['fim']) ?></p>
+                                        <?php if(!empty($d['int_inicio'])): ?>
+                                            <p class="pausa">☕ Pausa: <?= htmlspecialchars($d['int_inicio']) ?> às <?= htmlspecialchars($d['int_fim']) ?></p>
+                                        <?php else: ?>
+                                            <p class="pausa">Sem pausa</p>
+                                        <?php endif; ?>
+                                    <?php else: ?>
+                                        <p class="fechado">❌ Sem horário</p>
+                                    <?php endif; ?>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
+
                     <div id="box-botao-editar" style="display: <?= $mostrarBotaoEditar ?>; margin-bottom: 25px;">
-                        <button type="button" class="btn-secondary" style="padding: 10px 20px; font-weight: bold; border: 2px solid var(--primary-color); color: var(--primary-color); background: transparent; border-radius: 8px; cursor: pointer;" onclick="abrirEdicao()">
+                        <button type="button" class="btn-secondary" style="padding: 10px 20px; font-weight: bold; border: 2px solid var(--primary-color); color: var(--primary-color); background: transparent; border-radius: 8px; cursor: pointer;" data-modal-target="#modalEdicaoGrade">
                             ✏️ Editar Horários Desta Grade
                         </button>
                         
                         <?php if (!empty($idDisponibilidade)): ?>
-                            <button type="button" class="btn-danger" style="margin-left: 10px; background-color: #dc3545; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; padding: 12px 15px;" onclick="if(confirm('Tem certeza que deseja EXCLUIR esta grade permanentemente?')) { document.getElementById('form-excluir').submit(); }">
+                            <button type="button" class="btn-danger" style="margin-left: 10px; background-color: #dc3545; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; padding: 12px 15px;" onclick="confirmarExclusaoGrade()">
                                 Excluir Grade
                             </button>
                         <?php endif; ?>
                     </div>
 
-                    <div id="area-edicao" style="display: <?= $mostrarFormulario ?>; opacity: <?= $mostrarFormulario === 'block' ? '1' : '0' ?>;">
-                        
-                        <?php if(empty($idDisponibilidade)): ?>
-                            <div class="ux-banner ux-banner-new">
-                                <span style="font-size: 1.1rem; font-weight: bold;">✨ Criando uma Nova Grade</span>
-                                <span style="font-size: 0.9rem;">Preencha os horários abaixo. Ela não afetará sua agenda atual a menos que você marque a caixa para ativá-la.</span>
+                    <div class="modal-overlay <?= $isNovaGrade ? 'active' : '' ?>" id="modalEdicaoGrade">
+                        <div class="modal-content" style="max-width: 800px;">
+                            <div class="modal-header">
+                                <h3><?= empty($idDisponibilidade) ? 'Criar Nova Grade' : '✏️ Editar Grade' ?></h3>
+                                <button class="btn-close" type="button" <?= $isNovaGrade ? 'onclick="cancelarNovaGrade()"' : 'data-close-modal' ?>>&times;</button>
                             </div>
-                        <?php else: ?>
-                            <div class="ux-banner ux-banner-edit">
-                                <span style="font-size: 1.1rem; font-weight: bold;">✏️ Editando os Horários Desta Grade</span>
-                            </div>
-                        <?php endif; ?>
-
-                        <form action="<?= BASE_URL ?>/funcionario/disponibilidade/salvar" method="POST">
-                            <input type="hidden" name="id_disponibilidade" value="<?= $idDisponibilidade ?>">
                             
-                            <div style="display: flex; gap: 20px; align-items: flex-end; margin-bottom: 25px; flex-wrap: wrap;">
-                                <div style="flex-grow: 1; min-width: 200px;">
-                                    <label style="font-weight: bold; color: var(--text-main); display: block; margin-bottom: 8px;">
-                                        <?= empty($idDisponibilidade) ? 'Nome da Nova Grade' : 'Renomear esta Grade' ?>
-                                    </label>
-                                    <input type="text" name="nome_grade" class="form-control" value="<?= htmlspecialchars($nomeGradeAtual) ?>" required placeholder="Ex: Horário de Verão">
-                                </div>
-                                
-                                <?php if (empty($idDisponibilidade)): ?>
-                                    <div style="padding-bottom: 10px; display: flex; align-items: center; gap: 8px;">
-                                        <input type="checkbox" name="is_ativa" id="is_ativa" value="1" checked style="transform: scale(1.3);">
-                                        <label for="is_ativa" style="font-weight: bold; color: var(--text-main); cursor: pointer;">Ativar como regra principal agora</label>
+                            <div class="modal-body">
+                                <?php if(empty($idDisponibilidade)): ?>
+                                    <div class="ux-banner ux-banner-new">
+                                        <span style="font-size: 0.9rem;">Preencha os horários abaixo. Ela não afetará sua agenda atual a menos que você marque a caixa para ativá-la.</span>
                                     </div>
                                 <?php endif; ?>
-                            </div>
 
-                            <div class="dias-grid">
-                                <?php foreach($diasSemana as $sigla => $rotulo): 
-                                    $existe = isset($dadosDias[$sigla]);
-                                    $d = $existe ? $dadosDias[$sigla] : ['inicio'=>'', 'fim'=>'', 'int_inicio'=>'', 'int_fim'=>'', 'status'=>'disponivel'];
-                                    $ativo = $existe && $d['status'] === 'disponivel';
-                                ?>
-                                    <div class="day-row" id="row_<?= $sigla ?>" style="<?= !$ativo ? 'opacity: 0.5; filter: grayscale(100%);' : '' ?>">
+                                <form action="<?= BASE_URL ?>/funcionario/disponibilidade/salvar" method="POST" onsubmit="return confirmarSalvamento(event)">
+                                    <input type="hidden" name="id_disponibilidade" value="<?= htmlspecialchars($idDisponibilidade) ?>">
+                                    
+                                    <div style="display: flex; gap: 20px; align-items: flex-end; margin-bottom: 25px; flex-wrap: wrap;">
+                                        <div style="flex-grow: 1; min-width: 200px;">
+                                            <label style="font-weight: bold; color: var(--text-main); display: block; margin-bottom: 8px;">
+                                                <?= empty($idDisponibilidade) ? 'Nome da Nova Grade' : 'Renomear esta Grade' ?>
+                                            </label>
+                                            <input type="text" name="nome_grade" class="form-control" value="<?= htmlspecialchars($nomeGradeAtual) ?>" required placeholder="Ex: Horário de Verão">
+                                        </div>
                                         
-                                        <div style="min-width: 160px; display: flex; align-items: center; gap: 10px;">
-                                            <input type="checkbox" name="dias[<?= $sigla ?>][ativo]" value="1" id="dia_<?= $sigla ?>" <?= $ativo ? 'checked' : '' ?> style="transform: scale(1.4); cursor: pointer;" onchange="toggleDayRow('<?= $sigla ?>')">
-                                            <label for="dia_<?= $sigla ?>" style="font-weight: 600; color: var(--text-main); cursor:pointer; font-size: 1.1rem;"><?= $rotulo ?></label>
-                                        </div>
-
-                                        <div class="time-input-group">
-                                            <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: bold;">Trabalha das</span>
-                                            <input type="time" name="dias[<?= $sigla ?>][hora_inicio]" value="<?= $d['inicio'] ?>" class="form-control">
-                                            <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: bold;">às</span>
-                                            <input type="time" name="dias[<?= $sigla ?>][hora_fim]" value="<?= $d['fim'] ?>" class="form-control">
-                                        </div>
-
-                                        <div class="time-input-group divider">
-                                            <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: bold;">Pausa das</span>
-                                            <input type="time" id="int_ini_<?= $sigla ?>" name="dias[<?= $sigla ?>][intervalo_inicio]" value="<?= $d['int_inicio'] ?>" class="form-control">
-                                            <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: bold;">às</span>
-                                            <input type="time" id="int_fim_<?= $sigla ?>" name="dias[<?= $sigla ?>][intervalo_fim]" value="<?= $d['int_fim'] ?>" class="form-control">
-                                            
-                                            <button type="button" class="btn-limpar-pausa" onclick="limparPausa('<?= $sigla ?>')" title="Remover horário de pausa">Limpar pausa</button>
-                                        </div>
+                                        <?php if (empty($idDisponibilidade)): ?>
+                                            <div style="padding-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                                                <input type="checkbox" name="is_ativa" id="is_ativa" value="1" style="transform: scale(1.3);">
+                                                <label for="is_ativa" style="font-weight: bold; color: var(--text-main); cursor: pointer;">Ativar como principal</label>
+                                            </div>
+                                        <?php endif; ?>
                                     </div>
-                                <?php endforeach; ?>
-                            </div>
 
-                            <div style="display: flex; gap: 1rem; margin-top: 2rem; flex-wrap: wrap;">
-                                <button type="submit" class="btn-primary" style="max-width: 300px;">
-                                    <?= empty($idDisponibilidade) ? 'Salvar Nova Grade' : 'Salvar Alterações da Grade' ?>
-                                </button>
-                                
-                                <button type="button" class="btn-secondary" style="max-width: 200px;" onclick="cancelarEdicao()">
-                                    Cancelar
-                                </button>
+                                    <div class="dias-grid">
+                                        <?php foreach($diasSemana as $sigla => $rotulo): 
+                                            $existe = isset($dadosDias[$sigla]);
+                                            $d = $existe ? $dadosDias[$sigla] : ['inicio'=>'08:00', 'fim'=>'18:00', 'int_inicio'=>'12:00', 'int_fim'=>'13:00', 'status'=>'disponivel'];
+                                            $ativo = $existe ? ($d['status'] === 'disponivel') : false;
+                                        ?>
+                                            <div class="day-row" id="row_<?= $sigla ?>" style="<?= !$ativo ? 'opacity: 0.5; filter: grayscale(100%); border-color: transparent;' : 'border-left: 4px solid #28a745;' ?>">
+                                                
+                                                <label class="toggle-container" style="min-width: 160px; display: flex; align-items: center; gap: 12px; cursor: pointer;">
+                                                    
+                                                    <div class="toggle-switch">
+                                                        <input type="checkbox" name="dias[<?= $sigla ?>][ativo]" value="1" id="dia_<?= $sigla ?>" <?= $ativo ? 'checked' : '' ?> onchange="toggleDayRow('<?= $sigla ?>')">
+                                                        <span class="toggle-slider"></span>
+                                                    </div>
+                                                    
+                                                    <span style="font-weight: 600; color: var(--text-main); font-size: 1.1rem; user-select: none;"><?= $rotulo ?></span>
+                                                </label>
+
+                                                <div class="time-input-group">
+                                                    <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: bold;">Das</span>
+                                                    <input type="time" name="dias[<?= $sigla ?>][hora_inicio]" value="<?= htmlspecialchars($d['inicio']) ?>" class="form-control">
+                                                    <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: bold;">às</span>
+                                                    <input type="time" name="dias[<?= $sigla ?>][hora_fim]" value="<?= htmlspecialchars($d['fim']) ?>" class="form-control">
+                                                </div>
+
+                                                <div class="time-input-group divider">
+                                                    <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: bold;">Pausa:</span>
+                                                    <input type="time" id="int_ini_<?= $sigla ?>" name="dias[<?= $sigla ?>][intervalo_inicio]" value="<?= htmlspecialchars($d['int_inicio']) ?>" class="form-control">
+                                                    <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: bold;">às</span>
+                                                    <input type="time" id="int_fim_<?= $sigla ?>" name="dias[<?= $sigla ?>][intervalo_fim]" value="<?= htmlspecialchars($d['int_fim']) ?>" class="form-control">
+                                                    
+                                                    <button type="button" class="btn-limpar-pausa" onclick="limparPausa('<?= $sigla ?>')" title="Remover horário de pausa">Limpar</button>
+                                                </div>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    </div>
+
+                                    <div style="display: flex; gap: 1rem; margin-top: 2rem; justify-content: flex-end;">
+                                        <button type="button" class="btn-secondary" <?= $isNovaGrade ? 'onclick="cancelarNovaGrade()"' : 'data-close-modal' ?>>Cancelar</button>
+                                        <button type="submit" class="btn-primary" style="min-width: 200px;">
+                                            <?= empty($idDisponibilidade) ? 'Salvar Nova Grade' : 'Salvar Alterações' ?>
+                                        </button>
+                                    </div>
+                                </form>
                             </div>
-                        </form>
+                        </div>
                     </div>
 
                     <?php if (!empty($idDisponibilidade)): ?>
                     <form id="form-excluir" action="<?= BASE_URL ?>/funcionario/disponibilidade/excluir" method="POST" style="display: none;">
                         <input type="hidden" name="id_disponibilidade" value="<?= $idDisponibilidade ?>">
                     </form>
+                    <?php endif; ?>
                     
                     <form id="form-cancelar" action="<?= BASE_URL ?>/funcionario/disponibilidade/selecionar" method="POST" style="display: none;">
                         <input type="hidden" name="grade_selecionada" value="">
                     </form>
-                    <?php endif; ?>
 
                 </div>
             </section>
@@ -281,41 +294,52 @@ $mostrarBotaoEditar = (!$isNovaGrade && !empty($idDisponibilidade)) ? 'block' : 
     <button id="themeToggle" class="btn-theme-toggle" title="Alternar Tema Escuro/Claro">🌓</button>
 
     <script src="<?= BASE_URL ?>/public/resources/js/admin-layout.js"></script>
-    <script src="<?= BASE_URL ?>/public/resources/js/app-cliente.js"></script>
+    <script src="<?= BASE_URL ?>/public/resources/js/modal.js"></script>
+
     <script>
-        function abrirEdicao() {
-            document.getElementById('box-botao-editar').style.display = 'none';
-            const area = document.getElementById('area-edicao');
-            area.style.display = 'block';
-            setTimeout(() => { area.style.opacity = '1'; }, 10);
-        }
+        // =====================================================================
+        // ARQUITETURA UX: Lógica de Interação da Página
+        // =====================================================================
 
-        function cancelarEdicao() {
-            const isNovaGrade = <?= $isNovaGrade ? 'true' : 'false' ?>;
-            if (isNovaGrade) {
-                // Se estava a criar, o cancelar reseta a sessão enviando um POST vazio
-                document.getElementById('form-cancelar').submit();
-                return;
-            }
-
-            const area = document.getElementById('area-edicao');
-            area.style.opacity = '0';
+        // Interceta a submissão do formulário para pedir confirmação ao utilizador
+        function confirmarSalvamento(event) {
+            event.preventDefault(); // Impede o envio automático imediato
             
-            setTimeout(() => { 
-                area.style.display = 'none'; 
-                document.getElementById('box-botao-editar').style.display = 'block';
-            }, 400); 
+            const acao = "<?= empty($idDisponibilidade) ? 'criar esta nova' : 'salvar as alterações nesta' ?>";
+            
+            // Pergunta de confirmação defensiva
+            if (confirm(`Deseja confirmar e ${acao} grade de horários?`)) {
+                event.target.submit(); // Prossegue com o envio via POST
+            }
         }
 
+        function confirmarExclusaoGrade() {
+            if(confirm('ATENÇÃO: Tem certeza que deseja EXCLUIR esta grade permanentemente? Esta ação não pode ser desfeita.')) { 
+                document.getElementById('form-excluir').submit(); 
+            }
+        }
+
+        // Limpa a flag "nova grade" da sessão submetendo um POST vazio
+        function cancelarNovaGrade() {
+            document.getElementById('form-cancelar').submit();
+        }
+
+        // Esmaece visualmente a linha inteira se o dia for desmarcado
+        // ARQUITETURA UX: Agora o JavaScript também manipula a borda verde em tempo real
         function toggleDayRow(sigla) {
             const checkbox = document.getElementById('dia_' + sigla);
             const row = document.getElementById('row_' + sigla);
+            
             if (checkbox.checked) {
                 row.style.opacity = '1';
                 row.style.filter = 'none';
+                // Adiciona a borda lateral verde quando ativado
+                row.style.borderLeft = '4px solid #28a745';
             } else {
                 row.style.opacity = '0.5';
                 row.style.filter = 'grayscale(100%)';
+                // Remove a borda verde voltando para a cor padrão quando desativado
+                row.style.borderLeft = '1px solid var(--border-color)';
             }
         }
 
@@ -323,35 +347,38 @@ $mostrarBotaoEditar = (!$isNovaGrade && !empty($idDisponibilidade)) ? 'block' : 
             document.getElementById('int_ini_' + sigla).value = '';
             document.getElementById('int_fim_' + sigla).value = '';
         }
-    </script>
 
-    <script>
         // =====================================================================
-        // ARQUITETURA UX: PRESERVAÇÃO DE ESTADO DE SCROLL
-        // Evita que a página "pule" para o topo ao trocar de grade no dropdown
+        // PRESERVAÇÃO DE ESTADO DE SCROLL
+        // Melhora a UX não atirando o ecrã para o topo após carregar a página
         // =====================================================================
-
-        // 1. Escutador de evento "beforeunload": Dispara um milissegundo antes da página ser recarregada/fechada
         window.addEventListener("beforeunload", function () {
-            // Guardamos a posição exata (em pixels) do scroll vertical na memória temporária do navegador
             sessionStorage.setItem("scrollPosition", window.scrollY);
         });
 
-        // 2. Escutador de evento "load": Dispara assim que a página termina de carregar o HTML e CSS
         window.addEventListener("load", function () {
-            // Verificamos se existe alguma posição guardada da navegação anterior
             const scrollPos = sessionStorage.getItem("scrollPosition");
-            
             if (scrollPos !== null) {
-                // Se existir, forçamos o navegador a rolar a página para a posição anotada
                 window.scrollTo(0, parseInt(scrollPos));
-                
-                // Limpamos a memória para evitar que a página trave nessa posição se o utilizador clicar num link normal
                 sessionStorage.removeItem("scrollPosition"); 
             }
         });
 
-        // (O resto das suas funções abrirEdicao(), cancelarEdicao(), etc., continuam aqui para baixo...)
+        // =====================================================================
+        // ARQUITETURA UX: Correção do clique no fundo escuro (Overlay)
+        // =====================================================================
+        const modalOverlay = document.getElementById('modalEdicaoGrade');
+        if (modalOverlay) {
+            modalOverlay.addEventListener('click', function(event) {
+                // Garante que o clique foi no fundo escuro, e não dentro da caixa branca
+                if (event.target === this) {
+                    // O PHP injeta esse if. Se a tela estiver no modo "Nova Grade", ele força o cancelamento.
+                    <?php if ($isNovaGrade): ?>
+                        cancelarNovaGrade();
+                    <?php endif; ?>
+                }
+            });
+        }
     </script>
 </body>
 </html>
