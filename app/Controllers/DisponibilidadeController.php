@@ -51,6 +51,18 @@ class DisponibilidadeController
 
             if ($resultado['sucesso']) {
                 $_SESSION['msg_sucesso'] = $resultado['mensagem'];
+                
+                // =========================================================================
+                // ARQUITETURA UX: LIMPANDO O ESTADO APÓS SUCESSO
+                // =========================================================================
+                // Por que fazer isso? 
+                // A sessão estava mantendo o estado 'nova' ou o ID da grade antiga.
+                // Limpando essa variável, forçamos o ciclo PRG (Post/Redirect/Get) a 
+                // recarregar a página em seu estado neutro. O modal virá fechado e o 
+                // sistema voltará a exibir a grade que for a "Principal/Ativa" por padrão.
+                // =========================================================================
+                $_SESSION['grade_visualizada'] = ''; 
+
             } else {
                 $_SESSION['msg_erro'] = $resultado['mensagem'];
             }
