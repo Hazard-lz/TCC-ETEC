@@ -29,8 +29,9 @@ class Funcionario extends BaseModel {
 
 // READ/SELECT
     public function listarTodos() {
+        // ARQUITETURA: Adicionado u.email_verificado para sabermos quem já configurou a senha
         $sql = "SELECT f.id_funcionario, f.cod_usuario, f.especialidade, f.salario, 
-                       u.nome, u.email, u.telefone, u.status, u.data_criacao
+                       u.nome, u.email, u.telefone, u.status, u.data_criacao, u.tipo, u.email_verificado
                 FROM funcionarios f
                 INNER JOIN usuarios u ON f.cod_usuario = u.id_usuario
                 ORDER BY u.nome ASC";
@@ -38,7 +39,8 @@ class Funcionario extends BaseModel {
     }
 
     public function buscarPorId($id_funcionario) {
-        $sql = "SELECT f.*, u.nome, u.email, u.telefone, u.status 
+        // Adicionado u.tipo no SELECT
+        $sql = "SELECT f.*, u.nome, u.email, u.telefone, u.status, u.tipo 
                 FROM funcionarios f
                 INNER JOIN usuarios u ON f.cod_usuario = u.id_usuario
                 WHERE f.id_funcionario = :id";

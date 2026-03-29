@@ -22,7 +22,8 @@ function preencherModalEdicaoFuncionario(id, nome, telefone, email, especialidad
     document.getElementById("salario").value = salario;
     document.getElementById("tipo").value = tipo;
     
-    // Opcional: Torna a senha não obrigatória na edição
+    // Bloqueia a edição do e-mail e remove a obrigatoriedade da senha
+    document.getElementById("email").setAttribute('readonly', true);
     document.getElementById("senha").removeAttribute('required');
 }
 

@@ -216,6 +216,16 @@ switch ($uri) {
     case '/admin/funcionarios':
         include __DIR__ . '/public/views/admin/funcionarios.php';
         break;
+    case '/admin/funcionarios/salvar':
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // O autoloader já carrega a classe automaticamente
+            $controller = new FuncionarioController();
+            $controller->salvar();
+        } else {
+            header("Location: " . BASE_URL . "/admin/funcionarios");
+            exit;
+        }
+        break;
     case '/admin/servicos':
         include __DIR__ . '/public/views/admin/servicos.php';
         break;
@@ -233,12 +243,31 @@ switch ($uri) {
             exit;
         }   
         break;
-
     // Rota para ativar/inativar o serviço
     case '/admin/servicos/status':
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $controller = new ServicoController();
             $controller->alterarStatus();
+        }
+        break;
+
+    case '/admin/funcionarios/status':
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $controller = new FuncionarioController();
+            $controller->alterarStatus();
+        } else {
+            // Se tentarem acessar via URL (GET), devolvemos para a listagem
+            header("Location: " . BASE_URL . "/admin/funcionarios");
+            exit;
+        }
+        break;
+    case '/admin/funcionarios/reenviar-email':
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $controller = new FuncionarioController();
+            $controller->reenviarEmail();
+        } else {
+            header("Location: " . BASE_URL . "/admin/funcionarios");
+            exit;
         }
         break;
     // ------------------------------------------
@@ -321,6 +350,26 @@ switch ($uri) {
         }
         break;
     
+
+    // ------------------------------------------
+    // ROTAS DE SETUP DE FUNCIONÁRIO (VIA E-MAIL)
+    // ------------------------------------------
+    case '/setup-funcionario':
+        // ARQUITETURA (GET): Exibe a tela de criação de senha
+        $controller = new FuncionarioController();
+        $controller->setupSenha();
+        break;
+
+    case '/setup-funcionario/salvar':
+        // ARQUITETURA (POST): Salva a nova senha e finaliza o cadastro
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $controller = new FuncionarioController();
+            $controller->finalizarSetupSenha();
+        } else {    
+            header("Location: " . BASE_URL . "/login");
+            exit;
+        }
+        break;
     // --- ROTAS DE VERIFICAÇÃO DE E-MAIL ---
     case '/verificar-email':
         include __DIR__ . '/public/views/auth/verificar_email.php';

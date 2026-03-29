@@ -75,6 +75,97 @@ class UsuarioService extends BaseService {
         }
     }
 
+    public function registrarUsuarioDaEquipe($nome, $email, $telefone, $tipo) {
+        if ($this->usuarioModel->buscarPorEmail($email)) {
+            return $this->erro('Este e-mail já está cadastrado no sistema.');
+        }
+
+        // Deixa a senha null, o banco permite (DEFAULT NULL)
+        $idNovoUsuario = $this->usuarioModel->cadastrar($nome, $email, null, $tipo, $telefone);
+
+        if ($idNovoUsuario) {
+            // Gera o código de exatos 6 caracteres para bater com o schema (VARCHAR(6))
+            $token = mt_rand(100000, 999999);
+            
+            // Salva o token válido por 48h (2880 minutos)
+            $this->usuarioModel->salvarCodigo($idNovoUsuario, $token, 2880);
+
+            // Dispara o e-mail usando a sua classe existente
+            require_once __DIR__ . '/EmailService.php'; 
+            $emailService = new EmailService();
+            $assunto = "Bem-vindo à equipe - Crie sua senha de acesso";
+            
+            // ARQUITETURA: Fallback seguro para ambientes de desenvolvimento
+            $host = !empty($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : 'localhost';
+            $protocolo = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? "https" : "http";
+            
+            // Junta tudo: http://localhost/TCC-ETEC
+            $urlCompleta = $protocolo . "://" . $host . BASE_URL;
+
+            // Link que redireciona para a configuração de senha (AGORA ABSOLUTO!)
+            $link = $urlCompleta . "/setup-funcionario?token={$token}&email=" . urlencode($email);
+
+            $html = "<div style='text-align:center; padding: 20px; font-family: sans-serif; color: #333;'>
+                        <h2>Olá, {$nome}!</h2>
+                        <p>Você foi adicionado à equipe do salão.</p>
+                        <p>Para concluir seu cadastro e criar sua senha de acesso, clique no botão abaixo:</p>
+                        
+                        <a href='{$link}' style='display:inline-block; padding: 12px 24px; background: #8b5cf6; color: #fff; text-decoration: none; border-radius: 8px; margin-top: 15px; margin-bottom: 20px;'>Criar minha senha</a>
+                        
+                        <hr style='border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;'>
+                        
+                        <p style='font-size: 0.85rem; color: #64748b;'>Se o botão não funcionar, copie e cole o link abaixo no seu navegador:</p>
+                        <p style='font-size: 0.85rem; color: #8b5cf6; word-break: break-all;'>{$link}</p>
+                     </div>";
+
+            // 2. ARQUITETURA: Corpo de Texto Puro (Garante que o link não seja apagado pelo strip_tags)
+            $textoPuro = "Olá, {$nome}!\n\nVocê foi adicionado à equipe do salão.\n\nPara concluir seu cadastro e criar sua senha de acesso, copie e cole o link abaixo no seu navegador:\n\n{$link}";
+
+            // 3. Envia passando o HTML e o Texto Puro
+            if (!$emailService->enviar($email, $nome, $assunto, $html, $textoPuro)) {
+                return $this->erro('O funcionário foi salvo, mas houve um erro ao enviar o e-mail.');
+            }
+
+            return $this->sucesso('Funcionário cadastrado com sucesso! Um e-mail foi enviado.', ['id' => $idNovoUsuario]);
+        }
+        
+        return $this->erro('Falha ao registrar dados de acesso no banco.');
+    }
+
+    /**
+     * Finaliza o cadastro de um funcionário recém-adicionado pela gerência.
+     * Valida o token, salva a senha e marca o e-mail como verificado de uma só vez.
+     */
+    public function finalizarCadastroEquipe($email, $token, $senha, $confirmaSenha) {
+        // 1. Validação de integridade de dados
+        if ($senha !== $confirmaSenha) {
+            return $this->erro('As senhas não coincidem.');
+        }
+        if (strlen($senha) < 8) {
+            return $this->erro('A senha deve ter pelo menos 8 caracteres.');
+        }
+
+        // 2. Segurança: Verifica se o token pertence a este e-mail e se está no prazo (48h)
+        $usuario = $this->usuarioModel->verificarCodigo($email, $token);
+        
+        if (!$usuario) {
+            return $this->erro('Link inválido ou expirado. Solicite ao gerente que reenvie o acesso.');
+        }
+
+        // 3. Segurança: Criptografa a senha usando BCRYPT (padrão do password_hash)
+        $senhaHash = password_hash($senha, PASSWORD_DEFAULT);
+        
+        // 4. Persistência de Dados
+        // Atualiza a senha (este método no Model também já limpa o código de verificação)
+        $this->usuarioModel->atualizarSenha($usuario['id_usuario'], $senhaHash);
+
+        // Otimização de UX: Como o usuário clicou no link do próprio e-mail, 
+        // já confirmamos o e-mail dele automaticamente na mesma ação.
+        $this->usuarioModel->confirmarEmail($usuario['id_usuario']);
+
+        return $this->sucesso('Cadastro realizado com sucesso!');
+    }
+
     public function autenticar($email, $senha) {
         
         $usuario = $this->usuarioModel->buscarPorEmail($email);
@@ -264,6 +355,46 @@ class UsuarioService extends BaseService {
         $emailService->enviar($email, $usuario['nome'], $assunto, $html);
 
         return $this->sucesso($mensagemAlerta);
+    }
+
+    public function reenviarEmailSetupFuncionario($id_usuario) {
+        $usuario = $this->usuarioModel->buscarPorId($id_usuario);
+        
+        if (!$usuario) return $this->erro('Usuário não encontrado.');
+        if ($usuario['status'] !== 'ativo') return $this->erro('Não é possível enviar acesso para um funcionário inativo.');
+        // Para usar a checagem, buscamos a info completa pelo email (já que buscarPorId nao traz o email_verificado)
+        $usuarioCompleto = $this->usuarioModel->buscarPorEmail($usuario['email']);
+        if ($usuarioCompleto['email_verificado'] == 1) return $this->erro('Este funcionário já criou a senha e verificou o e-mail.');
+
+        // Gera token e salva no banco (48h de validade)
+        $token = mt_rand(100000, 999999);
+        $this->usuarioModel->salvarCodigo($id_usuario, $token, 2880);
+
+        // Monta o link absoluto com a correção do HOST
+        $host = !empty($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : 'localhost';
+        $protocolo = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? "https" : "http";
+        $link = $protocolo . "://" . $host . BASE_URL . "/setup-funcionario?token={$token}&email=" . urlencode($usuario['email']);
+
+        $assunto = "Reenvio: Bem-vindo à equipe - Crie sua senha de acesso";
+        $html = "<div style='text-align:center; padding: 20px; font-family: sans-serif; color: #333;'>
+                    <h2>Olá, {$usuario['nome']}!</h2>
+                    <p>O seu link de acesso foi gerado novamente pelo administrador.</p>
+                    <p>Para criar sua senha de acesso, clique no botão abaixo:</p>
+                    <a href='{$link}' style='display:inline-block; padding: 12px 24px; background: #8b5cf6; color: #fff; text-decoration: none; border-radius: 8px; margin-top: 15px; margin-bottom: 20px;'>Criar minha senha</a>
+                    <hr style='border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;'>
+                    <p style='font-size: 0.85rem; color: #64748b;'>Se o botão não funcionar, copie e cole o link abaixo no seu navegador:</p>
+                    <p style='font-size: 0.85rem; color: #8b5cf6; word-break: break-all;'>{$link}</p>
+                 </div>";
+
+        $textoPuro = "Olá, {$usuario['nome']}!\n\nO seu link de acesso foi gerado novamente pelo administrador.\n\nPara concluir seu cadastro e criar sua senha de acesso, copie e cole o link abaixo no seu navegador:\n\n{$link}";
+
+        require_once __DIR__ . '/EmailService.php'; 
+        $emailService = new EmailService();
+        if ($emailService->enviar($usuario['email'], $usuario['nome'], $assunto, $html, $textoPuro)) {
+            return $this->sucesso('E-mail de configuração reenviado com sucesso!');
+        }
+        
+        return $this->erro('Falha técnica ao tentar enviar o e-mail.');
     }
 }
 ?>
