@@ -95,6 +95,7 @@ CREATE TABLE itens_agendamento (
     id_item INT AUTO_INCREMENT PRIMARY KEY,
     cod_agendamento INT NOT NULL,
     cod_sv_func INT NOT NULL,
+    nome_servico_registrado VARCHAR(100) NOT NULL,
     hora_inicio TIME NOT NULL,
     hora_fim TIME NOT NULL,
     preco_cobrado DECIMAL(10, 2) NOT NULL,

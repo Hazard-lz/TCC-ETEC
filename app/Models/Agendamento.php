@@ -28,15 +28,16 @@ class Agendamento extends BaseModel {
      * Adiciona o item ao agendamento.
      * Mapeamento exato do Schema: itens_agendamento.
      */
-    public function cadastrarItem($cod_agendamento, $cod_sv_func, $hora_inicio, $hora_fim, $preco_cobrado, $duracao_registrada) {
+    public function cadastrarItem($cod_agendamento, $cod_sv_func, $nome_servico_registrado, $hora_inicio, $hora_fim, $preco_cobrado, $duracao_registrada) {
         $sql = "INSERT INTO itens_agendamento 
-                (cod_agendamento, cod_sv_func, hora_inicio, hora_fim, preco_cobrado, duracao_registrada) 
+                (cod_agendamento, cod_sv_func, nome_servico_registrado, hora_inicio, hora_fim, preco_cobrado, duracao_registrada) 
                 VALUES 
-                (:cod_agendamento, :cod_sv_func, :hora_inicio, :hora_fim, :preco_cobrado, :duracao_registrada)";
+                (:cod_agendamento, :cod_sv_func, :nome_servico_registrado, :hora_inicio, :hora_fim, :preco_cobrado, :duracao_registrada)";
         
         return $this->executarQuery($sql, [
             ':cod_agendamento' => $cod_agendamento,
             ':cod_sv_func' => $cod_sv_func,
+            ':nome_servico_registrado' => $nome_servico_registrado,
             ':hora_inicio' => $hora_inicio,
             ':hora_fim' => $hora_fim,
             ':preco_cobrado' => $preco_cobrado,
@@ -57,7 +58,7 @@ class Agendamento extends BaseModel {
         $sql = "SELECT a.*, 
                        u_cli.nome AS cliente_nome, 
                        u_func.nome AS funcionario_nome, 
-                       s.nome_servico, 
+                       ia.nome_servico_registrado AS nome_servico, 
                        ia.hora_inicio, ia.hora_fim, ia.preco_cobrado
                 FROM agendamentos a
                 INNER JOIN clientes c ON a.cod_cliente = c.id_cliente
@@ -77,7 +78,7 @@ class Agendamento extends BaseModel {
      */
     public function listarPorCliente($id_cliente) {
         $sql = "SELECT a.id_agendamento, a.data_agendamento, a.status, 
-                       s.nome_servico, ia.hora_inicio, ia.preco_cobrado
+                       ia.nome_servico_registrado AS nome_servico, ia.hora_inicio, ia.preco_cobrado
                 FROM agendamentos a
                 INNER JOIN itens_agendamento ia ON a.id_agendamento = ia.cod_agendamento
                 INNER JOIN funcionario_servicos fs ON ia.cod_sv_func = fs.id_sv_funcionario
@@ -94,7 +95,7 @@ class Agendamento extends BaseModel {
     public function listarAgendaFuncionario($id_funcionario, $data) {
         $sql = "SELECT a.id_agendamento, a.status, 
                        u_cli.nome AS cliente_nome, 
-                       s.nome_servico, 
+                       ia.nome_servico_registrado AS nome_servico, 
                        ia.hora_inicio, ia.hora_fim
                 FROM agendamentos a
                 INNER JOIN clientes c ON a.cod_cliente = c.id_cliente

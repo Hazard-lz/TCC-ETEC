@@ -33,6 +33,8 @@ class AgendamentoService extends BaseService {
 
             $duracao = (int) $servico['duracao'];
             $preco = (float) $servico['preco'];
+            $nomeServico = $servico['nome_servico'];
+            
 
             // 3. Cálculos de Tempo: Evita falhas usando a classe nativa do PHP
             $horaFimObj = new DateTime($horaInicio);
@@ -67,6 +69,7 @@ class AgendamentoService extends BaseService {
             $itemInserido = $this->agendamentoModel->cadastrarItem(
                 $idAgendamento,
                 $vinculo['id_sv_funcionario'],
+                $nomeServico,
                 $horaInicio,
                 $horaFim,
                 $preco,
