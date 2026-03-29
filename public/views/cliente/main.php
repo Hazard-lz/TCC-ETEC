@@ -92,7 +92,6 @@ $temAgendamento = false;
         </div>
     </div>
 
-    <button id="themeToggle" class="btn-theme-toggle" title="Alternar Tema Escuro/Claro">🌓</button>
 
     <script src="<?= BASE_URL ?>/public/resources/js/app-cliente.js"></script>
 </body>
