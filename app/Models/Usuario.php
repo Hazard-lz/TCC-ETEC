@@ -117,5 +117,22 @@ class Usuario extends BaseModel {
         $sql = "UPDATE usuarios SET senha = :senha, codigo_verificacao = NULL, expiracao_codigo = NULL WHERE id_usuario = :id";
         return $this->executarQuery($sql, [':senha' => $novaSenhaHash, ':id' => $id_usuario]);
     }
+
+    public function atualizarCadastroCompleto($id_usuario, $nome, $email, $senhaHash) {
+        $email = !empty(trim($email)) ? trim($email) : null;
+        
+        $sql = "UPDATE usuarios 
+                SET nome = :nome, 
+                    email = :email, 
+                    senha = :senha 
+                WHERE id_usuario = :id";
+                
+        return $this->executarQuery($sql, [
+            ':nome'  => $nome, 
+            ':email' => $email, 
+            ':senha' => $senhaHash, 
+            ':id'    => $id_usuario
+        ]);
+    }
 }
 ?>

@@ -29,6 +29,7 @@ class ClienteService extends BaseService {
         try {
             $this->conn->beginTransaction();
 
+            // 1. Resolve a parte do Usuário (Senha, Email, etc)
             $resultadoUsuario = $this->usuarioService->registrarUsuario($nome, $email, $senha, 'comum', $telefone);
 
             if ($resultadoUsuario['sucesso'] === false) {
@@ -38,15 +39,32 @@ class ClienteService extends BaseService {
 
             $idNovoUsuario = $resultadoUsuario['id'];
 
-            $idCliente = $this->clienteModel->cadastrar($idNovoUsuario, $data_nascimento, $observacoes);
+            // 2. VERIFICAÇÃO DE EVOLUÇÃO (Correção do erro de duplicação)
+            // Checa se já existe um registro atrelado a esse usuário na tabela 'clientes'
+            $clienteExistente = $this->clienteModel->buscarPorCodUsuario($idNovoUsuario);
 
-            if (!$idCliente) {
-                throw new Exception("Falha ao vincular o perfil de cliente no banco de dados.");
+            if ($clienteExistente) {
+                // Como ele veio do "Cliente Rápido", já existe o vínculo. 
+                // Então nós apenas ATUALIZAMOS a data de nascimento dele.
+                $sucessoCliente = $this->clienteModel->atualizar($clienteExistente['id_cliente'], $data_nascimento, $observacoes);
+                
+                if ($sucessoCliente === false) {
+                    throw new Exception("Falha ao atualizar o perfil de cliente existente no banco de dados.");
+                }
+                $idCliente = $clienteExistente['id_cliente'];
+                
+            } else {
+                // Se é um cliente totalmente novo, criamos o vínculo normal
+                $idCliente = $this->clienteModel->cadastrar($idNovoUsuario, $data_nascimento, $observacoes);
+
+                if (!$idCliente) {
+                    throw new Exception("Falha ao vincular o perfil de cliente no banco de dados.");
+                }
             }
             
             $this->conn->commit();
 
-            return $this->sucesso('Cadastro de realizado com sucesso!', [
+            return $this->sucesso('Cadastro realizado com sucesso!', [
                 'id_usuario' => $idNovoUsuario,
                 'id_cliente' => $idCliente
             ]);
