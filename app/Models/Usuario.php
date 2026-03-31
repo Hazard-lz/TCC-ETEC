@@ -46,6 +46,12 @@ class Usuario extends BaseModel {
         return $this->executarQuery($sql, [':id' => $id], 'unico');
     }
 
+    public function contarAdminsAtivos() {
+        $sql = "SELECT COUNT(*) as total FROM usuarios WHERE tipo = 'admin' AND status = 'ativo'";
+        $resultado = $this->executarQuery($sql, [], 'unico');
+        return (int) $resultado['total'];
+    }
+
 // UPDATES
     public function atualizar($id_usuario, $nome, $telefone) {
         $telefone = !empty(trim($telefone)) ? trim($telefone) : null;

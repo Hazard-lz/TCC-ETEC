@@ -1,9 +1,18 @@
 <?php
-// Carrega apenas o Model necessário para esta tela
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+$idLogado = $_SESSION['usuario_id'];
+
 require_once __DIR__ . '/../../../app/Models/Funcionario.php';
+require_once __DIR__ . '/../../../app/Models/Usuario.php';
 
 $funcionarioModel = new Funcionario();
+$usuarioModel = new Usuario();
+
 $listaFuncionarios = $funcionarioModel->listarTodos();
+$totalAdmins = $usuarioModel->contarAdminsAtivos();
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -68,8 +77,17 @@ $listaFuncionarios = $funcionarioModel->listarTodos();
                             <tbody>
                                 <?php if (!empty($listaFuncionarios)): ?>
                                     <?php foreach ($listaFuncionarios as $func): ?>
-                                        <tr style="<?= $func['status'] === 'inativo' ? 'opacity: 0.6;' : '' ?>">
-                                            <td style="font-weight: 500;"><?= htmlspecialchars($func['nome']) ?></td>
+                                        <?php $isLogado = ($func['cod_usuario'] == $idLogado); ?>
+
+                                        <tr style="<?= $func['status'] === 'inativo' ? 'opacity: 0.6;' : '' ?> <?= $isLogado ? 'background-color: #f8fafc; border-left: 4px solid #8b5cf6;' : '' ?>">
+
+                                            <td style="font-weight: 500;">
+                                                <?= htmlspecialchars($func['nome']) ?>
+                                                <?php if ($isLogado): ?>
+                                                    <span style="color: #8b5cf6; font-size: 0.8rem; margin-left: 8px; font-weight: bold;">(Você)</span>
+                                                <?php endif; ?>
+                                            </td>
+
                                             <td><?= htmlspecialchars($func['especialidade']) ?></td>
                                             <td>
                                                 <?= !empty($func['telefone']) ? preg_replace('/(\d{2})(\d{5})(\d{4})/', '($1) $2-$3', $func['telefone']) : 'Não informado' ?>
@@ -90,10 +108,14 @@ $listaFuncionarios = $funcionarioModel->listarTodos();
                                                     <span class="badge badge-inativo" style="background-color: #e2e8f0; color: #4a5568;">Comum</span>
                                                 <?php endif; ?>
                                             </td>
+
                                             <td>
                                                 <div class="action-buttons" style="display: flex; gap: 8px; align-items: center;">
+
                                                     <button data-modal-target="#modalFuncionario" class="btn-action btn-edit" title="Editar"
                                                         data-funcionario='<?= htmlspecialchars(json_encode($func), ENT_QUOTES, 'UTF-8') ?>'
+                                                        data-is-logado="<?= $isLogado ? 'true' : 'false' ?>"
+                                                        data-total-admins="<?= $totalAdmins ?>"
                                                         onclick="abrirEdicaoFuncionario(this)"
                                                         style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">
                                                         ✏️
@@ -110,24 +132,31 @@ $listaFuncionarios = $funcionarioModel->listarTodos();
                                                         </form>
                                                     <?php endif; ?>
 
-                                                    <form action="<?= BASE_URL ?? '' ?>/admin/funcionarios/status" method="POST" style="margin: 0;">
-                                                        <input type="hidden" name="cod_usuario" value="<?= $func['cod_usuario'] ?>">
-                                                        <input type="hidden" name="status_atual" value="<?= $func['status'] ?>">
+                                                    <?php if ($isLogado): ?>
+                                                        <button type="button" class="btn-action" title="Você não pode inativar a si mesmo."
+                                                            style="background: none; border: none; font-size: 1.2rem; opacity: 0.3; cursor: not-allowed;">
+                                                            🚫
+                                                        </button>
+                                                    <?php else: ?>
+                                                        <form action="<?= BASE_URL ?? '' ?>/admin/funcionarios/status" method="POST" style="margin: 0;">
+                                                            <input type="hidden" name="cod_usuario" value="<?= $func['cod_usuario'] ?>">
+                                                            <input type="hidden" name="status_atual" value="<?= $func['status'] ?>">
 
-                                                        <?php if ($func['status'] === 'ativo'): ?>
-                                                            <button type="submit" class="btn-action" title="Inativar Acesso"
-                                                                onclick="return confirm('Deseja realmente INATIVAR este funcionário? Ele não poderá mais acessar o sistema ou receber novos agendamentos.');"
-                                                                style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">
-                                                                🚫
-                                                            </button>
-                                                        <?php else: ?>
-                                                            <button type="submit" class="btn-action" title="Reativar Acesso"
-                                                                onclick="return confirm('Deseja ATIVAR este funcionário novamente?');"
-                                                                style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">
-                                                                ✅
-                                                            </button>
-                                                        <?php endif; ?>
-                                                    </form>
+                                                            <?php if ($func['status'] === 'ativo'): ?>
+                                                                <button type="submit" class="btn-action" title="Inativar Acesso"
+                                                                    onclick="return confirm('Deseja realmente INATIVAR este funcionário? Ele não poderá mais acessar o sistema ou receber novos agendamentos.');"
+                                                                    style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">
+                                                                    🚫
+                                                                </button>
+                                                            <?php else: ?>
+                                                                <button type="submit" class="btn-action" title="Reativar Acesso"
+                                                                    onclick="return confirm('Deseja ATIVAR este funcionário novamente?');"
+                                                                    style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">
+                                                                    ✅
+                                                                </button>
+                                                            <?php endif; ?>
+                                                        </form>
+                                                    <?php endif; ?>
                                                 </div>
                                             </td>
                                         </tr>
@@ -210,6 +239,8 @@ $listaFuncionarios = $funcionarioModel->listarTodos();
     <script>
         function abrirEdicaoFuncionario(button) {
             const func = JSON.parse(button.getAttribute('data-funcionario'));
+            const isLogado = button.getAttribute('data-is-logado') === 'true';
+            const totalAdmins = parseInt(button.getAttribute('data-total-admins'));
 
             document.getElementById("modalTitleFunc").textContent = "Editar Funcionário: " + func.nome;
 
@@ -219,19 +250,49 @@ $listaFuncionarios = $funcionarioModel->listarTodos();
             document.getElementById("email").value = func.email;
             document.getElementById("especialidade").value = func.especialidade;
             document.getElementById("salario").value = func.salario;
-            document.getElementById("tipo").value = func.tipo || 'comum';
+            
+            const selectTipo = document.getElementById("tipo");
+            selectTipo.value = func.tipo || 'comum';
 
-            // Trava a edição do e-mail na atualização (o acesso/email é fixo)
             document.getElementById("email").setAttribute('readonly', true);
+
+            // Lógica para impedir rebaixamento do único admin
+            // Remove o input escondido caso já exista de aberturas anteriores
+            const hiddenTipo = document.getElementById("hidden_tipo_lock");
+            if (hiddenTipo) hiddenTipo.remove();
+
+            if (isLogado && func.tipo === 'admin' && totalAdmins <= 1) {
+                // Desabilita o select para ele não conseguir mudar visualmente
+                selectTipo.setAttribute('disabled', 'true');
+                selectTipo.title = "Você é o único administrador ativo no sistema. Não é possível remover este acesso.";
+                
+                // IMPORTANTE: Inputs "disabled" não são enviados no POST. 
+                // Precisamos criar um input "hidden" (escondido) para enviar o valor 'admin' para o Controller.
+                const inputEscondido = document.createElement('input');
+                inputEscondido.type = 'hidden';
+                inputEscondido.id = 'hidden_tipo_lock';
+                inputEscondido.name = 'tipo';
+                inputEscondido.value = 'admin';
+                document.getElementById('formFuncionario').appendChild(inputEscondido);
+            } else {
+                selectTipo.removeAttribute('disabled');
+                selectTipo.title = "";
+            }
         }
 
         function limparModalFuncionario() {
             document.getElementById("modalTitleFunc").textContent = "Cadastrar Novo Funcionário";
             document.getElementById("formFuncionario").reset();
             document.getElementById("id_funcionario").value = "";
-
-            // Libera o e-mail para um novo cadastro
             document.getElementById("email").removeAttribute('readonly');
+            
+            // Limpa as travas do select se estiver criando um novo
+            const selectTipo = document.getElementById("tipo");
+            selectTipo.removeAttribute('disabled');
+            selectTipo.title = "";
+            
+            const hiddenTipo = document.getElementById("hidden_tipo_lock");
+            if (hiddenTipo) hiddenTipo.remove();
         }
     </script>
 
