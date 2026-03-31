@@ -141,5 +141,48 @@ class ClienteService extends BaseService {
             return $this->erro('Ocorreu um erro ao cadastrar o cliente manualmente.');
         }
     }
+
+    public function alterarStatusCliente($id_usuario, $novo_status) {
+        if (empty($id_usuario) || empty($novo_status)) {
+            return $this->erro('Parâmetros inválidos para alterar o status.');
+        }
+
+        if (!in_array($novo_status, ['ativo', 'inativo'])) {
+            return $this->erro('Status inválido fornecido.');
+        }
+
+        try {
+            $sucesso = $this->usuarioModel->atualizarStatus($id_usuario, $novo_status);
+
+            if ($sucesso) {
+                return $this->sucesso('Status do cliente alterado com sucesso!');
+            }
+            
+            return $this->erro('Falha ao atualizar o status no banco de dados.');
+        } catch (Exception $e) {
+            error_log("Erro ao alterar status do cliente: " . $e->getMessage());
+            return $this->erro('Não foi possível alterar o status no momento.');
+        }
+    }
+
+    public function atualizarObservacoesCliente($id_cliente, $observacoes) {
+        if (empty($id_cliente)) {
+            return $this->erro('Cliente não identificado.');
+        }
+
+        try {
+            $sucessoCliente = $this->clienteModel->atualizarObservacoes($id_cliente, $observacoes);
+            
+            if (!$sucessoCliente) {
+                throw new Exception("Erro ao atualizar as observações do cliente.");
+            }
+
+            return $this->sucesso('Observações atualizadas com sucesso!');
+
+        } catch (Exception $e) {
+            error_log("Erro na atualização de observações: " . $e->getMessage());
+            return $this->erro('Não foi possível atualizar as observações no momento.');
+        }
+    }
 }
 ?>

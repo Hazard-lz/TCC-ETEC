@@ -98,19 +98,10 @@ switch ($uri) {
     // ROTAS DE CLIENTES
     // ------------------------------------------
     case '/':
-        // 1. Verifica se existe um utilizador logado e se ele possui a flag de funcionário/admin na sessão.
-        // O uso do isset() previne erros de "Undefined array key" caso o visitante não esteja logado.
         if (isset($_SESSION['usuario_id']) && isset($_SESSION['is_funcionario']) && $_SESSION['is_funcionario'] === true) {
-            
-            // 2. Sendo da equipe, forçamos o redirecionamento para o dashboard correto.
             header("Location: " . BASE_URL . "/funcionario/dashboard");
-            
-            // Isso garante que o servidor pare de processar o resto do ficheiro index.php imediatamente,
             exit; 
         }
-
-        // 4. Se o fluxo passou pelo 'if' sem entrar, significa que é um visitante anônimo ou um cliente comum.
-        // Portanto, carregamos a página principal pública.
         include __DIR__ . '/public/views/cliente/main.php';
         break;
     case '/perfil':
@@ -154,13 +145,11 @@ switch ($uri) {
         $authController = new AuthController();
         $authController->logout();
         break;
-   // ROTA PARA O USUÁRIO LOGADO ALTERAR A SENHA NO PERFIL
     case '/auth/trocarSenha':
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $authController = new AuthController();
             $authController->trocarSenha();
         } else {
-            // Se alguém tentar acessar a URL diretamente sem formulário, manda pro perfil
             header("Location: " . BASE_URL . "/perfil");
             exit;
         }
@@ -169,13 +158,10 @@ switch ($uri) {
     // ------------------------------------------
     // ROTAS: ESQUECI MINHA SENHA
     // ------------------------------------------
-    
-    // 1. Tela para o usuário digitar o e-mail
     case '/recuperar-senha':
         include __DIR__ . '/public/views/auth/recuperarSenha.php'; 
         break;
 
-    // 2. Ação que envia o código para o e-mail
     case '/auth/esqueciSenha':
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $authController = new AuthController();
@@ -186,12 +172,10 @@ switch ($uri) {
         }
         break;
 
-    // 3. Tela para o usuário digitar o código que recebeu e a nova senha
     case '/redefinir-senha':
         include __DIR__ . '/public/views/auth/redefinirSenha.php'; 
         break;
 
-    // 4. Ação que valida o código e salva a nova senha no banco
     case '/auth/redefinirSenha':
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $authController = new AuthController();
@@ -210,6 +194,7 @@ switch ($uri) {
             exit;
         }
         break;
+
     // ------------------------------------------
     // ROTAS EXCLUSIVAS DO ADMIN (GERÊNCIA)
     // ------------------------------------------
@@ -218,7 +203,6 @@ switch ($uri) {
         break;
     case '/admin/funcionarios/salvar':
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            // O autoloader já carrega a classe automaticamente
             $controller = new FuncionarioController();
             $controller->salvar();
         } else {
@@ -234,7 +218,6 @@ switch ($uri) {
             $controller = new ServicoController();
             $dados = json_decode(file_get_contents("php://input"), true) ?? $_POST;
             
-            // Se vier um ID, é edição. Se não vier, é cadastro novo.
             if (!empty($dados['id_servico'])) {
                 $controller->editar();
             } else {
@@ -243,7 +226,6 @@ switch ($uri) {
             exit;
         }   
         break;
-    // Rota para ativar/inativar o serviço
     case '/admin/servicos/status':
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $controller = new ServicoController();
@@ -256,7 +238,6 @@ switch ($uri) {
             $controller = new FuncionarioController();
             $controller->alterarStatus();
         } else {
-            // Se tentarem acessar via URL (GET), devolvemos para a listagem
             header("Location: " . BASE_URL . "/admin/funcionarios");
             exit;
         }
@@ -270,6 +251,7 @@ switch ($uri) {
             exit;
         }
         break;
+
     // ------------------------------------------
     // ROTAS DA EQUIPA (FUNCIONÁRIOS E ADMIN)
     // ------------------------------------------
@@ -282,9 +264,35 @@ switch ($uri) {
     case '/funcionario/clientes':
         include __DIR__ . '/public/views/funcionario/clientes.php';
         break;
+
+    // ==================================================================
+    // AS ROTAS DE AÇÃO DE CLIENTES QUE FALTAVAM ESTÃO AQUI AGORA:
+    // ==================================================================
+    case '/cliente/salvar':
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $controller = new ClienteController();
+            $controller->salvar();
+        } else {
+            header("Location: " . BASE_URL . "/funcionario/clientes");
+            exit;
+        }
+        break;
+
+    case '/cliente/alterar-status':
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $controller = new ClienteController();
+            $controller->alterarStatus();
+        } else {
+            header("Location: " . BASE_URL . "/funcionario/clientes");
+            exit;
+        }
+        break;
+    // ==================================================================
+
     case '/funcionario/servicos':
         include __DIR__ . '/public/views/funcionario/servicos.php';
         break;
+
     // ------------------------------------------
     // ROTAS DE DISPONIBILIDADE
     // ------------------------------------------
@@ -294,7 +302,6 @@ switch ($uri) {
 
     case '/funcionario/disponibilidade/salvar':
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            // Para não esquecer: O arquivo do Controller já deve ser carregado pelo seu spl_autoload_register
             $controller = new DisponibilidadeController();
             $controller->salvar();
         } else {
@@ -303,7 +310,6 @@ switch ($uri) {
         }
         break;
 
-    // ARQUITETURA: Rota para alternar a visualização das grelhas sem sujar a URL
     case '/funcionario/disponibilidade/selecionar':
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             require_once __DIR__ . '/app/Controllers/DisponibilidadeController.php';
@@ -314,14 +320,13 @@ switch ($uri) {
             exit;
         }
         break;
-    // ARQUITETURA: Rota para ativar uma grelha de horários com 1 clique
+        
     case '/funcionario/disponibilidade/ativar':
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             require_once __DIR__ . '/app/Controllers/DisponibilidadeController.php';
             $controller = new DisponibilidadeController();
             $controller->ativar();
         } else {
-            // Se tentarem aceder diretamente pelo URL (GET), devolvemos para a página
             header("Location: " . BASE_URL . "/funcionario/disponibilidade");
             exit;
         }
@@ -336,7 +341,7 @@ switch ($uri) {
             exit;
         }
         break; 
-    // Rota lógica para salvar as especialidades do funcionário
+
     case '/funcionario/servicos/salvar':
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $funcionarioModel = new Funcionario();
@@ -350,18 +355,15 @@ switch ($uri) {
         }
         break;
     
-
     // ------------------------------------------
     // ROTAS DE SETUP DE FUNCIONÁRIO (VIA E-MAIL)
     // ------------------------------------------
     case '/setup-funcionario':
-        // ARQUITETURA (GET): Exibe a tela de criação de senha
         $controller = new FuncionarioController();
         $controller->setupSenha();
         break;
 
     case '/setup-funcionario/salvar':
-        // ARQUITETURA (POST): Salva a nova senha e finaliza o cadastro
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $controller = new FuncionarioController();
             $controller->finalizarSetupSenha();
@@ -370,6 +372,7 @@ switch ($uri) {
             exit;
         }
         break;
+
     // --- ROTAS DE VERIFICAÇÃO DE E-MAIL ---
     case '/verificar-email':
         include __DIR__ . '/public/views/auth/verificar_email.php';
@@ -392,6 +395,7 @@ switch ($uri) {
             exit;
         }
         break;
+
     // ------------------------------------------
     // ROTA PADRÃO (ERRO 404)
     // ------------------------------------------

@@ -44,5 +44,17 @@ class Cliente extends BaseModel {
         $sql = "UPDATE clientes SET data_nascimento = :data_nascimento, observacoes = :observacoes WHERE id_cliente = :id";
         return $this->executarQuery($sql, [':data_nascimento' => $data_nascimento, ':observacoes' => $observacoes, ':id' => $id_cliente]);
     }
+
+    
+
+    public function atualizarObservacoes($id_cliente, $observacoes) {
+        $observacoes = !empty(trim($observacoes)) ? trim($observacoes) : null;
+
+        $sql = "UPDATE clientes SET observacoes = :observacoes WHERE id_cliente = :id";
+        return $this->executarQuery($sql, [
+            ':observacoes' => $observacoes, 
+            ':id' => $id_cliente
+        ]);
+    }
 }
 ?>

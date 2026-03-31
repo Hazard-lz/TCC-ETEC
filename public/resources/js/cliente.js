@@ -10,25 +10,19 @@ function confirmarExclusaoCliente(id) {
 }
 
 // Chamado pelo botão de lápis na tabela
-function preencherModalEdicaoCliente(id, nome, telefone, email, nascimento, observacoes) {
-    // Atualiza título
-    document.getElementById("modalTitleCliente").textContent = "Editar Cliente: " + nome;
-    
-    // Preenche os inputs
-    document.getElementById("id_cliente").value = id;
-    document.getElementById("nome").value = nome;
-    document.getElementById("email").value = email;
-    document.getElementById("nascimento").value = nascimento;
-    document.getElementById("observacoes").value = observacoes;
-    
-    // Preenche o telefone já aplicando a máscara
-    const inputTelefone = document.getElementById("telefone");
-    if (inputTelefone) {
-        inputTelefone.value = aplicarMascaraTelefone(telefone);
-    }
-    
-    // Na edição, a senha não é obrigatória
-    document.getElementById("senha").removeAttribute('required');
+function preencherModalEdicaoCliente(id_cliente, id_usuario, nome, telefone, email, nascimento, observacoes) {
+    document.getElementById('id_cliente').value = id_cliente;
+    document.getElementById('id_usuario').value = id_usuario; 
+    document.getElementById('nome').value = nome;
+    document.getElementById('telefone').value = telefone;
+    document.getElementById('nascimento').value = nascimento || '';
+    document.getElementById('observacoes').value = observacoes || '';
+}
+
+function limparModalCliente() {
+    document.getElementById('id_cliente').value = '';
+    document.getElementById('id_usuario').value = ''; 
+    document.getElementById('formCliente').reset();
 }
 
 // Função para aplicar a Máscara de Telefone Brasileira
