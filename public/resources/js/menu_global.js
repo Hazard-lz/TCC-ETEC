@@ -187,6 +187,6 @@ function iniciarEventosLayout() {
 function fazerLogout() {
     if(confirm("Deseja realmente sair do sistema?")) {
         localStorage.removeItem('belezou_user');
-        window.location.href = BASE_URL + "/public/views/auth/login.php";
+        window.location.href = BASE_URL + "/login/sair";
     }
 }

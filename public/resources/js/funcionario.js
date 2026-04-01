@@ -2,16 +2,18 @@
    FUNCIONARIO.JS - REGRAS DE FUNCIONÁRIOS
 */
 
-// Funções chamadas diretamente pelo HTML da tabela
 function confirmarExclusaoFuncionario(id) {
     if (confirm("Deseja realmente remover o acesso deste funcionário (#" + id + ")?")) {
         alert("Funcionário " + id + " seria removido no banco de dados.");
     }
 }
 
-// Preenche o modal de edição lendo o atributo data-funcionario do botão
 function abrirEdicaoFuncionario(button) {
-    const func = JSON.parse(button.getAttribute('data-funcionario'));
+
+    
+    const func = JSON.parse(button.getAttribute("data-funcionario"));
+    const isLogado = button.getAttribute("data-is-logado") === "true";
+    const totalAdmins = parseInt(button.getAttribute("data-total-admins"));
 
     document.getElementById("modalTitleFunc").textContent = "Editar Funcionário: " + func.nome;
 
@@ -21,60 +23,94 @@ function abrirEdicaoFuncionario(button) {
     document.getElementById("email").value = func.email;
     document.getElementById("especialidade").value = func.especialidade;
     document.getElementById("salario").value = func.salario;
-    document.getElementById("tipo").value = func.tipo || 'comum';
 
-    // Trava a edição do e-mail na atualização (o acesso/email é fixo)
-    document.getElementById("email").setAttribute('readonly', true);
+    const selectTipo = document.getElementById("tipo");
+    selectTipo.value = func.tipo || "comum";
+
+    // Trava a edição do e-mail na atualização
+    document.getElementById("email").setAttribute("readonly", "true");
+
+    // Limpa os bloqueios anteriores (se existirem)
+    const hiddenTipo = document.getElementById("hidden_tipo_lock");
+    if (hiddenTipo) hiddenTipo.remove();
     
-    // Remove a obrigatoriedade da senha na edição
-    const senhaInput = document.getElementById("senha");
-    if(senhaInput) senhaInput.removeAttribute('required');
+    const fakeInput = document.getElementById("fake_tipo_lock");
+    if (fakeInput) fakeInput.remove();  
+
+    // REGRA DE SEGURANÇA: Se for o único admin, bloqueia o rebaixamento
+    if (isLogado && func.tipo === "admin" && totalAdmins <= 1) {
+        
+        // 1. Esconde completamente o Select real (impossível clicar)
+        selectTipo.style.display = "none";
+
+        // 2. Cria um campo de texto falso, visualmente trancado
+        const inputFalso = document.createElement("input");
+        inputFalso.type = "text";
+        inputFalso.id = "fake_tipo_lock";
+        inputFalso.className = "form-control";
+        inputFalso.value = "Administrador (Acesso Fixo)";
+        inputFalso.readOnly = true;
+        inputFalso.style.backgroundColor = "#e2e8f0";
+        inputFalso.style.cursor = "not-allowed";
+        inputFalso.style.color = "#4a5568";
+        inputFalso.title = "Você é o único administrador ativo no sistema. Não é possível remover este acesso.";
+        
+        // Insere o campo falso logo após o Select escondido
+        selectTipo.parentNode.insertBefore(inputFalso, selectTipo.nextSibling);
+
+        // 3. Cria o input oculto para enviar o cargo 'admin' para o banco de dados
+        const inputEscondido = document.createElement("input");
+        inputEscondido.type = "hidden";
+        inputEscondido.id = "hidden_tipo_lock";
+        inputEscondido.name = "tipo";
+        inputEscondido.value = "admin";
+        document.getElementById("formFuncionario").appendChild(inputEscondido);
+        
+    } else {
+        // Se for outro utilizador ou houver mais admins, mostra o Select normalmente
+        selectTipo.style.display = "block";
+    }
 }
 
-// Limpa o modal para preparar um novo cadastro
 function limparModalFuncionario() {
     document.getElementById("modalTitleFunc").textContent = "Cadastrar Novo Funcionário";
     document.getElementById("formFuncionario").reset();
     document.getElementById("id_funcionario").value = "";
 
     // Libera o e-mail para um novo cadastro
-    document.getElementById("email").removeAttribute('readonly');
+    document.getElementById("email").removeAttribute("readonly");
+
+    // Restaura o Select para a criação de um novo funcionário
+    const selectTipo = document.getElementById("tipo");
+    if (selectTipo) {
+        selectTipo.style.display = "block";
+    }
+
+    // Limpa as travas
+    const hiddenTipo = document.getElementById("hidden_tipo_lock");
+    if (hiddenTipo) hiddenTipo.remove();
     
-    // Torna a senha obrigatória novamente para novos cadastros
-    const senhaInput = document.getElementById("senha");
-    if(senhaInput) senhaInput.setAttribute('required', true);
+    const fakeInput = document.getElementById("fake_tipo_lock");
+    if (fakeInput) fakeInput.remove();
 }
 
-// Validação do formulário ao enviar
 document.addEventListener("DOMContentLoaded", () => {
     const formFuncionario = document.getElementById("formFuncionario");
     const errorMsg = document.getElementById("funcionarioError");
 
     if (formFuncionario) {
         formFuncionario.addEventListener("submit", function (event) {
-            const senhaInput = document.getElementById("senha");
-            const senha = senhaInput ? senhaInput.value.trim() : "";
-            const salario = parseFloat(document.getElementById("salario").value);
-            const idFuncionario = document.getElementById("id_funcionario").value;
-            
+            const salarioInput = document.getElementById("salario").value;
+            const salario = parseFloat(salarioInput.replace(',', '.'));
+
             let errorMessage = "";
 
-            // Se for cadastro novo (ID vazio), a senha é obrigatória e deve ter 6 caracteres
-            if (idFuncionario === "" && senha.length < 6) {
-                errorMessage = "A senha temporária deve ter pelo menos 6 caracteres.";
-            } 
-            // Se for edição e o usuário digitou algo na senha, também valida
-            else if (idFuncionario !== "" && senha.length > 0 && senha.length < 6) {
-                errorMessage = "A nova senha deve ter pelo menos 6 caracteres.";
-            }
-            // Valida o salário
-            else if (isNaN(salario) || salario < 0) {
-                errorMessage = "O salário não pode ser negativo.";
+            if (isNaN(salario) || salario < 0) {
+                errorMessage = "O salário não pode ser negativo ou inválido.";
             }
 
-            // Exibe erro ou deixa passar
             if (errorMessage !== "") {
-                event.preventDefault();
+                event.preventDefault(); 
                 errorMsg.textContent = errorMessage;
                 errorMsg.style.display = "block";
             } else {
