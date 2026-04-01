@@ -10,79 +10,79 @@ $servicos = array_merge($ativos, $inativos);
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <link rel="icon" type="image/png" href="<?= BASE_URL ?>/public/resources/images/favicon.png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gerenciar Serviços - Belezou App</title>
+    <link rel="icon" type="image/png" href="<?= BASE_URL ?>/public/resources/images/favicon.png">
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/root.css">
-    <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/admin.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/admin-layout.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/admin.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/listas.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/servico.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/modal.css">
 </head>
 <body>
 
-    <div class="admin-wrapper">
-        <?php require_once __DIR__ . '/../partials/sidebar.php'; ?>
+    <?php require_once __DIR__ . '/../partials/sidebar.php'; ?>
 
-        <main class="main-content">
-            <?php require_once __DIR__ . '/../partials/header.php'; ?>
+    <div class="page-header">
+        <div class="page-title">
+            <h2>Gerenciar Serviços</h2>
+            <p>Visualize, edite ou cadastre os serviços do salão.</p>
+        </div>
+        <button data-modal-target="#modalServico" class="btn-primary btn-new" onclick="limparModalServico()">+ Novo Serviço</button>
+    </div>
 
-            <section class="content-area">
-                
-                <div class="page-header">
-                    <div class="page-title">
-                        <h2>Gerenciar Serviços</h2>
-                        <p>Visualize, edite ou cadastre os serviços do salão.</p>
-                    </div>
-                    <button data-modal-target="#modalServico" class="btn-primary btn-new" onclick="limparModalServico()">+ Novo Serviço</button>
-                </div>
+    <div class="base-card">
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Nome do Serviço</th>
+                        <th>Preço</th>
+                        <th>Duração</th>
+                        <th>Status</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if(empty($servicos)): ?>
+                        <tr><td colspan="5" style="text-align: center;">Nenhum serviço cadastrado ainda.</td></tr>
+                    <?php endif; ?>
 
-                <div class="base-card">
-                    <div class="table-responsive">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Nome do Serviço</th>
-                                    <th>Preço</th>
-                                    <th>Duração</th>
-                                    <th>Status</th>
-                                    <th>Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php if(empty($servicos)): ?>
-                                    <tr><td colspan="5" style="text-align: center;">Nenhum serviço cadastrado ainda.</td></tr>
+                    <?php foreach ($servicos as $servico): ?>
+                    <tr style="<?= $servico['status'] === 'inativo' ? 'opacity: 0.6;' : '' ?>">
+                        <td style="font-weight: 500;"><?= htmlspecialchars($servico['nome_servico']) ?></td>
+                        <td>R$ <?= number_format($servico['preco'], 2, ',', '.') ?></td>
+                        <td><?= $servico['duracao'] ?> min</td>
+                        <td>
+                            <?php if ($servico['status'] === 'ativo'): ?>
+                                <span class="badge" style="background-color: #dcfce7; color: #166534; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem;">Ativo</span>
+                            <?php else: ?>
+                                <span class="badge" style="background-color: #fee2e2; color: #991b1b; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem;">Inativo</span>
+                            <?php endif; ?>
+                        </td>
+                        <td>
+                            <div class="action-buttons" style="display: flex; gap: 8px; align-items: center;">
+                                <button data-modal-target="#modalServico" class="btn-action btn-edit" title="Editar" 
+                                    onclick="preencherModalEdicao(<?= $servico['id_servico'] ?>, '<?= htmlspecialchars(addslashes($servico['nome_servico'])) ?>', '<?= htmlspecialchars(addslashes($servico['descricao'])) ?>', <?= $servico['preco'] ?>, <?= $servico['duracao'] ?>, '<?= $servico['status'] ?>')"
+                                    style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">✏️</button>
+                                
+                                <?php if($servico['status'] === 'ativo'): ?>
+                                    <button class="btn-action btn-delete" title="Inativar" onclick="alterarStatusServico(<?= $servico['id_servico'] ?>, 'inativo')" style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">🚫</button>
+                                <?php else: ?>
+                                    <button class="btn-action btn-edit" title="Ativar" onclick="alterarStatusServico(<?= $servico['id_servico'] ?>, 'ativo')" style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">✅</button>
                                 <?php endif; ?>
-
-                                <?php foreach ($servicos as $servico): ?>
-                                <tr>
-                                    <td style="font-weight: 500;"><?= htmlspecialchars($servico['nome_servico']) ?></td>
-                                    <td>R$ <?= number_format($servico['preco'], 2, ',', '.') ?></td>
-                                    <td><?= $servico['duracao'] ?> min</td>
-                                    <td><span class="badge badge-<?= $servico['status'] ?>"><?= ucfirst($servico['status']) ?></span></td>
-                                    <td>
-                                        <div class="action-buttons">
-                                            <button data-modal-target="#modalServico" class="btn-action btn-edit" title="Editar" 
-                                                    onclick="preencherModalEdicao(<?= $servico['id_servico'] ?>, '<?= htmlspecialchars(addslashes($servico['nome_servico'])) ?>', '<?= htmlspecialchars(addslashes($servico['descricao'])) ?>', <?= $servico['preco'] ?>, <?= $servico['duracao'] ?>, '<?= $servico['status'] ?>')">✏️</button>
-                                            
-                                            <?php if($servico['status'] === 'ativo'): ?>
-                                                <button class="btn-action btn-delete" title="Inativar" onclick="alterarStatusServico(<?= $servico['id_servico'] ?>, 'inativo')">🗑️</button>
-                                            <?php else: ?>
-                                                <button class="btn-action btn-edit" style="background-color: #10b981;" title="Ativar" onclick="alterarStatusServico(<?= $servico['id_servico'] ?>, 'ativo')">✅</button>
-                                            <?php endif; ?>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-        </main>
+                            </div>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <div id="modalServico" class="modal-overlay">
@@ -109,7 +109,7 @@ $servicos = array_merge($ativos, $inativos);
                         <textarea id="descricao" name="descricao" class="form-control" required></textarea>
                     </div>
                     
-                    <div class="form-row">
+                    <div class="form-row" style="display: flex; gap: 15px;">
                         <div class="form-group" style="flex: 1;">
                             <label for="preco">Preço (R$)</label>
                             <input type="number" id="preco" name="preco" class="form-control" step="0.01" min="0" required>
@@ -138,10 +138,12 @@ $servicos = array_merge($ativos, $inativos);
         </div>
     </div>
 
+    </div>
+
     <script>const BASE_URL = '<?= BASE_URL ?>';</script>
     <script src="<?= BASE_URL ?>/public/resources/js/admin.js"></script>
     <script src="<?= BASE_URL ?>/public/resources/js/modal.js"></script>
     <script src="<?= BASE_URL ?>/public/resources/js/servico.js"></script>
         
 </body>
-</html>
+</html> 

@@ -5,91 +5,86 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Agendamentos - Belezou App</title>
     
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    
     <link rel="icon" type="image/png" href="/public/resources/images/favicon.png">
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/root.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/admin-layout.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/admin.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/agenda.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/modal.css">
 </head>
 <body>
 
-    <div class="admin-wrapper">
-        <?php require_once __DIR__ . '/../partials/sidebar.php'; ?>
+    <?php require_once __DIR__ . '/../partials/sidebar.php'; ?>
 
-        <main class="main-content">
-            <?php require_once __DIR__ . '/../partials/header.php'; ?>
+    <div class="calendar-wrapper">
+        <div class="calendar-toolbar">
+            <div class="calendar-nav">
+                <button class="btn-icon">&lt;</button>
+                <button class="btn-icon">Hoje</button>
+                <button class="btn-icon">&gt;</button>
+                <h3 style="margin-left: 1rem; color: var(--text-main);">Março 2026</h3>
+            </div>
+            
+            <div class="calendar-actions">
+                <button data-modal-target="#modalBloqueio" class="btn-primary" style="width: auto; margin: 0; background: #718096; box-shadow: none;">Bloquear Horário</button>
+                <button data-modal-target="#modalNovoAgendamento" class="btn-primary" style="width: auto; margin: 0;">+ Novo Agendamento</button>
+            </div>
+        </div>
 
-            <section class="content-area">
+        <div class="calendar-scroll-area">
+            <div class="calendar-grid">
                 
-                <div class="calendar-wrapper">
-                    
-                    <div class="calendar-toolbar">
-                        <div class="calendar-nav">
-                            <button class="btn-icon">&lt;</button>
-                            <button class="btn-icon">Hoje</button>
-                            <button class="btn-icon">&gt;</button>
-                            <h3 style="margin-left: 1rem; color: var(--text-main);">Março 2026</h3>
-                        </div>
-                        
-                        <div class="calendar-actions">
-                            <button data-modal-target="#modalBloqueio" class="btn-primary" style="width: auto; margin: 0; background: #718096; box-shadow: none;">Bloquear Horário</button>
-                            
-                            <button data-modal-target="#modalNovoAgendamento" class="btn-primary" style="width: auto; margin: 0;">+ Novo Agendamento</button>
-                        </div>
-                    </div>
-
-                    <div class="calendar-scroll-area">
-                        <div class="calendar-grid">
-                            
-                            <div class="calendar-days-header">
-                                <div class="day-header" style="border-right: none;">GMT-3</div>
-                                <div class="day-header">Seg <span>09</span></div>
-                                <div class="day-header today">Ter <span>10</span></div>
-                                <div class="day-header">Qua <span>11</span></div>
-                                <div class="day-header">Qui <span>12</span></div>
-                                <div class="day-header">Sex <span>13</span></div>
-                                <div class="day-header">Sáb <span>14</span></div>
-                            </div>
-
-                            <div class="calendar-body">
-                                
-                                <div class="time-column">
-                                    <div class="time-slot-label">09:00</div>
-                                    <div class="time-slot-label">10:00</div>
-                                    <div class="time-slot-label">11:00</div>
-                                    <div class="time-slot-label">12:00</div>
-                                    <div class="time-slot-label">13:00</div>
-                                    <div class="time-slot-label">14:00</div>
-                                    <div class="time-slot-label">15:00</div>
-                                    <div class="time-slot-label">16:00</div>
-                                    <div class="time-slot-label">17:00</div>
-                                    <div class="time-slot-label">18:00</div>
-                                </div>
-
-                                <div class="day-column"></div> <div class="day-column">
-                                    <div class="event-block event-marcado" style="top: 60px; height: 90px;" onclick="verDetalhes('João Silva', 'Corte Masculino', '10:00 - 11:30', 'Marcado')">
-                                        <div class="event-title">João Silva</div>
-                                        <div class="event-time">10:00 - 11:30 | Corte</div>
-                                    </div>
-                                    <div class="event-block event-concluido" style="top: 330px; height: 90px;" onclick="verDetalhes('Ana Pereira', 'Escova Progressiva', '14:30 - 16:00', 'Concluído')">
-                                        <div class="event-title">Ana Pereira</div>
-                                        <div class="event-time">14:30 - 16:00 | Escova</div>
-                                    </div>
-                                </div>
-
-                                <div class="day-column">
-                                    <div class="event-block event-pendente" style="top: 30px; height: 30px;" onclick="verDetalhes('Carlos Souza', 'Barba', '09:30 - 10:00', 'Pendente')">
-                                        <div class="event-title">Carlos Souza</div>
-                                    </div>
-                                </div>
-
-                                <div class="day-column"></div> <div class="day-column"></div> <div class="day-column"></div> </div>
-                        </div>
-                    </div>
+                <div class="calendar-days-header">
+                    <div class="day-header" style="border-right: none;">GMT-3</div>
+                    <div class="day-header">Seg <span>09</span></div>
+                    <div class="day-header today">Ter <span>10</span></div>
+                    <div class="day-header">Qua <span>11</span></div>
+                    <div class="day-header">Qui <span>12</span></div>
+                    <div class="day-header">Sex <span>13</span></div>
+                    <div class="day-header">Sáb <span>14</span></div>
                 </div>
 
-            </section>
-        </main>
+                <div class="calendar-body">
+                    <div class="time-column">
+                        <div class="time-slot-label">09:00</div>
+                        <div class="time-slot-label">10:00</div>
+                        <div class="time-slot-label">11:00</div>
+                        <div class="time-slot-label">12:00</div>
+                        <div class="time-slot-label">13:00</div>
+                        <div class="time-slot-label">14:00</div>
+                        <div class="time-slot-label">15:00</div>
+                        <div class="time-slot-label">16:00</div>
+                        <div class="time-slot-label">17:00</div>
+                        <div class="time-slot-label">18:00</div>
+                    </div>
+
+                    <div class="day-column"></div> 
+                    
+                    <div class="day-column">
+                        <div class="event-block event-marcado" style="top: 60px; height: 90px;" onclick="verDetalhes('João Silva', 'Corte Masculino', '10:00 - 11:30', 'Marcado')">
+                            <div class="event-title">João Silva</div>
+                            <div class="event-time">10:00 - 11:30 | Corte</div>
+                        </div>
+                        <div class="event-block event-concluido" style="top: 330px; height: 90px;" onclick="verDetalhes('Ana Pereira', 'Escova Progressiva', '14:30 - 16:00', 'Concluído')">
+                            <div class="event-title">Ana Pereira</div>
+                            <div class="event-time">14:30 - 16:00 | Escova</div>
+                        </div>
+                    </div>
+
+                    <div class="day-column">
+                        <div class="event-block event-pendente" style="top: 30px; height: 30px;" onclick="verDetalhes('Carlos Souza', 'Barba', '09:30 - 10:00', 'Pendente')">
+                            <div class="event-title">Carlos Souza</div>
+                        </div>
+                    </div>
+
+                    <div class="day-column"></div> 
+                    <div class="day-column"></div> 
+                    <div class="day-column"></div> 
+                </div>
+            </div>
+        </div>
     </div>
 
     <div id="modalNovoAgendamento" class="modal-overlay">
@@ -222,11 +217,10 @@
         </div>
     </div>
 
-   <script src="<?= BASE_URL ?>/public/resources/js/admin.js"></script>
+    </div>
+
+    <script src="<?= BASE_URL ?>/public/resources/js/admin.js"></script>
     <script src="<?= BASE_URL ?>/public/resources/js/modal.js"></script>
     <script src="<?= BASE_URL ?>/public/resources/js/agendamento.js"></script>
-</body>
-</html>
-   
 </body>
 </html>

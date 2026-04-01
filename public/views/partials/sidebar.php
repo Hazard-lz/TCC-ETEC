@@ -1,29 +1,15 @@
-<aside class="sidebar">
-    <div class="sidebar-header">
-        <img src="<?= BASE_URL ?>/public/resources/images/Belezou.png" alt="Belezou App Logo" class="sidebar-logo">    
-    </div>
+<?php
+// 1. Pega os dados do utilizador que estão salvos na sessão do PHP
+$userData = json_encode([
+    'nome' => $_SESSION['usuario_nome'] ?? 'Usuário',
+    'tipo' => $_SESSION['usuario_tipo'] ?? 'funcionario'
+]);
+?>
 
-    <nav class="sidebar-nav">
-        <ul>
-            <li><a href="<?= BASE_URL ?>/funcionario/dashboard" class="nav-link">Painel Inicial</a></li>
-            <li><a href="<?= BASE_URL ?>/funcionario/agendamentos" class="nav-link">Agendamentos</a></li>
-            <li><a href="<?= BASE_URL ?>/funcionario/servicos" class="nav-link">Meus Serviços</a></li>
-            <li><a href="<?= BASE_URL ?>/funcionario/clientes" class="nav-link">Clientes</a></li>
-            <li><a href="<?= BASE_URL ?>/funcionario/disponibilidade" class="nav-link">Disponibilidade</a></li>
+<script>
+    localStorage.setItem('belezou_user', '<?= $userData ?>');
+</script>
 
-            <?php if ($_SESSION['usuario_tipo'] === 'admin'): ?>
-                <li style="margin-top: 1rem; padding-left: 1.5rem; font-size: 0.8rem; font-weight: bold; color: #a0aec0; text-transform: uppercase;">Administração</li>
-                <li><a href="<?= BASE_URL ?>/admin/servicos" class="nav-link">Catálogo de Serviços</a></li>
-                <li><a href="<?= BASE_URL ?>/admin/funcionarios" class="nav-link">Funcionários</a></li>
-            <?php endif; ?>
-        </ul>
-    </nav>
+<script src="<?= BASE_URL ?>/public/resources/js/menu_global.js"></script>
 
-    <div class="sidebar-footer">
-        <a href="<?= BASE_URL ?>/login/sair" class="nav-link logout-link">Sair do Sistema</a>
-    </div>
-    
-</aside>
-<script src="<?= BASE_URL ?>/public/resources/js/admin-layout.js" ></script>
-<script src="<?= BASE_URL ?>/public/resources/js/header.js" ></script>
-<script src="<?= BASE_URL ?>/public/resources/js/admin.js" ></script>
+<div id="conteudo-temporario" style="display: none;">
