@@ -19,7 +19,10 @@ $isAdmin = (isset($_SESSION['usuario_tipo']) && $_SESSION['usuario_tipo'] === 'a
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gerenciar Clientes - Belezou App</title>
     
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/root.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/admin-layout.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/admin.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/listas.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/cliente.css">
@@ -27,105 +30,93 @@ $isAdmin = (isset($_SESSION['usuario_tipo']) && $_SESSION['usuario_tipo'] === 'a
 </head>
 <body>
 
-    <div class="admin-wrapper">
-        <?php require_once __DIR__ . '/../partials/sidebar.php'; ?>
+    <?php require_once __DIR__ . '/../partials/sidebar.php'; ?>
 
-        <main class="main-content">
-            <?php require_once __DIR__ . '/../partials/header.php'; ?>
+    <div class="page-header">
+        <div class="page-title">
+            <h2>Gerenciar Clientes</h2>
+            <p>Acesse o histórico e os dados de contato dos clientes do salão.</p>
+        </div>
+        <?php if ($isAdmin): ?>
+            <button data-modal-target="#modalCliente" class="btn-primary btn-new" onclick="abrirCadastroRapido()">+Cadastro Rápido</button>
+        <?php endif; ?>
+    </div>
 
-            <section class="content-area">
-                
-                <div class="page-header">
-                    <div class="page-title">
-                        <h2>Gerenciar Clientes</h2>
-                        <p>Acesse o histórico e os dados de contato dos clientes do salão.</p>
-                    </div>
-                    <?php if ($isAdmin): ?>
-                        <button data-modal-target="#modalCliente" class="btn-primary btn-new" onclick="abrirCadastroRapido()">+Cadastro Rápido</button>
+    <?php if (isset($_SESSION['flash_sucesso'])): ?>
+        <div style="background-color: #dcfce7; color: #166534; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+            <?= $_SESSION['flash_sucesso']; unset($_SESSION['flash_sucesso']); ?>
+        </div>
+    <?php endif; ?>
+    <?php if (isset($_SESSION['flash_erro'])): ?>
+        <div style="background-color: #fee2e2; color: #991b1b; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+            <?= $_SESSION['flash_erro']; unset($_SESSION['flash_erro']); ?>
+        </div>
+    <?php endif; ?>
+
+    <div class="base-card">
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Nome do Cliente</th>
+                        <th>Telefone</th>
+                        <th>E-mail</th>
+                        <th>Nascimento</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (!empty($clientes)): ?>
+                        <?php foreach ($clientes as $cli): ?>
+                        <tr style="<?= $cli['status'] === 'inativo' ? 'opacity: 0.6;' : '' ?>">
+                            <td style="font-weight: 500;">
+                                <?= htmlspecialchars($cli['nome']) ?>
+                                <?= $cli['status'] === 'inativo' ? '<small style="color:red; margin-left: 5px;">(Inativo)</small>' : '' ?>
+                            </td>
+                            <td><?= preg_replace('/(\d{2})(\d{5})(\d{4})/', '($1) $2-$3', $cli['telefone']) ?></td>
+                            <td><?= htmlspecialchars($cli['email'] ?? 'Sem e-mail') ?></td>
+                            <td><?= !empty($cli['data_nascimento']) ? date('d/m/Y', strtotime($cli['data_nascimento'])) : 'N/A' ?></td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button type="button" data-modal-target="#modalCliente" class="btn-action btn-edit" title="<?= $isAdmin ? 'Editar' : 'Adicionar Observações' ?>" 
+                                        onclick='preencherModalEdicaoCliente(<?= $cli["id_cliente"] ?>, <?= $cli["cod_usuario"] ?>, <?= json_encode($cli["nome"]) ?>, <?= json_encode($cli["telefone"]) ?>, <?= json_encode($cli["data_nascimento"] ?? "") ?>, <?= json_encode($cli["observacoes"] ?? "") ?>)'>
+                                        ✏️
+                                    </button>
+
+                                    <?php if ($isAdmin): ?>
+                                        <form action="<?= BASE_URL ?>/cliente/alterar-status" method="POST" style="display:inline;">
+                                            <input type="hidden" name="cod_usuario" value="<?= $cli['cod_usuario'] ?>">
+                                            <input type="hidden" name="status_atual" value="<?= $cli['status'] ?>">
+                                            
+                                            <button type="submit" class="btn-action <?= $cli['status'] === 'ativo' ? 'btn-delete' : 'btn-success' ?>" 
+                                                    title="<?= $cli['status'] === 'ativo' ? 'Inativar' : 'Ativar' ?>"
+                                                    onclick="return confirm('Tem certeza que deseja <?= $cli['status'] === 'ativo' ? 'inativar' : 'ativar' ?> este cliente?')">
+                                                <?= $cli['status'] === 'ativo' ? '🚫' : '✅' ?>
+                                            </button>
+                                        </form>
+                                    <?php endif; ?>
+                                </div>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 2rem;">Nenhum cliente cadastrado ainda.</td>
+                        </tr>
                     <?php endif; ?>
-                </div>
-
-                <?php if (isset($_SESSION['flash_sucesso'])): ?>
-                    <div style="background-color: #dcfce7; color: #166534; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
-                        <?= $_SESSION['flash_sucesso']; unset($_SESSION['flash_sucesso']); ?>
-                    </div>
-                <?php endif; ?>
-                <?php if (isset($_SESSION['flash_erro'])): ?>
-                    <div style="background-color: #fee2e2; color: #991b1b; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
-                        <?= $_SESSION['flash_erro']; unset($_SESSION['flash_erro']); ?>
-                    </div>
-                <?php endif; ?>
-
-                <div class="base-card">
-                    <div class="table-responsive">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Nome do Cliente</th>
-                                    <th>Telefone</th>
-                                    <th>E-mail</th>
-                                    <th>Nascimento</th>
-                                    <th>Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php if (!empty($clientes)): ?>
-                                    <?php foreach ($clientes as $cli): ?>
-                                    <tr style="<?= $cli['status'] === 'inativo' ? 'opacity: 0.6;' : '' ?>">
-                                        <td style="font-weight: 500;">
-                                            <?= htmlspecialchars($cli['nome']) ?>
-                                            <?= $cli['status'] === 'inativo' ? '<small style="color:red; margin-left: 5px;">(Inativo)</small>' : '' ?>
-                                        </td>
-                                        <td><?= preg_replace('/(\d{2})(\d{5})(\d{4})/', '($1) $2-$3', $cli['telefone']) ?></td>
-                                        <td><?= htmlspecialchars($cli['email'] ?? 'Sem e-mail') ?></td>
-                                        <td><?= !empty($cli['data_nascimento']) ? date('d/m/Y', strtotime($cli['data_nascimento'])) : 'N/A' ?></td>
-                                        <td>
-                                            <div class="action-buttons">
-                                                <button type="button" data-modal-target="#modalCliente" class="btn-action btn-edit" title="<?= $isAdmin ? 'Editar' : 'Adicionar Observações' ?>" 
-                                                    onclick='preencherModalEdicaoCliente(<?= $cli["id_cliente"] ?>, <?= $cli["cod_usuario"] ?>, <?= json_encode($cli["nome"]) ?>, <?= json_encode($cli["telefone"]) ?>, <?= json_encode($cli["data_nascimento"] ?? "") ?>, <?= json_encode($cli["observacoes"] ?? "") ?>)'>
-                                                    ✏️
-                                                </button>
-
-                                                <?php if ($isAdmin): ?>
-                                                    <form action="<?= BASE_URL ?>/cliente/alterar-status" method="POST" style="display:inline;">
-                                                        <input type="hidden" name="cod_usuario" value="<?= $cli['cod_usuario'] ?>">
-                                                        <input type="hidden" name="status_atual" value="<?= $cli['status'] ?>">
-                                                        
-                                                        <button type="submit" class="btn-action <?= $cli['status'] === 'ativo' ? 'btn-delete' : 'btn-success' ?>" 
-                                                                title="<?= $cli['status'] === 'ativo' ? 'Inativar' : 'Ativar' ?>"
-                                                                onclick="return confirm('Tem certeza que deseja <?= $cli['status'] === 'ativo' ? 'inativar' : 'ativar' ?> este cliente?')">
-                                                            <?= $cli['status'] === 'ativo' ? '🚫' : '✅' ?>
-                                                        </button>
-                                                    </form>
-                                                <?php endif; ?>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <?php endforeach; ?>
-                                <?php else: ?>
-                                    <tr>
-                                        <td colspan="5" style="text-align: center; padding: 2rem;">Nenhum cliente cadastrado ainda.</td>
-                                    </tr>
-                                <?php endif; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-        </main>
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <div id="modalCliente" class="modal-overlay">
         <div class="modal-content cliente-card" style="box-shadow: none; margin: 0; padding: 0;">
-            
             <div class="modal-header">
                 <h3 id="modalTitleCliente">Cadastro Rápido</h3>
                 <button data-close-modal class="btn-close">&times;</button>
             </div>
-            
             <div class="modal-body">
                 <form id="formCliente" action="<?= BASE_URL ?>/cliente/salvar" method="POST">
-                    
                     <input type="hidden" id="id_cliente" name="id_cliente" value="">
                     <input type="hidden" id="id_usuario" name="id_usuario" value="">
 
@@ -161,51 +152,11 @@ $isAdmin = (isset($_SESSION['usuario_tipo']) && $_SESSION['usuario_tipo'] === 'a
         </div>
     </div>
 
+    </div>
+
     <script src="<?= BASE_URL ?>/public/resources/js/admin.js"></script>
     <script src="<?= BASE_URL ?>/public/resources/js/modal.js"></script>
     <script src="<?= BASE_URL ?>/public/resources/js/cliente.js"></script>
-
-    <script>
-        function abrirCadastroRapido() {
-            document.getElementById('formCliente').reset();
-            document.getElementById('id_cliente').value = '';
-            document.getElementById('id_usuario').value = ''; 
-            
-            document.getElementById('modalTitleCliente').innerText = 'Cadastro Rápido';
-            
-            // Esconde nascimento e desabilita input
-            document.getElementById('container_nascimento').style.display = 'none';
-            document.getElementById('nascimento').disabled = true;
-
-            // Esconde observacoes e desabilita input
-            document.getElementById('container_observacoes').style.display = 'none';
-            document.getElementById('observacoes').disabled = true;
-
-            document.getElementById('nome').readOnly = false;
-            document.getElementById('nome').style.backgroundColor = '';
-            document.getElementById('telefone').readOnly = false;
-            document.getElementById('telefone').style.backgroundColor = '';
-        }
-
-        function preencherModalEdicaoCliente(id_cliente, id_usuario, nome, telefone, nascimento, observacoes) {
-            document.getElementById('id_cliente').value = id_cliente;
-            document.getElementById('id_usuario').value = id_usuario; 
-            document.getElementById('nome').value = nome;
-            document.getElementById('telefone').value = telefone;
-            document.getElementById('nascimento').value = nascimento || '';
-            document.getElementById('observacoes').value = observacoes || '';
-            
-            const isAdmin = <?= $isAdmin ? 'true' : 'false' ?>;
-            document.getElementById('modalTitleCliente').innerText = isAdmin ? 'Editar Cliente' : 'Observações do Cliente';
-
-            // Reexibe nascimento e habilita input
-            document.getElementById('container_nascimento').style.display = 'block';
-            document.getElementById('nascimento').disabled = false;
-
-            // Reexibe observações e habilita input
-            document.getElementById('container_observacoes').style.display = 'block';
-            document.getElementById('observacoes').disabled = false;
-        }
-    </script>
+    
 </body>
 </html>

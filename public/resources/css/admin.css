@@ -1,277 +1,261 @@
 /* =========================================
-   ADMIN.CSS - LAYOUT DO PAINEL
+   ADMIN.CSS - Cores, Tipografia e Componentes
    ========================================= */
 
-.admin-wrapper {
-  display: flex;
-  min-height: 100vh;
-  width: 100%;
-  overflow-x: hidden; /* Evita rolagem horizontal no site inteiro */
-  background-color: var(--bg-color);
-}
-
-/* SIDEBAR */
-.sidebar {
-  width: 260px;
-  background-color: var(--surface-color);
-  border-right: 1px solid var(--border-color);
-  display: flex;
-  flex-direction: column;
-  position: fixed;
-  height: 100vh;
-  transition: transform 0.3s ease;
-  z-index: 1000;
-}
-
-.sidebar-header {
-  padding: 2rem 1.5rem;
-  text-align: center;
-  border-bottom: 1px solid var(--border-color);
-}
-.sidebar-logo {
-  max-width: 140px;
-}
-.sidebar-nav {
-  flex-grow: 1;
-  padding: 1.5rem 0;
-}
-.sidebar-nav ul {
-  list-style: none;
-}
-
-.nav-link {
-  display: block;
-  padding: 1rem 1.5rem;
-  color: var(--text-muted);
-  text-decoration: none;
-  font-weight: 500;
-  border-left: 4px solid transparent;
-  transition: all var(--transition-default);
-}
-.nav-link:hover {
-  background-color: var(--bg-color);
-  color: var(--color-purple);
-  padding-left: 1.8rem;
-}
-.nav-link.active {
-  background-color: rgba(139, 92, 246, 0.08);
-  color: var(--color-purple);
-  border-left-color: var(--color-purple);
-  font-weight: 600;
-}
-
-.sidebar-footer {
-  padding: 1rem 0;
-  border-top: 1px solid var(--border-color);
-}
-.logout-link {
-  color: var(--color-pink);
-}
-.logout-link:hover {
-  color: #d64550;
-  background-color: rgba(244, 91, 105, 0.08);
-}
-
-/* ÁREA PRINCIPAL */
-.main-content {
-  flex-grow: 1;
-  margin-left: 260px; /* Espaço da sidebar no PC */
-  display: flex;
-  flex-direction: column;
-  width: calc(100% - 260px);
-  transition:
-    margin-left 0.3s ease,
-    width 0.3s ease;
-}
-
-.topbar {
-  background-color: var(--surface-color);
-  padding: 1.5rem 2.5rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid var(--border-color);
-}
-.topbar h2 {
-  color: var(--text-main);
-  font-size: 1.4rem;
-}
-.user-profile {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  font-weight: 500;
-  color: var(--text-muted);
-}
-.avatar {
-  width: 40px;
-  height: 40px;
-  background: var(--gradient-brand);
-  color: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-}
-.content-area {
-  padding: 2.5rem;
-  flex-grow: 1;
-}
-
-/* Botão Mobile (Escondido no PC) */
-.menu-toggle {
-  display: none;
-  background: none;
-  border: none;
-  font-size: 1.8rem;
-  color: var(--text-main);
-  cursor: pointer;
-}
-
-/* RESPONSIVIDADE DO ADMIN (CELULAR) */
-@media (max-width: 768px) {
-  .menu-toggle {
-    display: block;
-  }
-
-  .sidebar {
-    transform: translateX(-100%);
-  } /* Esconde a sidebar */
-  .sidebar.show {
-    transform: translateX(0);
-    box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
-  }
-
-  .main-content {
-    margin-left: 0;
-    width: 100%;
-  } /* Ocupa a tela toda */
-
-  .topbar {
-    padding: 1rem;
-  }
-  .user-profile span {
-    display: none;
-  } /* Esconde nome do admin */
-  .content-area {
-    padding: 1rem;
-  }
-}
-
-/* =========================================
-   SIDEBAR (MENU LATERAL FIXO E ROLÁVEL)
-   ========================================= */
-.sidebar {
-    width: 260px;
-    background-color: var(--surface-color);
-    border-right: 1px solid var(--border-color);
-    height: 100vh; /* Ocupa 100% da altura da tela do PC */
-    position: fixed;
-    left: 0;
-    top: 0;
-    z-index: 1000;
+/* 1. VARIÁVEIS GLOBAIS E TEMA CLARO (PADRÃO) */
+:root {
+    --bg-color: #f4f7f6;        /* Fundo geral da página */
+    --surface-color: #ffffff;   /* Fundo de cartões, modais e cabeçalho */
+    --text-main: #2d3748;       /* Texto principal escuro */
+    --text-muted: #718096;      /* Texto secundário/cinza */
+    --border-color: #e2e8f0;    /* Linhas, bordas e divisórias */
     
-    /* TRANSFORMA A SIDEBAR NUMA CAIXA FLEXÍVEL */
-    display: flex;
-    flex-direction: column;
-    transition: transform var(--transition-default), background var(--transition-default);
+    /* Cores da Marca Belezou */
+    --color-purple: #8b5cf6; 
+    --color-pink: #ec4899;   
+    --gradient-brand: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+    
+    --transition-default: 0.3s ease;
 }
 
-/* 1. O Logótipo no topo (Fixo) */
-.sidebar-header {
-    padding: 1.5rem;
-    border-bottom: 1px solid var(--border-color);
+/* 2. MODO ESCURO (DARK MODE) */
+[data-theme="dark"] {
+    --bg-color: #0f172a;        /* Fundo geral escuro */
+    --surface-color: #1e293b;   /* Cartões e cabeçalho em azul escuro */
+    --text-main: #f1f5f9;       /* Texto principal claro */
+    --text-muted: #94a3b8;      /* Texto secundário cinza azulado */
+    --border-color: #334155;    /* Bordas mais discretas */
+}
+
+/* 3. TIPOGRAFIA GERAL */
+body {
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    color: var(--text-main);
+    background-color: var(--bg-color);
+    transition: background-color var(--transition-default), color var(--transition-default);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: var(--text-main);
+    margin-top: 0;
+}
+
+/* 4. CABEÇALHOS DAS PÁGINAS */
+.page-header {
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
-    
-    flex-shrink: 0; /* Impede que o topo seja esmagado */
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
 }
 
-.sidebar-logo {
-    max-width: 150px;
-    height: auto;
-}
-
-/* 2. O Miolo com os Links (Ganha barra de rolagem se a tela for pequena) */
-.sidebar-nav {
-    flex-grow: 1; /* Ocupa todo o espaço restante do meio */
-    overflow-y: auto; /* Cria barra de rolagem APENAS nos links */
-    padding: 1.5rem 0;
-}
-
-/* Estiliza a barra de rolagem do menu para ficar fina e elegante */
-.sidebar-nav::-webkit-scrollbar {
-    width: 6px;
-}
-.sidebar-nav::-webkit-scrollbar-track {
-    background: transparent;
-}
-.sidebar-nav::-webkit-scrollbar-thumb {
-    background: var(--border-color);
-    border-radius: 10px;
-}
-
-.sidebar-nav ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.sidebar-nav li {
+.page-title h2 {
+    font-size: 1.5rem;
     margin-bottom: 0.5rem;
 }
 
-.nav-link {
-    display: flex;
-    align-items: center;
-    padding: 0.8rem 1.5rem;
+.page-title p {
     color: var(--text-muted);
-    text-decoration: none;
-    font-weight: 500;
+    margin: 0;
     font-size: 0.95rem;
-    transition: all 0.2s;
-    border-right: 3px solid transparent;
 }
 
-.nav-link:hover, .nav-link.active {
-    color: var(--color-purple);
-    background-color: rgba(139, 92, 246, 0.05);
-    border-right-color: var(--color-purple);
+/* 5. CARTÕES BASE (BASE CARDS) */
+.base-card {
+    background-color: var(--surface-color);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--border-color);
+    transition: background-color var(--transition-default), border-color var(--transition-default);
 }
 
-/* 3. O Botão de Sair no fundo (Fixo) */
-.sidebar-footer {
-    padding: 1rem 1.5rem;
-    border-top: 1px solid var(--border-color);
-    
-    flex-shrink: 0; /* Impede que o rodapé seja esmagado e suma */
+/* 6. BOTÕES */
+button, .btn {
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s ease;
 }
 
-.logout-link {
-    color: var(--color-pink);
+.btn-primary {
+    background: var(--gradient-brand);
+    color: #ffffff;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    box-shadow: 0 4px 6px rgba(139, 92, 246, 0.25);
 }
 
-.logout-link:hover {
-    color: white;
-    background-color: var(--color-pink);
-    border-right: none;
-    border-radius: var(--radius-md);
+.btn-primary:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 8px rgba(139, 92, 246, 0.35);
 }
 
-/* =========================================
-   RESPONSIVIDADE (CELULARES)
-   ========================================= */
+.btn-secondary {
+    background-color: transparent;
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+.btn-secondary:hover {
+    background-color: var(--bg-color);
+}
+
+.btn-new {
+    background: var(--color-purple);
+    box-shadow: none;
+}
+
+.btn-action {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background-color: var(--bg-color);
+    color: var(--text-main);
+}
+
+.btn-action:hover {
+    filter: brightness(0.9);
+    transform: scale(1.05);
+}
+
+/* 7. FORMULÁRIOS E INPUTS */
+.form-group {
+    margin-bottom: 1.2rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--text-main);
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.7rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background-color: var(--surface-color);
+    color: var(--text-main);
+    font-family: inherit;
+    font-size: 0.95rem;
+    transition: border-color 0.2s, box-shadow 0.2s, background-color var(--transition-default);
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--color-purple);
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
+}
+
+/* Ajuste para inputs desativados/somente leitura */
+.form-control:read-only, .form-control:disabled {
+    background-color: var(--bg-color);
+    cursor: not-allowed;
+    opacity: 0.8;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
 @media (max-width: 768px) {
-    /* No telemóvel, a barra esconde-se do lado esquerdo */
-    .sidebar {
-        transform: translateX(-100%);
+    .form-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
     }
-    
-    /* Classe que o JavaScript adiciona para mostrar a barra quando o botão ☰ é clicado */
-    .sidebar.open {
-        transform: translateX(0);
-        box-shadow: 5px 0 15px rgba(0,0,0,0.1);
-    }
+}
+
+/* 8. TABELAS (DATA TABLES) */
+.table-responsive {
+    overflow-x: auto;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.data-table th {
+    padding: 1rem;
+    background-color: var(--bg-color);
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.data-table td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-main);
+    font-size: 0.95rem;
+}
+
+.data-table tbody tr:hover {
+    background-color: rgba(139, 92, 246, 0.03);
+}
+
+/* 9. BADGES (ETIQUETAS DE STATUS) */
+.badge {
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: inline-block;
+}
+
+.badge-ativo {
+    background-color: rgba(40, 167, 69, 0.15);
+    color: #28a745;
+}
+
+.badge-inativo {
+    background-color: rgba(220, 53, 69, 0.15);
+    color: #dc3545;
+}
+
+.badge-pendente, .badge-marcado {
+    background-color: rgba(255, 193, 7, 0.2);
+    color: #d39e00;
+}
+
+/* 10. ALERTAS (MENSAGENS DE FLASH) */
+.alert {
+    padding: 1rem 1.25rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    font-weight: 500;
+    border-left: 4px solid transparent;
+}
+
+.alert-success {
+    background-color: #dcfce7;
+    color: #166534;
+    border-left-color: #22c55e;
+}
+
+.alert-danger {
+    background-color: #fee2e2;
+    color: #991b1b;
+    border-left-color: #ef4444;
 }

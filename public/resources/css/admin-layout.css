@@ -2,6 +2,19 @@
    ADMIN-LAYOUT.CSS - Estrutura do Painel
    ========================================= */
 
+/* 1. RESET GLOBAL - A SOLUÇÃO DEFINITIVA PARA O VÃO */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+body, html {
+    margin: 0;
+    padding: 0;
+    /* Corta imediatamente qualquer conteúdo de dentro que tente vazar para a direita */
+    overflow-x: hidden; 
+    background-color: var(--bg-color, #f8f9fa);
+}
+
 /* --- SIDEBAR (BARRA LATERAL) --- */
 .sidebar {
     width: 260px;
@@ -9,129 +22,228 @@
     position: fixed;
     left: 0;
     top: 0;
-    background-color: var(--surface-color);
-    border-right: 1px solid var(--border-color);
+    background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+    border-right: none;
     display: flex;
     flex-direction: column;
-    z-index: 1000; /* Sidebar sempre acima de tudo (Mais forte) */
-    transition: transform 0.3s ease, background-color var(--transition-default);
+    z-index: 1000;
+    transition: width 0.3s ease, transform 0.3s ease;
+    overflow-x: hidden; 
+    box-shadow: 2px 0 15px rgba(0,0,0,0.15);
 }
 
 .sidebar-header {
     padding: 1.5rem;
-    border-bottom: 1px solid var(--border-color);
-    text-align: center;
-    flex-shrink: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 80px;
+    white-space: nowrap;
 }
 
 .sidebar-logo {
     max-width: 140px;
+    transition: opacity 0.3s ease;
 }
 
 .sidebar-nav {
     flex-grow: 1;
     overflow-y: auto;
+    overflow-x: hidden;
     padding: 1.5rem 0;
-}
-
-.sidebar-nav::-webkit-scrollbar { width: 6px; }
-.sidebar-nav::-webkit-scrollbar-track { background: transparent; }
-.sidebar-nav::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 10px; }
-
-.sidebar-nav ul {
     list-style: none;
-    padding: 0;
     margin: 0;
 }
 
+.sidebar-nav::-webkit-scrollbar { width: 4px; }
+.sidebar-nav::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.3); border-radius: 10px; }
+
+.nav-item {
+    margin-bottom: 5px;
+}
+
 .nav-link {
-    display: block;
+    display: flex;
+    align-items: center;
     padding: 0.85rem 1.5rem;
-    color: var(--text-muted);
+    color: rgba(255, 255, 255, 0.85); 
     text-decoration: none;
     font-weight: 500;
     font-size: 0.95rem;
     transition: all 0.2s;
     border-right: 3px solid transparent;
+    white-space: nowrap;
+}
+
+.nav-link i {
+    font-size: 1.3rem;
+    min-width: 35px;
+    text-align: center;
 }
 
 .nav-link:hover, .nav-link.active {
-    color: var(--color-purple);
-    background-color: rgba(139, 92, 246, 0.05);
-    border-right-color: var(--color-purple);
+    color: #ffffff;
+    background-color: rgba(255, 255, 255, 0.15);
+    border-right-color: #ffffff;
 }
 
 .sidebar-footer {
     padding: 1rem 1.5rem;
-    border-top: 1px solid var(--border-color);
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    white-space: nowrap;
+    overflow: hidden;
     flex-shrink: 0;
 }
 
-.logout-link {
-    color: var(--color-pink);
-    font-weight: 600;
-}
-
-.logout-link:hover {
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: rgba(255,255,255,0.2);
     color: white;
-    background-color: var(--color-pink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    flex-shrink: 0;
 }
 
-/* --- TOPBAR (CABEÇALHO) --- */
+.user-info {
+    color: white;
+    transition: opacity 0.3s;
+}
+
+.user-info h6 {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: bold;
+}
+
+.user-info small {
+    font-size: 0.75rem;
+    opacity: 0.8;
+}
+
+/* ====================================
+   ESTADO RECOLHIDO (COLLAPSED)
+   ==================================== */
+.sidebar.collapsed {
+    width: 75px;
+}
+
+.sidebar.collapsed .sidebar-logo,
+.sidebar.collapsed .nav-link span,
+.sidebar.collapsed .nav-title,
+.sidebar.collapsed .user-info {
+    opacity: 0;
+    display: none;
+}
+
+.sidebar.collapsed .nav-link {
+    justify-content: center;
+    padding: 0.85rem 0;
+}
+
+.sidebar.collapsed .nav-link i {
+    margin-right: 0 !important;
+}
+
+.sidebar.collapsed .sidebar-footer {
+    justify-content: center;
+    padding: 1rem 0;
+}
+
+/* --- MAIN WRAPPER E TOPBAR (CABEÇALHO) --- */
+.main-wrapper {
+    /* Usamos APENAS margin-left. Retiramos o width: 100%. 
+       Assim a div preenche naturalmente o espaço restante sem forçar a tela */
+    margin-left: 260px; 
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    transition: margin-left 0.3s ease;
+    background-color: var(--bg-color, #f4f7f6);
+}
+
+.main-wrapper.expanded {
+    margin-left: 75px; 
+}
+
 .topbar {
-    background-color: var(--surface-color);
+    background-color: var(--surface-color, #ffffff);
     padding: 1rem 2rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color, #e2e8f0);
     position: sticky;
     top: 0;
-    z-index: 900; /* Fica abaixo do Overlay (999) e Sidebar (1000) */
-    transition: background-color var(--transition-default);
+    z-index: 900; 
+    transition: background-color 0.3s ease;
 }
 
-.menu-toggle {
-    display: none;
-    background: none;
+.btn-toggle-menu {
+    display: block; 
+    background: transparent;
     border: none;
     font-size: 1.6rem;
-    color: var(--text-main);
+    color: var(--text-main, #2d3748);
     cursor: pointer;
-    margin-right: 1rem;
     transition: color 0.2s;
+    padding: 0;
 }
 
-.menu-toggle:hover {
-    color: var(--color-purple);
-}
-
-/* --- ÁREA PRINCIPAL (CONTEÚDO) --- */
-.main-content {
-    margin-left: 260px;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    background-color: var(--bg-color);
-    transition: margin-left 0.3s ease;
+.btn-toggle-menu:hover {
+    color: var(--color-purple, #8b5cf6);
 }
 
 .content-area {
     padding: 2rem;
     flex-grow: 1;
+    /* Retirado o width: 100% que causava quebras */
+}
+
+/* --- SUBMENU DO PERFIL --- */
+.profile-menu {
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+.profile-dropdown-item {
+    display: block;
+    padding: 12px 15px;
+    color: var(--text-main, #2d3748);
+    text-decoration: none;
+    font-size: 0.95rem;
+    transition: background 0.2s;
+}
+
+.profile-dropdown-item:hover {
+    background-color: var(--bg-color, #f4f7f6);
+    color: var(--color-purple, #8b5cf6);
+}
+
+.profile-dropdown-item.text-danger {
+    color: #dc3545;
+    border-top: 1px solid var(--border-color, #e2e8f0);
+}
+
+.profile-dropdown-item.text-danger:hover {
+    background-color: #fee2e2;
+    color: #991b1b;
 }
 
 /* --- Fundo Escuro (Overlay) no Telemóvel --- */
 .sidebar-overlay {
     display: none;
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(2px);
-    z-index: 999; /* Cobre o cabeçalho (900), mas fica sob o menu (1000) */
+    z-index: 999;
 }
 
 .sidebar-overlay.open {
@@ -145,22 +257,16 @@
 @media (max-width: 992px) {
     .sidebar {
         transform: translateX(-100%);
-        box-shadow: none;
+        width: 260px !important; 
     }
     
-    /* Quando o JS adiciona a classe .open, a barra desliza de volta */
-    .sidebar.open {
+    .sidebar.mobile-open {
         transform: translateX(0);
-        box-shadow: 5px 0 25px rgba(0,0,0,0.15);
     }
     
-    .main-content {
-        margin-left: 0;
-        width: 100%;
-    }
-    
-    .menu-toggle {
-        display: block;
+    .main-wrapper, .main-wrapper.expanded {
+        margin-left: 0; /* No telemóvel não há menu fixo a ocupar espaço */
+        width: 100%;    /* Aqui o 100% é seguro porque a margem é 0 */
     }
     
     .topbar {
@@ -169,6 +275,10 @@
     
     .content-area {
         padding: 1.5rem 1rem;
+    }
+    
+    .nome-topo {
+        display: none; 
     }
 }
 
@@ -187,47 +297,14 @@
     height: 26px;
     margin-right: 10px;
 }
-
-.theme-switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-
+.theme-switch input { opacity: 0; width: 0; height: 0; }
 .slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background-color: #cbd5e1;
-    transition: .4s;
-    border-radius: 34px;
+    position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #cbd5e1; transition: .4s; border-radius: 34px;
 }
-
-/* Bolinha do Switch (Sol por padrão) */
 .slider:before {
-    position: absolute;
-    content: "☀️";
-    font-size: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 20px;
-    width: 20px;
-    left: 3px;
-    bottom: 3px;
-    background-color: white;
-    transition: .4s;
-    border-radius: 50%;
+    position: absolute; content: "☀️"; font-size: 14px; display: flex; align-items: center; justify-content: center;
+    height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%;
 }
-
-/* Quando ativado (Modo Escuro) */
-.theme-switch input:checked + .slider {
-    background-color: var(--color-purple);
-}
-
-/* Anima a bolinha para a direita e troca para a Lua */
-.theme-switch input:checked + .slider:before {
-    transform: translateX(24px);
-    content: "🌙";
-    background-color: #1a202c;
-}
+.theme-switch input:checked + .slider { background-color: var(--color-purple, #8b5cf6); }
+.theme-switch input:checked + .slider:before { transform: translateX(24px); content: "🌙"; background-color: #1a202c; }

@@ -1,6 +1,6 @@
 /*
    FUNCIONARIO.JS - REGRAS DE FUNCIONÁRIOS
-   */
+*/
 
 // Funções chamadas diretamente pelo HTML da tabela
 function confirmarExclusaoFuncionario(id) {
@@ -9,22 +9,40 @@ function confirmarExclusaoFuncionario(id) {
     }
 }
 
-function preencherModalEdicaoFuncionario(id, nome, telefone, email, especialidade, salario, tipo) {
-    // Muda o título do modal
-    document.getElementById("modalTitleFunc").textContent = "Editar Funcionário: " + nome;
-    
-    // Preenche os campos do formulário
-    document.getElementById("id_funcionario").value = id;
-    document.getElementById("nome").value = nome;
-    document.getElementById("telefone").value = telefone;
-    document.getElementById("email").value = email;
-    document.getElementById("especialidade").value = especialidade;
-    document.getElementById("salario").value = salario;
-    document.getElementById("tipo").value = tipo;
-    
-    // Bloqueia a edição do e-mail e remove a obrigatoriedade da senha
+// Preenche o modal de edição lendo o atributo data-funcionario do botão
+function abrirEdicaoFuncionario(button) {
+    const func = JSON.parse(button.getAttribute('data-funcionario'));
+
+    document.getElementById("modalTitleFunc").textContent = "Editar Funcionário: " + func.nome;
+
+    document.getElementById("id_funcionario").value = func.id_funcionario;
+    document.getElementById("nome").value = func.nome;
+    document.getElementById("telefone").value = func.telefone || "";
+    document.getElementById("email").value = func.email;
+    document.getElementById("especialidade").value = func.especialidade;
+    document.getElementById("salario").value = func.salario;
+    document.getElementById("tipo").value = func.tipo || 'comum';
+
+    // Trava a edição do e-mail na atualização (o acesso/email é fixo)
     document.getElementById("email").setAttribute('readonly', true);
-    document.getElementById("senha").removeAttribute('required');
+    
+    // Remove a obrigatoriedade da senha na edição
+    const senhaInput = document.getElementById("senha");
+    if(senhaInput) senhaInput.removeAttribute('required');
+}
+
+// Limpa o modal para preparar um novo cadastro
+function limparModalFuncionario() {
+    document.getElementById("modalTitleFunc").textContent = "Cadastrar Novo Funcionário";
+    document.getElementById("formFuncionario").reset();
+    document.getElementById("id_funcionario").value = "";
+
+    // Libera o e-mail para um novo cadastro
+    document.getElementById("email").removeAttribute('readonly');
+    
+    // Torna a senha obrigatória novamente para novos cadastros
+    const senhaInput = document.getElementById("senha");
+    if(senhaInput) senhaInput.setAttribute('required', true);
 }
 
 // Validação do formulário ao enviar
@@ -34,7 +52,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (formFuncionario) {
         formFuncionario.addEventListener("submit", function (event) {
-            const senha = document.getElementById("senha").value.trim();
+            const senhaInput = document.getElementById("senha");
+            const senha = senhaInput ? senhaInput.value.trim() : "";
             const salario = parseFloat(document.getElementById("salario").value);
             const idFuncionario = document.getElementById("id_funcionario").value;
             
