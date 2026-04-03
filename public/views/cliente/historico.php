@@ -32,68 +32,65 @@ if (!isset($_SESSION['usuario_id'])) {
                     <button class="tab-btn" onclick="mudarAba('anteriores', this)">Anteriores</button>
                 </div>
 
+                <?php 
+                // Função auxiliar para mapear o status do BD para as tuas classes de CSS
+                function getBadgeCss($status) {
+                    $map = [
+                        'pendente' => ['card' => 'status-pendente', 'badge' => 'badge-orange', 'label' => 'Pendente'],
+                        'marcado'  => ['card' => 'status-marcado', 'badge' => 'badge-purple', 'label' => 'Marcado'],
+                        'concluido'=> ['card' => 'status-concluido', 'badge' => 'badge-green', 'label' => 'Concluído'],
+                        'cancelado'=> ['card' => 'status-cancelado', 'badge' => 'badge-pink', 'label' => 'Cancelado']
+                    ];
+                    return $map[$status] ?? ['card' => '', 'badge' => '', 'label' => ucfirst($status)];
+                }
+                ?>
+
                 <div id="aba-proximos" class="tab-content active history-grid">
-                    
-                    <div class="history-card status-marcado">
-                        <div class="history-header">
-                            <span class="history-date">📅 25/03/2026 às 10:00</span>
-                            <span class="history-badge badge-purple">Marcado</span>
-                        </div>
-                        <div class="history-body">
-                            <div>
-                                <div class="history-service">Corte Feminino</div>
-                                <div class="history-pro">com Maria Oliveira</div>
+                    <?php if (!empty($proximos)): ?>
+                        <?php foreach ($proximos as $ag): 
+                            $estilo = getBadgeCss($ag['status']);
+                        ?>
+                            <div class="history-card <?= $estilo['card'] ?>">
+                                <div class="history-header">
+                                    <span class="history-date">📅 <?= $ag['data_formatada'] ?> às <?= $ag['hora_formatada'] ?></span>
+                                    <span class="history-badge <?= $estilo['badge'] ?>"><?= $estilo['label'] ?></span>
+                                </div>
+                                <div class="history-body">
+                                    <div>
+                                        <div class="history-service"><?= htmlspecialchars($ag['nome_servico']) ?></div>
+                                        <div class="history-pro">com <?= htmlspecialchars($ag['funcionario_nome']) ?></div>
+                                    </div>
+                                    <div class="history-price">R$ <?= $ag['preco_formatado'] ?></div>
+                                </div>
                             </div>
-                            <div class="history-price">R$ 60,00</div>
-                        </div>
-                    </div>
-
-                    <div class="history-card status-pendente">
-                        <div class="history-header">
-                            <span class="history-date">📅 31/03/2026 às 14:30</span>
-                            <span class="history-badge badge-orange">Pendente</span>
-                        </div>
-                        <div class="history-body">
-                            <div>
-                                <div class="history-service">Manicure</div>
-                                <div class="history-pro">Qualquer Profissional</div>
-                            </div>
-                            <div class="history-price">R$ 30,00</div>
-                        </div>
-                    </div>
-
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <p style="text-align: center; color: var(--text-muted); margin-top: 2rem;">Não tens agendamentos futuros.</p>
+                    <?php endif; ?>
                 </div> 
                 
                 <div id="aba-anteriores" class="tab-content history-grid">
-                    
-                    <div class="history-card status-concluido">
-                        <div class="history-header">
-                            <span class="history-date">📅 06/03/2026 às 15:00</span>
-                            <span class="history-badge badge-green">Concluído</span>
-                        </div>
-                        <div class="history-body">
-                            <div>
-                                <div class="history-service">Luzes ou Mechas</div>
-                                <div class="history-pro">com Maria Oliveira</div>
+                    <?php if (!empty($anteriores)): ?>
+                        <?php foreach ($anteriores as $ag): 
+                            $estilo = getBadgeCss($ag['status']);
+                        ?>
+                            <div class="history-card <?= $estilo['card'] ?>">
+                                <div class="history-header">
+                                    <span class="history-date">📅 <?= $ag['data_formatada'] ?> às <?= $ag['hora_formatada'] ?></span>
+                                    <span class="history-badge <?= $estilo['badge'] ?>"><?= $estilo['label'] ?></span>
+                                </div>
+                                <div class="history-body">
+                                    <div>
+                                        <div class="history-service"><?= htmlspecialchars($ag['nome_servico']) ?></div>
+                                        <div class="history-pro">com <?= htmlspecialchars($ag['funcionario_nome']) ?></div>
+                                    </div>
+                                    <div class="history-price">R$ <?= $ag['preco_formatado'] ?></div>
+                                </div>
                             </div>
-                            <div class="history-price">R$ 200,00</div>
-                        </div>
-                    </div>
-
-                    <div class="history-card status-cancelado">
-                        <div class="history-header">
-                            <span class="history-date">📅 14/02/2026 às 09:30</span>
-                            <span class="history-badge badge-pink">Cancelado</span>
-                        </div>
-                        <div class="history-body">
-                            <div>
-                                <div class="history-service">Hidratação Capilar</div>
-                                <div class="history-pro">com Fernanda Costa</div>
-                            </div>
-                            <div class="history-price">R$ 50,00</div>
-                        </div>
-                    </div>
-
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <p style="text-align: center; color: var(--text-muted); margin-top: 2rem;">Ainda não tens histórico de visitas.</p>
+                    <?php endif; ?>
                 </div> 
             </main>
 

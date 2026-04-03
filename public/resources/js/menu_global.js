@@ -27,7 +27,7 @@ function renderizarLayoutGlobal(usuario) {
 
     let navLinks = `
         <li class="nav-item"><a href="${BASE_URL}/funcionario/dashboard" class="nav-link ${pathAtual.includes('dashboard') ? 'active' : ''}" title="Painel Inicial"><i class="bi bi-house me-2"></i> <span>Painel Inicial</span></a></li>
-        <li class="nav-item"><a href="${BASE_URL}/funcionario/agendamentos" class="nav-link ${pathAtual.includes('agendamentos') ? 'active' : ''}" title="Agendamentos"><i class="bi bi-calendar-check me-2"></i> <span>Agendamentos</span></a></li>
+        <li class="nav-item"><a href="${BASE_URL}/funcionario/agenda" class="nav-link ${pathAtual.includes('agendamentos') ? 'active' : ''}" title="Agendamentos"><i class="bi bi-calendar-check me-2"></i> <span>Agendamentos</span></a></li>
         <li class="nav-item"><a href="${BASE_URL}/funcionario/servicos" class="nav-link ${pathAtual.includes('servicos') && !pathAtual.includes('admin') ? 'active' : ''}" title="Meus Serviços"><i class="bi bi-scissors me-2"></i> <span>Meus Serviços</span></a></li>
         <li class="nav-item"><a href="${BASE_URL}/funcionario/clientes" class="nav-link ${pathAtual.includes('clientes') ? 'active' : ''}" title="Clientes"><i class="bi bi-people me-2"></i> <span>Clientes</span></a></li>
         <li class="nav-item"><a href="${BASE_URL}/funcionario/disponibilidade" class="nav-link ${pathAtual.includes('disponibilidade') ? 'active' : ''}" title="Disponibilidade"><i class="bi bi-clock me-2"></i> <span>Disponibilidade</span></a></li>

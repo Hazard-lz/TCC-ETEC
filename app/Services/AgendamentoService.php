@@ -4,23 +4,26 @@ require_once __DIR__ . '/../Models/Agendamento.php';
 require_once __DIR__ . '/../Models/Servico.php';
 require_once __DIR__ . '/../../database/Conexao.php';
 
-class AgendamentoService extends BaseService {
+class AgendamentoService extends BaseService
+{
 
     private $agendamentoModel;
     private $servicoModel;
     private $conn;
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->agendamentoModel = new Agendamento();
         $this->servicoModel = new Servico();
-        $this->conn = Conexao::getConexao(); 
+        $this->conn = Conexao::getConexao();
     }
 
     /**
      * Orquestra a criação do agendamento validando os tempos e valores no backend.
      * $idCliente e $idFuncionario devem ser os IDs das tabelas `clientes` e `funcionarios`, e não de `usuarios`.
      */
-    public function realizarAgendamento($idCliente, $idFuncionario, $idServico, $data, $horaInicio, $idFuncionarioCriador = null) {
+    public function realizarAgendamento($idCliente, $idFuncionario, $idServico, $data, $horaInicio, $idFuncionarioCriador = null)
+    {
         try {
             // 1. Inicia Transação (Garante que agendamento e itens_agendamento sejam salvos juntos)
             $this->conn->beginTransaction();
@@ -34,7 +37,7 @@ class AgendamentoService extends BaseService {
             $duracao = (int) $servico['duracao'];
             $preco = (float) $servico['preco'];
             $nomeServico = $servico['nome_servico'];
-            
+
 
             // 3. Cálculos de Tempo: Evita falhas usando a classe nativa do PHP
             $horaFimObj = new DateTime($horaInicio);
@@ -53,12 +56,14 @@ class AgendamentoService extends BaseService {
                 throw new Exception("Este profissional não está vinculado para realizar este serviço.");
             }
 
+            // Se não houver idFuncionarioCriador, significa que foi o próprio cliente no site
+            $statusInicial = ($idFuncionarioCriador === null) ? 'pendente' : 'marcado';
             // 6. Insere na tabela 'agendamentos' (Capa)
             $idAgendamento = $this->agendamentoModel->cadastrarAgendamento(
-                $idCliente, 
-                $idFuncionarioCriador, 
-                $data, 
-                'marcado' // Pertence ao ENUM do schema
+                $idCliente,
+                $idFuncionarioCriador,
+                $data,
+                $statusInicial
             );
 
             if (!$idAgendamento) {
@@ -88,7 +93,6 @@ class AgendamentoService extends BaseService {
                 'mensagem' => 'Agendamento confirmado com sucesso!',
                 'id_agendamento' => $idAgendamento
             ];
-
         } catch (Exception $e) {
             if ($this->conn->inTransaction()) {
                 $this->conn->rollBack();
@@ -107,15 +111,16 @@ class AgendamentoService extends BaseService {
     /**
      * Altera o status verificando a integridade com o ENUM do Schema.
      */
-    public function alterarStatus($idAgendamento, $novoStatus) {
+    public function alterarStatus($idAgendamento, $novoStatus)
+    {
         $statusValidos = ['pendente', 'concluido', 'cancelado', 'marcado'];
-        
+
         if (!in_array($novoStatus, $statusValidos)) {
             return ['sucesso' => false, 'mensagem' => 'Status inválido.'];
         }
 
         $atualizou = $this->agendamentoModel->atualizarStatus($idAgendamento, $novoStatus);
-        
+
         if ($atualizou) {
             return ['sucesso' => true, 'mensagem' => 'Status do agendamento atualizado.'];
         }
@@ -123,4 +128,3 @@ class AgendamentoService extends BaseService {
         return ['sucesso' => false, 'mensagem' => 'Falha ao atualizar o status.'];
     }
 }
-?>

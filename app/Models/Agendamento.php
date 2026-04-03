@@ -78,11 +78,14 @@ class Agendamento extends BaseModel {
      */
     public function listarPorCliente($id_cliente) {
         $sql = "SELECT a.id_agendamento, a.data_agendamento, a.status, 
-                       ia.nome_servico_registrado AS nome_servico, ia.hora_inicio, ia.preco_cobrado
+                       ia.nome_servico_registrado AS nome_servico, ia.hora_inicio, ia.preco_cobrado,
+                       u_func.nome AS funcionario_nome
                 FROM agendamentos a
                 INNER JOIN itens_agendamento ia ON a.id_agendamento = ia.cod_agendamento
                 INNER JOIN funcionario_servicos fs ON ia.cod_sv_func = fs.id_sv_funcionario
                 INNER JOIN servicos s ON fs.cod_servico = s.id_servico
+                INNER JOIN funcionarios f ON fs.cod_funcionario = f.id_funcionario
+                INNER JOIN usuarios u_func ON f.cod_usuario = u_func.id_usuario
                 WHERE a.cod_cliente = :cod_cliente
                 ORDER BY a.data_agendamento DESC, ia.hora_inicio DESC";
                 
@@ -112,6 +115,89 @@ class Agendamento extends BaseModel {
             ':cod_funcionario' => $id_funcionario,
             ':data' => $data
         ], 'todos');
+    }
+
+    /**
+     * Busca APENAS o agendamento futuro mais próximo do cliente.
+     * ARQUITETURA: O uso do LIMIT 1 e ordenação ASC garante altíssima 
+     * performance, retornando só o que a página inicial precisa.
+     */
+    public function buscarProximoAgendamentoCliente($id_cliente) {
+        $sql = "SELECT a.id_agendamento, a.data_agendamento, a.status, 
+                       ia.nome_servico_registrado AS nome_servico, ia.hora_inicio,
+                       u_func.nome AS funcionario_nome
+                FROM agendamentos a
+                INNER JOIN itens_agendamento ia ON a.id_agendamento = ia.cod_agendamento
+                INNER JOIN funcionario_servicos fs ON ia.cod_sv_func = fs.id_sv_funcionario
+                INNER JOIN funcionarios f ON fs.cod_funcionario = f.id_funcionario
+                INNER JOIN usuarios u_func ON f.cod_usuario = u_func.id_usuario
+                WHERE a.cod_cliente = :cod_cliente
+                  AND a.status IN ('pendente', 'marcado')
+                  AND a.data_agendamento >= CURDATE() -- Filtra apenas datas de hoje em diante
+                ORDER BY a.data_agendamento ASC, ia.hora_inicio ASC
+                LIMIT 1";
+                
+        return $this->executarQuery($sql, [':cod_cliente' => $id_cliente], 'unico');
+    }
+
+    /**
+     * Conta quantos agendamentos o funcionário tem marcados para hoje.
+     * ARQUITETURA: Uso do COUNT() para não carregar dados desnecessários para a memória.
+     */
+    public function contarAgendamentosHoje($idFuncionario) {
+        $sql = "SELECT COUNT(*) as total 
+                FROM agendamentos a
+                INNER JOIN itens_agendamento ia ON a.id_agendamento = ia.cod_agendamento
+                INNER JOIN funcionario_servicos fs ON ia.cod_sv_func = fs.id_sv_funcionario
+                WHERE fs.cod_funcionario = :id_funcionario 
+                  AND a.data_agendamento = CURDATE()
+                  AND a.status IN ('marcado', 'concluido')";
+                  
+        $resultado = $this->executarQuery($sql, [':id_funcionario' => $idFuncionario], 'unico');
+        return $resultado['total'] ?? 0;
+    }
+
+    /**
+     * Calcula a soma do valor dos serviços concluídos no mês atual pelo funcionário.
+     */
+    public function calcularFaturamentoMes($idFuncionario) {
+        $sql = "SELECT SUM(ia.preco_cobrado) as total 
+                FROM agendamentos a
+                INNER JOIN itens_agendamento ia ON a.id_agendamento = ia.cod_agendamento
+                INNER JOIN funcionario_servicos fs ON ia.cod_sv_func = fs.id_sv_funcionario
+                WHERE fs.cod_funcionario = :id_funcionario 
+                  AND MONTH(a.data_agendamento) = MONTH(CURDATE())
+                  AND YEAR(a.data_agendamento) = YEAR(CURDATE())
+                  AND a.status = 'concluido'";
+                  
+        $resultado = $this->executarQuery($sql, [':id_funcionario' => $idFuncionario], 'unico');
+        return $resultado['total'] ?? 0.00;
+    }
+
+    /**
+     * Traz os próximos agendamentos (de hoje em diante) limitados a 5 para a lista rápida.
+     */
+    public function listarProximosAgendamentosResumo($idFuncionario, $limite = 5) {
+        $sql = "SELECT a.id_agendamento, a.data_agendamento, a.status, 
+                       ia.hora_inicio, ia.nome_servico_registrado AS nome_servico,
+                       u_cli.nome AS cliente_nome, u_cli.telefone AS cliente_telefone
+                FROM agendamentos a
+                INNER JOIN itens_agendamento ia ON a.id_agendamento = ia.cod_agendamento
+                INNER JOIN funcionario_servicos fs ON ia.cod_sv_func = fs.id_sv_funcionario
+                INNER JOIN clientes c ON a.cod_cliente = c.id_cliente
+                INNER JOIN usuarios u_cli ON c.cod_usuario = u_cli.id_usuario
+                WHERE fs.cod_funcionario = :id_funcionario
+                  AND a.data_agendamento >= CURDATE()
+                  AND a.status IN ('pendente', 'marcado')
+                ORDER BY a.data_agendamento ASC, ia.hora_inicio ASC
+                LIMIT :limite";
+        
+        // Como o executarQuery padrao usa prepare e bindValue como string,
+        // para o LIMIT funcionar perfeitamente precisamos garantir que é inteiro no PDO.
+        // Mas podemos usar a tua função padrao e passar o valor embutido (apenas neste caso pois $limite é fixo)
+        $sqlAlterada = str_replace(':limite', (int)$limite, $sql);
+                
+        return $this->executarQuery($sqlAlterada, [':id_funcionario' => $idFuncionario], 'todos');
     }
 
     // =========================================================================

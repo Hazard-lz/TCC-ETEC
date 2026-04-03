@@ -9,7 +9,9 @@ class Usuario extends BaseModel {
 
 // CREATE/INSERT
     public function cadastrar($nome, $email, $senha, $tipo = 'comum', $telefone = null) {
-        $senhaHash = password_hash($senha, PASSWORD_DEFAULT);
+        
+        // Só cria o hash se a senha não for nula ou vazia
+        $senhaHash = !empty($senha) ? password_hash($senha, PASSWORD_DEFAULT) : null;
         
         // Se vier string vazia do formulário, converte para NULL
         $telefone = !empty(trim($telefone)) ? trim($telefone) : null;
@@ -19,8 +21,11 @@ class Usuario extends BaseModel {
                 VALUES (:nome, :email, :senha, :tipo, :telefone)";
         
         return $this->executarQuery($sql, [
-            ':nome' => $nome, ':email' => $email, ':senha' => $senhaHash, 
-            ':tipo' => $tipo, ':telefone' => $telefone
+            ':nome' => $nome, 
+            ':email' => $email, 
+            ':senha' => $senhaHash,
+            ':tipo' => $tipo, 
+            ':telefone' => $telefone
         ], 'id');
     }
 

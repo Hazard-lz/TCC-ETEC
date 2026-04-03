@@ -64,10 +64,10 @@ if (strpos($uri, '/admin') === 0) {
         header("Location: " . BASE_URL . "/login");
         exit;
     }
-    
+
     // Controle de inatividade de 30 minutos
     if (isset($_SESSION['ultimo_acesso']) && (time() - $_SESSION['ultimo_acesso'] > 1800)) {
-        header("Location: " . BASE_URL . "/login/sair?motivo=inatividade"); 
+        header("Location: " . BASE_URL . "/login/sair?motivo=inatividade");
         exit;
     }
     $_SESSION['ultimo_acesso'] = time();
@@ -80,10 +80,10 @@ if (strpos($uri, '/funcionario') === 0) {
         header("Location: " . BASE_URL . "/login");
         exit;
     }
-    
+
     // Controle de inatividade de 30 minutos
     if (isset($_SESSION['ultimo_acesso']) && (time() - $_SESSION['ultimo_acesso'] > 1800)) {
-        header("Location: " . BASE_URL . "/login/sair?motivo=inatividade"); 
+        header("Location: " . BASE_URL . "/login/sair?motivo=inatividade");
         exit;
     }
     $_SESSION['ultimo_acesso'] = time();
@@ -100,25 +100,38 @@ switch ($uri) {
     case '/':
         if (isset($_SESSION['usuario_id']) && isset($_SESSION['is_funcionario']) && $_SESSION['is_funcionario'] === true) {
             header("Location: " . BASE_URL . "/funcionario/dashboard");
-            exit; 
+            exit;
         }
-        include __DIR__ . '/public/views/cliente/main.php';
+        $controller = new ClienteController();
+        $controller->home();
         break;
     case '/perfil':
         include __DIR__ . '/public/views/cliente/perfil.php';
         break;
-    case '/historico':
-        include __DIR__ . '/public/views/cliente/historico.php';
-        break;
     case '/agendar':
-        include __DIR__ . '/public/views/cliente/agendar.php';
+        require_once __DIR__ . '/app/Controllers/AgendamentoController.php';
+        $controller = new AgendamentoController();
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $controller->salvar(); // Salva no banco (Lógica que já criamos)
+        } else {
+            $controller->carregarTelaCliente(); // Mostra a tela com os cards
+        }
+        break;
+
+    case '/historico':
+        // ARQUITETURA: Agora a rota aciona o Controller responsável, 
+        // mantendo o controle centralizado e impedindo a chamada direta de views.
+        require_once __DIR__ . '/app/Controllers/AgendamentoController.php';
+        $controller = new AgendamentoController();
+        $controller->historicoCliente();
         break;
 
     // ------------------------------------------
     // ROTAS DE AUTENTICAÇÃO E REGISTO
     // ------------------------------------------
     case '/cadastro':
-        include __DIR__ . '/public/views/auth/cadastro.php'; 
+        include __DIR__ . '/public/views/auth/cadastro.php';
         break;
     case '/cadastro/salvar':
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -135,7 +148,7 @@ switch ($uri) {
     case '/login/autenticar':
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $authController = new AuthController();
-            $authController->login(); 
+            $authController->login();
         } else {
             header("Location: " . BASE_URL . "/login");
             exit;
@@ -159,7 +172,7 @@ switch ($uri) {
     // ROTAS: ESQUECI MINHA SENHA
     // ------------------------------------------
     case '/recuperar-senha':
-        include __DIR__ . '/public/views/auth/recuperarSenha.php'; 
+        include __DIR__ . '/public/views/auth/recuperarSenha.php';
         break;
 
     case '/auth/esqueciSenha':
@@ -173,7 +186,7 @@ switch ($uri) {
         break;
 
     case '/redefinir-senha':
-        include __DIR__ . '/public/views/auth/redefinirSenha.php'; 
+        include __DIR__ . '/public/views/auth/redefinirSenha.php';
         break;
 
     case '/auth/redefinirSenha':
@@ -217,14 +230,14 @@ switch ($uri) {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $controller = new ServicoController();
             $dados = json_decode(file_get_contents("php://input"), true) ?? $_POST;
-            
+
             if (!empty($dados['id_servico'])) {
                 $controller->editar();
             } else {
                 $controller->cadastrar();
             }
             exit;
-        }   
+        }
         break;
     case '/admin/servicos/status':
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -258,8 +271,26 @@ switch ($uri) {
     case '/funcionario/dashboard':
         include __DIR__ . '/public/views/funcionario/dashboard.php';
         break;
-    case '/funcionario/agendamentos':
-        include __DIR__ . '/public/views/funcionario/agendamentos.php';
+    case '/funcionario/agenda':
+        require_once __DIR__ . '/app/Controllers/AgendamentoController.php';
+        $controller = new AgendamentoController();
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // Processa o formulário de "Agendamento Rápido/Balcão"
+            $controller->salvar();
+        } else {
+            // ARQUITETURA: Agora a listagem da agenda passa pelo Controller
+            $controller->agendaFuncionario();
+        }
+        break;
+
+    case '/funcionario/agenda/status':
+        // Rota exclusiva para receber o POST dos botões de "Concluir" e "Cancelar"
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            require_once __DIR__ . '/app/Controllers/AgendamentoController.php';
+            $controller = new AgendamentoController();
+            $controller->alterarStatus();
+        }
         break;
     case '/funcionario/clientes':
         include __DIR__ . '/public/views/funcionario/clientes.php';
@@ -300,6 +331,19 @@ switch ($uri) {
         include __DIR__ . '/public/views/funcionario/disponibilidade.php';
         break;
 
+    case '/api/horarios-livres':
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            require_once __DIR__ . '/app/Controllers/DisponibilidadeController.php';
+            $controller = new DisponibilidadeController();
+            $controller->buscarHorariosLivres();
+        }
+        break;
+
+    case '/api/profissionais-por-servico':
+        require_once __DIR__ . '/app/Controllers/FuncionarioController.php';
+        $controller = new FuncionarioController();
+        $controller->listarProfissionaisPorServicoApi();
+        break;
     case '/funcionario/disponibilidade/salvar':
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $controller = new DisponibilidadeController();
@@ -320,7 +364,7 @@ switch ($uri) {
             exit;
         }
         break;
-        
+
     case '/funcionario/disponibilidade/ativar':
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             require_once __DIR__ . '/app/Controllers/DisponibilidadeController.php';
@@ -340,21 +384,21 @@ switch ($uri) {
             header("Location: " . BASE_URL . "/funcionario/disponibilidade");
             exit;
         }
-        break; 
+        break;
 
     case '/funcionario/servicos/salvar':
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $funcionarioModel = new Funcionario();
             $dadosFunc = $funcionarioModel->buscarPorCodUsuario($_SESSION['usuario_id']);
-            $servicosSelecionados = $_POST['servicos'] ?? []; 
-            
+            $servicosSelecionados = $_POST['servicos'] ?? [];
+
             $funcionarioModel->atualizarServicos($dadosFunc['id_funcionario'], $servicosSelecionados);
-            
+
             header("Location: " . BASE_URL . "/funcionario/servicos");
             exit;
         }
         break;
-    
+
     // ------------------------------------------
     // ROTAS DE SETUP DE FUNCIONÁRIO (VIA E-MAIL)
     // ------------------------------------------
@@ -367,7 +411,7 @@ switch ($uri) {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $controller = new FuncionarioController();
             $controller->finalizarSetupSenha();
-        } else {    
+        } else {
             header("Location: " . BASE_URL . "/login");
             exit;
         }

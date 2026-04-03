@@ -77,5 +77,55 @@ class ClienteController {
         header('Location: ' . BASE_URL . '/funcionario/clientes');
         exit;
     }
+
+    public function home() {
+        // 1. Verificação de sessão
+        if (session_status() === PHP_SESSION_NONE) { session_start(); }
+        if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_tipo'] !== 'comum') {
+            header('Location: ' . BASE_URL . '/login');
+            exit;
+        }
+
+        // 2. Transforma o ID do Usuário em ID do Cliente
+        $cliente = $this->clienteModel->buscarPorCodUsuario($_SESSION['usuario_id']);
+
+        // 3. Busca o próximo agendamento (se existir)
+        require_once __DIR__ . '/../Models/Agendamento.php';
+        $agendamentoModel = new Agendamento();
+        $proximoAgendamento = $agendamentoModel->buscarProximoAgendamentoCliente($cliente['id_cliente']);
+
+        if ($proximoAgendamento) {
+            // Formata a data para ficar bonita na tela (ex: "24 de Março às 10:30")
+            $dataObj = new DateTime($proximoAgendamento['data_agendamento']);
+            $meses = ['', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+            $mesNome = $meses[(int)$dataObj->format('m')];
+            
+            $horaFormatada = substr($proximoAgendamento['hora_inicio'], 0, 5);
+            $proximoAgendamento['data_display'] = $dataObj->format('d') . " de " . $mesNome . " às " . $horaFormatada;
+        }
+
+        // 4. Busca os Serviços Ativos para listar como "Populares"
+        require_once __DIR__ . '/../Models/Servico.php';
+        $servicoModel = new Servico();
+        $todosServicos = $servicoModel->listarPorStatus('ativo');
+        
+        // Pega apenas os 3 primeiros para não poluir a página inicial
+        $servicosPopulares = array_slice($todosServicos, 0, 3);
+
+        // 5. Saudação Dinâmica baseada na hora atual
+        $horaAtual = (int) date('H');
+        if ($horaAtual >= 5 && $horaAtual < 12) {
+            $saudacao = "Bom dia,";
+        } elseif ($horaAtual >= 12 && $horaAtual < 18) {
+            $saudacao = "Boa tarde,";
+        } else {
+            $saudacao = "Boa noite,";
+        }
+
+        $clienteNome = $_SESSION['usuario_nome'];
+
+        // 6. Envia tudo para a View
+        require_once __DIR__ . '/../../public/views/cliente/main.php';
+    }
 }
 ?>

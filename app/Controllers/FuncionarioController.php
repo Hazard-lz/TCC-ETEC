@@ -188,5 +188,66 @@ class FuncionarioController {
         header('Location: ' . BASE_URL . '/admin/funcionarios');
         exit;
     }
+
+    public function listarProfissionaisPorServicoApi() {
+        header('Content-Type: application/json');
+        $id_servico = $_GET['id_servico'] ?? '';
+
+        if (empty($id_servico)) {
+            echo json_encode(['sucesso' => false, 'mensagem' => 'Serviço não informado.']);
+            exit;
+        }
+
+        $profissionais = $this->funcionarioModel->buscarPorServico($id_servico);
+        echo json_encode(['sucesso' => true, 'profissionais' => $profissionais]);
+        exit;
+    }
+
+    public function dashboard() {
+        if (session_status() === PHP_SESSION_NONE) { session_start(); }
+        
+        $id_usuario = $_SESSION['usuario_id'];
+        $funcionario = $this->funcionarioModel->buscarPorCodUsuario($id_usuario);
+        
+        if (!$funcionario) {
+            $_SESSION['flash_erro'] = "Perfil de funcionário não encontrado.";
+            header('Location: ' . BASE_URL . '/login');
+            exit;
+        }
+
+        require_once __DIR__ . '/../Models/Agendamento.php';
+        require_once __DIR__ . '/../Models/Cliente.php';
+        
+        $agendamentoModel = new Agendamento();
+        $clienteModel = new Cliente();
+
+        $idFuncionario = $funcionario['id_funcionario'];
+
+        // 1. Busca as Métricas para os Cards (SRP - Controllers delegam as queries)
+        $totalAgendamentosHoje = $agendamentoModel->contarAgendamentosHoje($idFuncionario);
+        $faturamentoMes = $agendamentoModel->calcularFaturamentoMes($idFuncionario);
+        
+        // Conta todos os clientes (Podes refatorar para contar apenas clientes únicos do funcionário depois)
+        $totalClientes = count($clienteModel->listarTodos()); 
+
+        // 2. Busca a lista de próximos agendamentos
+        $proximosAgendamentos = $agendamentoModel->listarProximosAgendamentosResumo($idFuncionario, 5);
+
+        // Formatação do Faturamento para BRL
+        $faturamentoFormatado = number_format($faturamentoMes, 2, ',', '.');
+
+        // Saudação baseada no tempo
+        date_default_timezone_set('America/Sao_Paulo');
+        $horaAtual = (int) date('H');
+        if ($horaAtual >= 5 && $horaAtual < 12) {
+            $saudacao = "Bom dia";
+        } elseif ($horaAtual >= 12 && $horaAtual < 18) {
+            $saudacao = "Boa tarde";
+        } else {
+            $saudacao = "Boa noite";
+        }
+
+        require_once __DIR__ . '/../../public/views/funcionario/dashboard.php';
+    }
 }
 ?>

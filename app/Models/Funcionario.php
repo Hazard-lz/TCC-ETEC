@@ -82,6 +82,19 @@ class Funcionario extends BaseModel {
         return $this->executarQuery($sql, $parametros, 'coluna');
     }
 
+    public function buscarPorServico($id_servico) {
+        $sql = "SELECT f.id_funcionario, f.especialidade, u.nome
+                FROM funcionarios f
+                INNER JOIN usuarios u ON f.cod_usuario = u.id_usuario
+                INNER JOIN funcionario_servicos fs ON f.id_funcionario = fs.cod_funcionario
+                WHERE u.status = 'ativo' 
+                  AND fs.status = 'ativo' 
+                  AND fs.cod_servico = :id_servico
+                ORDER BY u.nome ASC";
+                
+        return $this->executarQuery($sql, [':id_servico' => $id_servico], 'todos');
+    }
+
 // UPDATE
     public function atualizar($id_funcionario, $especialidade, $salario) {
         $especialidade = !empty(trim($especialidade)) ? trim($especialidade) : null;

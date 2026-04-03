@@ -8,10 +8,9 @@
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
     display: flex;
     flex-direction: column;
-    overflow: hidden; /* Esconde o que vazar das bordas arredondadas */
+    overflow: hidden;
 }
 
-/* Cabeçalho do Calendário (Controles) */
 .calendar-toolbar {
     padding: 1.5rem;
     display: flex;
@@ -41,24 +40,23 @@
 }
 
 /* =========================================
-   A GRADE DO CALENDÁRIO
+   A GRADE DO CALENDÁRIO (AGORA COM 7 DIAS)
    ========================================= */
 .calendar-scroll-area {
     width: 100%;
-    overflow-x: auto; /* Permite rolar para os lados no celular */
+    overflow-x: auto;
     -webkit-overflow-scrolling: touch;
 }
 
 .calendar-grid {
     display: grid;
-    /* 1 coluna para os horários (60px) + 6 colunas para os dias (Seg a Sab) */
-    grid-template-columns: 60px repeat(6, minmax(140px, 1fr));
-    min-width: 900px; /* Força a tabela a não esmagar no mobile */
+    /* ARQUITETURA: 1 coluna para horas (60px) + 7 colunas para os dias (Dom a Sab) */
+    grid-template-columns: 60px repeat(7, minmax(130px, 1fr));
+    min-width: 1000px; 
 }
 
-/* Linha com os nomes dos dias (Segunda, Terça...) */
 .calendar-days-header {
-    display: contents; /* Ignora a div e aplica o grid aos filhos */
+    display: contents; 
 }
 
 .day-header {
@@ -88,45 +86,35 @@
     margin-top: 5px;
 }
 
-/* Corpo do Calendário */
 .calendar-body {
     display: contents;
 }
 
-/* Coluna lateral de Horários (09:00, 10:00...) */
 .time-column {
     border-right: 1px solid var(--border-color);
     background: #fcfcfc;
 }
 
 .time-slot-label {
-    height: 60px; /* Cada hora tem 60px de altura */
+    height: 60px;
     text-align: right;
     padding-right: 0.5rem;
     font-size: 0.75rem;
     color: var(--text-muted);
     border-bottom: 1px solid var(--border-color);
-    /* Desloca o texto um pouco pra cima para alinhar com a linha */
     transform: translateY(-50%); 
 }
 
-/* Colunas verticais dos Dias (Onde os eventos entram) */
 .day-column {
     border-right: 1px solid var(--border-color);
-    position: relative; /* CRUCIAL: Permite posicionar os eventos dentro de forma absoluta */
-    /* 10 horas de trabalho (09h às 18h) * 60px por hora = 600px de altura total */
+    position: relative; 
     height: 600px; 
-    
-    /* Desenha as linhas horizontais de fundo a cada 60px */
     background-image: linear-gradient(to bottom, var(--border-color) 1px, transparent 1px);
     background-size: 100% 60px;
 }
 
-/* =========================================
-   OS EVENTOS (BLOCOS COLORIDOS)
-   ========================================= */
 .event-block {
-    position: absolute; /* Posiciona flutuando dentro da coluna do dia */
+    position: absolute; 
     left: 4px;
     right: 4px;
     border-radius: 6px;
@@ -158,84 +146,56 @@
     opacity: 0.9;
 }
 
-/* Cores baseadas no Status do Agendamento */
 .event-marcado { background: linear-gradient(135deg, #a78bfa, var(--color-purple)); }
 .event-concluido { background: linear-gradient(135deg, #2ecc71, #27ae60); }
 .event-pendente { background: linear-gradient(135deg, #f45b69, #e74c3c); }
 
-/* =========================================
-   RESPONSIVIDADE DO CALENDÁRIO (CELULAR)
-   ========================================= */
-
-/* Habilita o "deslizamento magnético" (Snap) na área de rolagem */
 .calendar-scroll-area {
     scroll-snap-type: x mandatory; 
-    scroll-padding-left: 60px; /* Desconta o espaço da coluna de horários */
+    scroll-padding-left: 60px;
 }
 
-/* Faz cada dia "puxar" a tela para si quando o usuário parar de rolar */
 .day-column, .day-header {
     scroll-snap-align: start;
 }
 
 @media (max-width: 768px) {
-    /* Empilha os botões do cabeçalho */
     .calendar-toolbar {
         flex-direction: column;
         gap: 1rem;
-        align-items: stretch; /* Faz os itens esticarem */
+        align-items: stretch; 
     }
-
     .calendar-nav {
         justify-content: space-between;
     }
-
-    /* O botão ocupa a largura toda no celular */
     .calendar-toolbar .btn-primary {
         width: 100% !important;
         justify-content: center;
     }
-
-    /* Aumenta a largura mínima da grade para garantir que no celular 
-       você veja apenas 1 ou 2 dias por vez, melhorando a leitura */
     .calendar-grid {
-        min-width: 1200px; 
+        min-width: 1300px; /* Aumentado para acomodar os 7 dias confortavelmente no telemóvel */
     }
 }
 
-/* 
-   BLOCO DE HORÁRIO BLOQUEADO 
-    */
 .event-bloqueado { 
-    /* Fundo listrado cinza para indicar que está indisponível */
-    background: repeating-linear-gradient(
-        45deg,
-        #f1f5f9,
-        #f1f5f9 10px,
-        #e2e8f0 10px,
-        #e2e8f0 20px
-    );
+    background: repeating-linear-gradient(45deg, #f1f5f9, #f1f5f9 10px, #e2e8f0 10px, #e2e8f0 20px);
     color: #475569;
     border: 1px solid #cbd5e1;
     box-shadow: none;
 }
-
 .event-bloqueado:hover {
-    transform: none; /* Não aumenta ao passar o mouse */
+    transform: none; 
     z-index: 5;
 }
-
 .event-bloqueado .event-title {
     color: #475569;
     font-weight: 600;
 }
 
-/* Ajuste no cabeçalho do calendário para caber 2 botões */
 .calendar-actions {
     display: flex;
     gap: 1rem;
 }
-
 @media (max-width: 768px) {
     .calendar-actions {
         flex-direction: column;
