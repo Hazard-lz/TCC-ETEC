@@ -201,4 +201,14 @@
         flex-direction: column;
         width: 100%;
     }
+
+    .time-column {
+    border-right: 1px solid var(--border-color);
+    background: #fcfcfc;
+    /* ADIÇÕES PARA MELHORAR O MOBILE */
+    position: sticky;
+    left: 0;
+    z-index: 30; /* Fica acima dos blocos coloridos quando rolar */
+    box-shadow: 2px 0 5px rgba(0,0,0,0.05); /* Sombra suave para separar dos dias */
+}
 }

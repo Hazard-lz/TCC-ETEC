@@ -50,6 +50,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
             </div>
             
             <div class="calendar-actions">
+                <div id="agendamentoError" class="error-message" style="display: none; color: #dc2626; background: #fee2e2; padding: 10px; border-radius: 6px; margin-top: 10px; font-size: 0.9rem;"></div>
                 <button onclick="window.location.href='<?= BASE_URL ?>/funcionario/disponibilidade'" class="btn-primary" style="width: auto; margin: 0; background: #718096; box-shadow: none;">Gerenciar Horário</button>
                 <button data-modal-target="#modalNovoAgendamento" class="btn-primary" style="width: auto; margin: 0;">+ Novo Agendamento</button>
             </div>

@@ -38,10 +38,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             }
 
-            if (errorMessage !== "") {
-                event.preventDefault();
-                alert(errorMessage); // Exibe um alerta simples, mas você pode usar uma div de erro como fizemos nas outras telas
-            }
+            const errorDiv = document.getElementById("agendamentoError");
+
+if (errorMessage !== "") {
+    event.preventDefault();
+    errorDiv.textContent = errorMessage;
+    errorDiv.style.display = "block";
+} else {
+    errorDiv.style.display = "none";
+}
 
             // ... código anterior (validação do formAgendamento) ...
 
