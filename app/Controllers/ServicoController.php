@@ -115,4 +115,3 @@ class ServicoController {
         echo json_encode($resultado);
     }
 }
-?>

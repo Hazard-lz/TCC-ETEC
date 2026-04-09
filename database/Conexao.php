@@ -16,7 +16,10 @@ class Conexao {
 
         // Verifica se o arquivo .env existe antes de tentar ler, evitando que o sistema quebre
         if (!file_exists($caminhoEnv)) {
-            die("Erro: Arquivo .env não encontrado na raiz do projeto.");
+            error_log("FATAL: Arquivo .env não encontrado em: " . $caminhoEnv);
+            http_response_code(500);
+            include __DIR__ . '/../public/views/erros/500.php';
+            exit;
         }
 
         // Lê o arquivo inteiro e transforma em um array. As "flags"/sinalizações ignoram quebras de linha e linhas em branco
@@ -66,10 +69,12 @@ class Conexao {
                 self::$instancia->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
                 
             } catch (PDOException $e) {
-                // Se houver falha na conexão (ex: servidor desligado ou senha errada), interrompe a execução e mostra o erro sem vazar dados do código
+                // Se houver falha na conexão (ex: servidor desligado ou senha errada), grava o erro real no log e exibe a tela de erro
                 error_log("Erro de conexão: " . $e->getMessage());
 
-                die("Erro - Falha ao conectar com o banco");
+                http_response_code(500);
+                include __DIR__ . '/../public/views/erros/500.php';
+                exit;
             }
         }
         
@@ -77,4 +82,3 @@ class Conexao {
         return self::$instancia;
     }
 }
-?>

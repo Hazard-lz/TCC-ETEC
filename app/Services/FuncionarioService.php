@@ -20,7 +20,7 @@ class FuncionarioService extends BaseService {
 
     public function registrarFuncionario($nome, $email, $telefone, $especialidade, $salario, $tipo = 'comum') {
         try {
-            $this->conn->beginTransaction();
+            if (!$this->conn->inTransaction()) { $this->conn->beginTransaction(); }
 
             // 1. O UsuarioService cria o login e manda o e-mail
             $resultadoUsuario = $this->usuarioService->registrarUsuarioDaEquipe($nome, $email, $telefone, $tipo);
@@ -55,7 +55,7 @@ class FuncionarioService extends BaseService {
         }
 
         try {
-            $this->conn->beginTransaction();
+            if (!$this->conn->inTransaction()) { $this->conn->beginTransaction(); }
 
             $resultadoUsuario = $this->usuarioService->atualizarUsuario($id_usuario, $nome, $telefone);
             
@@ -118,4 +118,3 @@ class FuncionarioService extends BaseService {
         }
     }
 }
-?>

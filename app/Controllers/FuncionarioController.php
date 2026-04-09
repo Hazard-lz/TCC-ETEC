@@ -250,4 +250,3 @@ class FuncionarioController {
         require_once __DIR__ . '/../../public/views/funcionario/dashboard.php';
     }
 }
-?>

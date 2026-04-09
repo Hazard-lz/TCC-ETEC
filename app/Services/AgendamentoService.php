@@ -25,10 +25,15 @@ class AgendamentoService extends BaseService
     public function realizarAgendamento($idCliente, $idFuncionario, $idServico, $data, $horaInicio, $idFuncionarioCriador = null)
     {
         try {
-            // 1. Inicia Transação (Garante que agendamento e itens_agendamento sejam salvos juntos)
-            $this->conn->beginTransaction();
+            // 1. Validação de data: impede agendamentos no passado
+            if ($data < date('Y-m-d')) {
+                return ['sucesso' => false, 'mensagem' => 'Não é possível agendar em datas passadas.'];
+            }
 
-            // 2. Busca do serviço: usa os nomes reais do schema (preco e duracao)
+            // 2. Inicia Transação (Garante que agendamento e itens_agendamento sejam salvos juntos)
+            if (!$this->conn->inTransaction()) { $this->conn->beginTransaction(); }
+
+            // 3. Busca do serviço: usa os nomes reais do schema (preco e duracao)
             $servico = $this->servicoModel->buscarPorId($idServico);
             if (!$servico) {
                 throw new Exception("O serviço selecionado não existe ou está inativo.");
@@ -117,6 +122,12 @@ class AgendamentoService extends BaseService
 
         if (!in_array($novoStatus, $statusValidos)) {
             return ['sucesso' => false, 'mensagem' => 'Status inválido.'];
+        }
+
+        // Validação de transição de estado: status finalizados não podem regredir
+        $agendamento = $this->agendamentoModel->buscarPorId($idAgendamento);
+        if ($agendamento && in_array($agendamento['status'], ['concluido', 'cancelado']) && $novoStatus !== $agendamento['status']) {
+            return ['sucesso' => false, 'mensagem' => 'Não é possível alterar um agendamento que já foi ' . $agendamento['status'] . '.'];
         }
 
         $atualizou = $this->agendamentoModel->atualizarStatus($idAgendamento, $novoStatus);

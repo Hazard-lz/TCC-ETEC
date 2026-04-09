@@ -41,7 +41,16 @@ class AuthController
             if ($usuario['tipo'] === 'admin' || $isFuncionario) {
 
                 $_SESSION['is_funcionario'] = true;
-                $_SESSION['ultimo_acesso'] = time();
+
+                // Cookie persiste por 1 semana (7 dias) para a equipe não precisar logar todo dia
+                setcookie(session_name(), session_id(), [
+                    'expires' => time() + (60 * 60 * 24 * 7),
+                    'path' => '/',
+                    'domain' => '',
+                    'secure' => false,
+                    'httponly' => true,
+                    'samesite' => 'Strict'
+                ]);
 
                 header("Location: " . BASE_URL . "/funcionario/dashboard");
             } else {
@@ -63,18 +72,16 @@ class AuthController
             // ARQUITETURA UX: FLUXO AUTOMÁTICO DE VERIFICAÇÃO DE E-MAIL
             // =======================================================================
             if (isset($resultado['requer_verificacao']) && $resultado['requer_verificacao'] === true) {
-                if (session_status() === PHP_SESSION_NONE) { session_start(); }
-                
                 $emailNaoVerificado = $resultado['email'];
                 $_SESSION['email_verificacao'] = $emailNaoVerificado;
-                
+
                 // Chamamos a função inteligente AQUI, protegida pelo POST
                 // Ela verifica se já existe código, se não cria outro, e manda o e-mail.
                 $resultadoReenvio = $this->usuarioService->reenviarCodigoVerificacao($emailNaoVerificado);
-                
+
                 // Guarda a mensagem de sucesso ("Reenviamos seu código..." ou "Um novo código...")
                 $_SESSION['sucesso_verificacao'] = $resultadoReenvio['mensagem'];
-                
+
                 // Joga o usuário direto na tela do código!
                 header("Location: " . BASE_URL . "/verificar-email");
                 exit();
@@ -151,10 +158,6 @@ class AuthController
 
     public function trocarSenha()
     {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-
         // Medida de segurança: Só logados podem acessar essa rota
         if (!isset($_SESSION['usuario_id'])) {
             header("Location: " . BASE_URL . "/login");
@@ -188,11 +191,6 @@ class AuthController
 
     public function esqueciSenha()
     {
-        // 1. INICIA A SESSÃO PARA CONSEGUIR SALVAR O E-MAIL
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-
         $email = trim($_POST['email'] ?? '');
 
         if (empty($email)) {
@@ -211,11 +209,6 @@ class AuthController
 
     public function redefinirSenha()
     {
-        // 1. INICIA A SESSÃO PARA CONSEGUIR LER O E-MAIL
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-
         $email = $_SESSION['email_recuperacao_pendente'] ?? '';
         $codigo = trim($_POST['codigo'] ?? '');
         $novaSenha = trim($_POST['nova_senha'] ?? '');
@@ -249,8 +242,6 @@ class AuthController
 
     public function reenviarCodigo()
     {
-        if (session_status() === PHP_SESSION_NONE) { session_start(); }
-        
         $email = $_SESSION['email_verificacao'] ?? '';
 
         if (empty($email)) {
@@ -266,15 +257,13 @@ class AuthController
         } else {
             $_SESSION['erro_verificacao'] = $resultado['mensagem'];
         }
-        
+
         header("Location: " . BASE_URL . "/verificar-email");
         exit;
     }
 
     public function reenviarCodigoRecuperacao()
     {
-        if (session_status() === PHP_SESSION_NONE) { session_start(); }
-        
         // Pega o e-mail de quem pediu a recuperação lá na primeira tela
         $email = $_SESSION['email_recuperacao_pendente'] ?? '';
 
@@ -289,7 +278,7 @@ class AuthController
 
         // Avisa a tela que deu certo
         $_SESSION['sucesso_recuperacao'] = "Um novo código de recuperação foi enviado para o seu e-mail.";
-        
+
         header("Location: " . BASE_URL . "/redefinir-senha");
         exit;
     }

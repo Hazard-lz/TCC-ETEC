@@ -157,4 +157,3 @@ class Disponibilidade extends BaseModel {
         ]);
     }
 }
-?>

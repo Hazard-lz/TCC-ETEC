@@ -150,7 +150,7 @@ class UsuarioService extends BaseService {
         
         try {
             // Utilizando transação para garantir que ambas as operações sejam feitas com segurança
-            $this->conn->beginTransaction();
+            if (!$this->conn->inTransaction()) { $this->conn->beginTransaction(); }
 
             $this->usuarioModel->atualizarSenha($usuario['id_usuario'], $senhaHash);
             $this->usuarioModel->confirmarEmail($usuario['id_usuario']);
@@ -377,4 +377,3 @@ class UsuarioService extends BaseService {
         return $this->erro('Falha técnica ao tentar enviar o e-mail.');
     }
 }
-?>

@@ -192,12 +192,12 @@ class Agendamento extends BaseModel {
                 ORDER BY a.data_agendamento ASC, ia.hora_inicio ASC
                 LIMIT :limite";
         
-        // Como o executarQuery padrao usa prepare e bindValue como string,
-        // para o LIMIT funcionar perfeitamente precisamos garantir que é inteiro no PDO.
-        // Mas podemos usar a tua função padrao e passar o valor embutido (apenas neste caso pois $limite é fixo)
-        $sqlAlterada = str_replace(':limite', (int)$limite, $sql);
-                
-        return $this->executarQuery($sqlAlterada, [':id_funcionario' => $idFuncionario], 'todos');
+        // O (int) garante que o BaseModel faz o bindValue com PDO::PARAM_INT,
+        // que é obrigatório para o LIMIT funcionar em queries preparadas.
+        return $this->executarQuery($sql, [
+            ':id_funcionario' => $idFuncionario,
+            ':limite' => (int)$limite
+        ], 'todos');
     }
 
     // =========================================================================
@@ -253,4 +253,3 @@ class Agendamento extends BaseModel {
         ], 'unico');
     }
 }
-?>

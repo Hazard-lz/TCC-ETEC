@@ -154,4 +154,3 @@ class Funcionario extends BaseModel {
         }
     }
 }
-?>

@@ -18,15 +18,13 @@ class AgendamentoController {
 
     public function carregarTelaCliente() {
         // Verifica se o usuário comum está logado
-        if (session_status() === PHP_SESSION_NONE) { session_start(); }
         if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_tipo'] !== 'comum') {
             $_SESSION['flash_erro'] = "Faça login para agendar um horário.";
             header('Location: ' . BASE_URL . '/login');
             exit;
         }
 
-        // Instancia as Models necessárias
-        require_once __DIR__ . '/../Models/Servico.php';
+        // Busca os dados ativos no banco
         $servicoModel = new Servico();
         
         // Busca os dados ativos no banco
@@ -164,8 +162,7 @@ class AgendamentoController {
     }
 
     public function historicoCliente() {
-        // 1. Verificação de Segurança (Middleware de Sessão)
-        if (session_status() === PHP_SESSION_NONE) { session_start(); }
+        // 1. Verificação de Segurança
         if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_tipo'] !== 'comum') {
             header('Location: ' . BASE_URL . '/login');
             exit;
@@ -179,8 +176,7 @@ class AgendamentoController {
             exit;
         }
 
-        // 3. Instancia o Model e busca os dados brutos
-        require_once __DIR__ . '/../Models/Agendamento.php';
+        // 3. Busca os dados brutos
         $agendamentoModel = new Agendamento();
         $agendamentos = $agendamentoModel->listarPorCliente($cliente['id_cliente']);
 
@@ -212,8 +208,6 @@ class AgendamentoController {
     }
 
     public function agendaFuncionario() {
-        if (session_status() === PHP_SESSION_NONE) { session_start(); }
-
         $id_usuario = $_SESSION['usuario_id'];
         $funcionario = $this->funcionarioModel->buscarPorCodUsuario($id_usuario);
         
@@ -237,11 +231,9 @@ class AgendamentoController {
         $domingoBase = clone $dataBase;
         $domingoBase->modify("-{$diaSemana} days");
 
-        $meses = ['', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-        $mesNome = $meses[(int)$domingoBase->format('m')];
+        $mesNome = Helpers::MESES[(int)$domingoBase->format('m')];
         $ano = $domingoBase->format('Y');
 
-        require_once __DIR__ . '/../Models/Agendamento.php';
         $agendamentoModel = new Agendamento();
 
         // 2. ARQUITETURA: Cria o array de 7 dias perfeitinho para a View não se partir
@@ -262,7 +254,6 @@ class AgendamentoController {
         }
 
         // 3. Dados para o Modal
-        require_once __DIR__ . '/../Models/Servico.php';
         $servicoModel = new Servico();
         $servicos = $servicoModel->listarPorStatus('ativo');
 
@@ -272,4 +263,3 @@ class AgendamentoController {
         require_once __DIR__ . '/../../public/views/funcionario/agendamentos.php';
     }
 }
-?>

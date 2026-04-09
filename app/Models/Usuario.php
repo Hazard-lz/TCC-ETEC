@@ -146,4 +146,3 @@ class Usuario extends BaseModel {
         ]);
     }
 }
-?>
