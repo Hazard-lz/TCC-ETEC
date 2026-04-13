@@ -39,6 +39,7 @@ $servicosPopulares = $servicosPopulares ?? [];
 
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/root.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/app-cliente.css">
+    <?php require_once __DIR__ . '/../partials/onesignal.php'; ?>
 </head>
 
 <body>

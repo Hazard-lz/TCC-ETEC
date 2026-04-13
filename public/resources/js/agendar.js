@@ -26,7 +26,7 @@ function voltarPasso(passoAnterior) {
 }
 
 /* --- LÓGICA DO PASSO 1: SERVIÇOS --- */
-function selecionarServico(id, nome) {
+function selecionarServico(id, nome, elemento) {
   // Salva nos inputs ocultos
   document.getElementById("servico_id").value = id;
   document.getElementById("servico_nome").value = nome;
@@ -35,8 +35,8 @@ function selecionarServico(id, nome) {
   const cards = document.querySelectorAll("#step-1 .selectable-card");
   cards.forEach((card) => card.classList.remove("selected"));
 
-  // Pinta o cartão clicado
-  event.currentTarget.classList.add("selected");
+  // Pinta o cartão clicado (substitui o event.currentTarget problemático)
+  elemento.classList.add("selected");
 
   // Libera o botão "Continuar"
   document.getElementById("btn-next-1").removeAttribute("disabled");
@@ -69,7 +69,7 @@ async function buscarProfissionais(idServico) {
         div.style = "padding: 1rem; margin-bottom: 0.8rem; cursor: pointer;";
 
         div.onclick = function () {
-          selecionarProfissional(prof.id_funcionario, prof.nome);
+          selecionarProfissional(prof.id_funcionario, prof.nome, this);
         };
 
         div.innerHTML = `
@@ -81,13 +81,26 @@ async function buscarProfissionais(idServico) {
     } else {
       container.innerHTML =
         '<p style="color: #ef4444; text-align: center;">Não há profissionais para este serviço.</p>';
-      // Bloqueia o botão se a API retornar vazio
+      
+      // UX IMPORTANTE: Avisa o utilizador do motivo em vez de bloquear silenciosamente
+      alert("Nenhum profissional está configurado para realizar este serviço no momento. Por favor, escolha outro.");
+      
+      // Remove a seleção visual do serviço inválido
+      const cards = document.querySelectorAll("#step-1 .selectable-card");
+      cards.forEach((card) => card.classList.remove("selected"));
+      document.getElementById("servico_id").value = "";
+      document.getElementById("servico_nome").value = "";
+
+      // Bloqueia o botão
       document.getElementById("btn-next-1").disabled = true;
     }
   } catch (error) {
     console.error("Erro na API:", error);
     container.innerHTML =
       '<p style="color: #ef4444; text-align: center;">Erro ao carregar profissionais.</p>';
+    
+    alert("Falha ao contactar o servidor. Tente novamente.");
+    document.getElementById("btn-next-1").disabled = true;
   }
 }
 
@@ -97,14 +110,15 @@ document.getElementById("btn-next-1").addEventListener("click", () => {
 });
 
 /* --- LÓGICA DO PASSO 2: PROFISSIONAIS --- */
-function selecionarProfissional(id, nome) {
+function selecionarProfissional(id, nome, elemento) {
   document.getElementById("funcionario_id").value = id;
   document.getElementById("funcionario_nome").value = nome;
 
   const cards = document.querySelectorAll("#step-2 .selectable-card");
   cards.forEach((card) => card.classList.remove("selected"));
 
-  event.currentTarget.classList.add("selected");
+  // Substitui event.currentTarget para evitar erros "event is not defined"
+  elemento.classList.add("selected");
   document.getElementById("btn-next-2").removeAttribute("disabled");
 }
 

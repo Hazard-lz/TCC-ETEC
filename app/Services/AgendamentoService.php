@@ -3,6 +3,7 @@ require_once __DIR__ . '/BaseService.php';
 require_once __DIR__ . '/../Models/Agendamento.php';
 require_once __DIR__ . '/../Models/Servico.php';
 require_once __DIR__ . '/../../database/Conexao.php';
+require_once __DIR__ . '/OneSignalService.php';
 
 class AgendamentoService extends BaseService
 {
@@ -133,6 +134,25 @@ class AgendamentoService extends BaseService
         $atualizou = $this->agendamentoModel->atualizarStatus($idAgendamento, $novoStatus);
 
         if ($atualizou) {
+            // ==========================================
+            // INTEGRAÇÃO ONESIGNAL (Cenários 1 e 3)
+            // ==========================================
+            try {
+                if ($novoStatus === 'marcado' || $novoStatus === 'cancelado') {
+                    $agendamentoAtualizado = $this->agendamentoModel->buscarPorId($idAgendamento);
+                    if ($agendamentoAtualizado && !empty($agendamentoAtualizado['cliente_cod_usuario'])) {
+                        $oneSignal = new OneSignalService();
+                        $msg = ($novoStatus === 'marcado') 
+                            ? "Seu agendamento foi marcado!" 
+                            : "Seu agendamento foi cancelado, tente marcar novamente em outro horário.";
+                        
+                        $oneSignal->enviarNotificacao($agendamentoAtualizado['cliente_cod_usuario'], $msg, 'http://localhost/TCC-ETEC/historico');
+                    }
+                }
+            } catch (Exception $e) {
+                error_log("Aviso: Falha ao enviar notificação push: " . $e->getMessage());
+            }
+
             return ['sucesso' => true, 'mensagem' => 'Status do agendamento atualizado.'];
         }
 

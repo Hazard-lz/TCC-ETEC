@@ -222,16 +222,21 @@ class FuncionarioController {
         $clienteModel = new Cliente();
 
         $idFuncionario = $funcionario['id_funcionario'];
+        $isAdmin = ($_SESSION['usuario_tipo'] === 'admin');
 
-        // 1. Busca as Métricas para os Cards (SRP - Controllers delegam as queries)
-        $totalAgendamentosHoje = $agendamentoModel->contarAgendamentosHoje($idFuncionario);
-        $faturamentoMes = $agendamentoModel->calcularFaturamentoMes($idFuncionario);
+        // 1. Busca as Métricas para os Cards
+        // Se for admin, busca do salão todo. Se for funcionário, busca apenas os próprios.
+        if ($isAdmin) {
+            $totalAgendamentosHoje = $agendamentoModel->contarAgendamentosHojeGeral();
+            $faturamentoMes = $agendamentoModel->calcularFaturamentoMesGeral();
+            $proximosAgendamentos = $agendamentoModel->listarProximosAgendamentosResumoGeral(5);
+        } else {
+            $totalAgendamentosHoje = $agendamentoModel->contarAgendamentosHoje($idFuncionario);
+            $faturamentoMes = $agendamentoModel->calcularFaturamentoMes($idFuncionario);
+            $proximosAgendamentos = $agendamentoModel->listarProximosAgendamentosResumo($idFuncionario, 5);
+        }
         
-        // Conta todos os clientes (Podes refatorar para contar apenas clientes únicos do funcionário depois)
         $totalClientes = count($clienteModel->listarTodos()); 
-
-        // 2. Busca a lista de próximos agendamentos
-        $proximosAgendamentos = $agendamentoModel->listarProximosAgendamentosResumo($idFuncionario, 5);
 
         // Formatação do Faturamento para BRL
         $faturamentoFormatado = number_format($faturamentoMes, 2, ',', '.');

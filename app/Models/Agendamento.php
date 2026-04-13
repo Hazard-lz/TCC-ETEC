@@ -59,7 +59,8 @@ class Agendamento extends BaseModel {
                        u_cli.nome AS cliente_nome, 
                        u_func.nome AS funcionario_nome, 
                        ia.nome_servico_registrado AS nome_servico, 
-                       ia.hora_inicio, ia.hora_fim, ia.preco_cobrado
+                       ia.hora_inicio, ia.hora_fim, ia.preco_cobrado,
+                       c.cod_usuario AS cliente_cod_usuario
                 FROM agendamentos a
                 INNER JOIN clientes c ON a.cod_cliente = c.id_cliente
                 INNER JOIN usuarios u_cli ON c.cod_usuario = u_cli.id_usuario
@@ -201,6 +202,45 @@ class Agendamento extends BaseModel {
     }
 
     // =========================================================================
+    // METODOS GERAIS (Para Dashboard ADMIN)
+    // =========================================================================
+
+    public function contarAgendamentosHojeGeral() {
+        $sql = "SELECT COUNT(*) as total 
+                FROM agendamentos a
+                WHERE a.data_agendamento = CURDATE()
+                  AND a.status IN ('marcado', 'concluido')";
+        $resultado = $this->executarQuery($sql, [], 'unico');
+        return $resultado['total'] ?? 0;
+    }
+
+    public function calcularFaturamentoMesGeral() {
+        $sql = "SELECT SUM(ia.preco_cobrado) as total 
+                FROM agendamentos a
+                INNER JOIN itens_agendamento ia ON a.id_agendamento = ia.cod_agendamento
+                WHERE MONTH(a.data_agendamento) = MONTH(CURDATE())
+                  AND YEAR(a.data_agendamento) = YEAR(CURDATE())
+                  AND a.status = 'concluido'";
+        $resultado = $this->executarQuery($sql, [], 'unico');
+        return $resultado['total'] ?? 0.00;
+    }
+
+    public function listarProximosAgendamentosResumoGeral($limite = 5) {
+        $sql = "SELECT a.id_agendamento, a.data_agendamento, a.status, 
+                       ia.hora_inicio, ia.nome_servico_registrado AS nome_servico,
+                       u_cli.nome AS cliente_nome, u_cli.telefone AS cliente_telefone
+                FROM agendamentos a
+                INNER JOIN itens_agendamento ia ON a.id_agendamento = ia.cod_agendamento
+                INNER JOIN clientes c ON a.cod_cliente = c.id_cliente
+                INNER JOIN usuarios u_cli ON c.cod_usuario = u_cli.id_usuario
+                WHERE a.data_agendamento >= CURDATE()
+                  AND a.status IN ('pendente', 'marcado')
+                ORDER BY a.data_agendamento ASC, ia.hora_inicio ASC
+                LIMIT :limite";
+        return $this->executarQuery($sql, [':limite' => (int)$limite], 'todos');
+    }
+
+    // =========================================================================
     // 3. UPDATE
     // =========================================================================
 
@@ -251,5 +291,22 @@ class Agendamento extends BaseModel {
             ':cod_funcionario' => $id_funcionario,
             ':cod_servico' => $id_servico
         ], 'unico');
+    }
+
+    /**
+     * Busca agendamentos planejados exatamente para amanhã.
+     * Utilizado cronjob das notificações OneSignal 24h.
+     */
+    public function buscarAgendamentosAmanha() {
+        $sql = "SELECT a.id_agendamento, a.data_agendamento, a.status, 
+                       ia.nome_servico_registrado AS nome_servico, ia.hora_inicio,
+                       c.cod_usuario AS cliente_cod_usuario
+                FROM agendamentos a
+                INNER JOIN clientes c ON a.cod_cliente = c.id_cliente
+                INNER JOIN itens_agendamento ia ON a.id_agendamento = ia.cod_agendamento
+                WHERE a.data_agendamento = DATE_ADD(CURDATE(), INTERVAL 1 DAY)
+                  AND a.status IN ('pendente', 'marcado')";
+                  
+        return $this->executarQuery($sql, [], 'todos');
     }
 }

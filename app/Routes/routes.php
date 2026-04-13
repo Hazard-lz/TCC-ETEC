@@ -131,7 +131,7 @@ $router->get('/admin/funcionarios/reenviar-email', function () {
 // ROTAS DA EQUIPE (FUNCIONÁRIOS E ADMIN)
 // ===========================================================
 
-$router->view('/funcionario/dashboard', 'funcionario/dashboard');
+$router->get('/funcionario/dashboard', 'FuncionarioController@dashboard');
 
 $router->get('/funcionario/agenda', 'AgendamentoController@agendaFuncionario');
 $router->post('/funcionario/agenda', 'AgendamentoController@salvar');
