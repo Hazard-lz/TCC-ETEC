@@ -48,6 +48,7 @@ CREATE TABLE disponibilidade (
     id_disponibilidade INT AUTO_INCREMENT PRIMARY KEY,
     cod_funcionario INT NOT NULL,
     nome_grade VARCHAR(100) NOT NULL DEFAULT 'Horário Padrão',
+    antecedencia_horas INT DEFAULT 0,
     is_ativa TINYINT(1) NOT NULL DEFAULT 0,
     data_criacao TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (cod_funcionario) REFERENCES funcionarios(id_funcionario) ON DELETE CASCADE

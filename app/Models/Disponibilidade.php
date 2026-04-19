@@ -10,22 +10,23 @@ class Disponibilidade extends BaseModel {
     /**
      * Cria uma nova grade de horários para o funcionário.
      */
-    public function criarNovaGrade($cod_funcionario, $nome_grade) {
-        $sql = "INSERT INTO disponibilidade (cod_funcionario, nome_grade, is_ativa) 
-                VALUES (:cod_funcionario, :nome_grade, 0)";
+    public function criarNovaGrade($cod_funcionario, $nome_grade, $antecedencia_horas = 0) {
+        $sql = "INSERT INTO disponibilidade (cod_funcionario, nome_grade, antecedencia_horas, is_ativa) 
+                VALUES (:cod_funcionario, :nome_grade, :antecedencia, 0)";
                 
         return $this->executarQuery($sql, [
             ':cod_funcionario' => $cod_funcionario,
-            ':nome_grade' => $nome_grade
+            ':nome_grade' => $nome_grade,
+            ':antecedencia' => $antecedencia_horas
         ], 'id');
     }
 
     /**
-     * Atualiza apenas o nome de uma grade existente.
+     * Atualiza o nome e antecedência de uma grade existente.
      */
-    public function atualizarNomeGrade($id_disponibilidade, $nome_grade) {
-        $sql = "UPDATE disponibilidade SET nome_grade = :nome WHERE id_disponibilidade = :id";
-        return $this->executarQuery($sql, [':nome' => $nome_grade, ':id' => $id_disponibilidade]);
+    public function atualizarGrade($id_disponibilidade, $nome_grade, $antecedencia_horas = 0) {
+        $sql = "UPDATE disponibilidade SET nome_grade = :nome, antecedencia_horas = :antecedencia WHERE id_disponibilidade = :id";
+        return $this->executarQuery($sql, [':nome' => $nome_grade, ':antecedencia' => $antecedencia_horas, ':id' => $id_disponibilidade]);
     }
 
     /**
@@ -71,7 +72,7 @@ class Disponibilidade extends BaseModel {
      * Busca a grade que está a ditar as regras atualmente.
      */
     public function buscarGradeAtiva($cod_funcionario) {
-        $sql = "SELECT id_disponibilidade, nome_grade 
+        $sql = "SELECT id_disponibilidade, nome_grade, antecedencia_horas 
                 FROM disponibilidade 
                 WHERE cod_funcionario = :cod_funcionario AND is_ativa = 1";
                 

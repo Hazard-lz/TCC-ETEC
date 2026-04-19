@@ -1,4 +1,6 @@
 <?php
+date_default_timezone_set('America/Sao_Paulo');
+
 $qntd_dias = 30;
 // 30 dias em segundos
 $segundosLimite = 60 * 60 * 24 * $qntd_dias;

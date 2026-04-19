@@ -27,6 +27,12 @@ $router->get('/', function () {
 
 $router->view('/perfil', 'cliente/perfil');
 
+$router->post('/perfil/salvar/dados', 'ClienteController@salvarDadosPerfil');
+$router->get('/perfil/salvar/dados', function () {
+    header("Location: " . BASE_URL . "/perfil");
+    exit;
+});
+
 $router->get('/agendar', 'AgendamentoController@carregarTelaCliente');
 $router->post('/agendar', 'AgendamentoController@salvar');
 
@@ -152,6 +158,9 @@ $router->get('/cliente/alterar-status', function () {
     exit;
 });
 
+$router->get('/funcionario/perfil', 'FuncionarioController@editarPerfil');
+$router->post('/funcionario/perfil/salvar', 'FuncionarioController@salvarPerfil');
+
 $router->view('/funcionario/servicos', 'funcionario/servicos');
 
 
@@ -177,6 +186,8 @@ $router->get('/funcionario/disponibilidade/selecionar', function () {
     exit;
 });
 
+$router->post('/funcionario/disponibilidade/salvar', 'DisponibilidadeController@salvar');
+$router->post('/funcionario/disponibilidade/salvar_antecedencia', 'DisponibilidadeController@salvarAntecedencia');
 $router->post('/funcionario/disponibilidade/ativar', 'DisponibilidadeController@ativar');
 $router->get('/funcionario/disponibilidade/ativar', function () {
     header("Location: " . BASE_URL . "/funcionario/disponibilidade");
@@ -195,6 +206,8 @@ $router->post('/funcionario/servicos/salvar', function () {
     $servicosSelecionados = $_POST['servicos'] ?? [];
 
     $funcionarioModel->atualizarServicos($dadosFunc['id_funcionario'], $servicosSelecionados);
+
+    $_SESSION['flash_sucesso'] = "Especialidades salvas com sucesso!";
 
     header("Location: " . BASE_URL . "/funcionario/servicos");
     exit;

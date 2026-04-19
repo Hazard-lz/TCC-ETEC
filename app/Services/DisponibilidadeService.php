@@ -50,7 +50,7 @@ class DisponibilidadeService extends BaseService {
     // =========================================================================
     // ARQUITETURA: Orquestração de Grades (Criação/Atualização)
     // =========================================================================
-    public function salvarGrade($idFuncionario, $idDisponibilidade, $nomeGrade, $isAtiva, $diasConfigurados) {
+    public function salvarGrade($idFuncionario, $idDisponibilidade, $nomeGrade, $isAtiva, $diasConfigurados, $antecedenciaHoras = 0) {
         if (empty($idFuncionario)) { return $this->erro('ID do funcionário não informado.'); }
         if (empty($nomeGrade)) { return $this->erro('O nome da grade é obrigatório.'); }
         if (empty($diasConfigurados) || !is_array($diasConfigurados)) { return $this->erro('Nenhum dia configurado.'); }
@@ -75,13 +75,13 @@ class DisponibilidadeService extends BaseService {
 
         // 1. Se não houver ID, é uma grade nova. Criamos a "Capa".
         if (empty($idDisponibilidade)) {
-            $idDisponibilidade = $this->disponibilidadeModel->criarNovaGrade($idFuncionario, $nomeGrade);
+            $idDisponibilidade = $this->disponibilidadeModel->criarNovaGrade($idFuncionario, $nomeGrade, $antecedenciaHoras);
             if (!$idDisponibilidade) {
                 return $this->erro('Erro interno ao criar a nova grade.');
             }
         } else {
-            // Se já existe, apenas atualizamos o nome por precaução
-            $this->disponibilidadeModel->atualizarNomeGrade($idDisponibilidade, $nomeGrade);
+            // Se já existe, atualizamos o nome e antecedência da grade
+            $this->disponibilidadeModel->atualizarGrade($idDisponibilidade, $nomeGrade, $antecedenciaHoras);
         }
 
         // 2. Se o utilizador marcou a checkbox para ativar esta grade agora
@@ -170,7 +170,8 @@ class DisponibilidadeService extends BaseService {
             $agendamentosDoDia = [];
         }
 
-        $horariosLivres = $this->filtrarHorariosValidos($slotsPossiveis, $agendamentosDoDia, $dataDesejada, $duracaoServicoMinutos);
+        $antecedenciaMinima = isset($gradeAtiva['antecedencia_horas']) ? (int)$gradeAtiva['antecedencia_horas'] : 0;
+        $horariosLivres = $this->filtrarHorariosValidos($slotsPossiveis, $agendamentosDoDia, $dataDesejada, $duracaoServicoMinutos, $antecedenciaMinima);
 
         return array_values($horariosLivres);
     }
@@ -209,9 +210,12 @@ class DisponibilidadeService extends BaseService {
         return $slots;
     }
 
-    private function filtrarHorariosValidos($slots, $agendamentos, $dataDesejada, $duracaoServico) {
+    private function filtrarHorariosValidos($slots, $agendamentos, $dataDesejada, $duracaoServico, $antecedenciaHoras = 0) {
         $hoje = date('Y-m-d');
-        $horaAtual = date('H:i');
+        
+        // Aplica a antecedência configurada pelo funcionário (ex: só aceita reserva para daqui a 5 horas)
+        $horaAtual = date('H:i', strtotime("+{$antecedenciaHoras} hours"));
+        
         $isHoje = ($dataDesejada === $hoje);
         $horariosFiltrados = [];
 

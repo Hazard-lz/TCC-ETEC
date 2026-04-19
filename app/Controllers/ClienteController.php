@@ -72,6 +72,61 @@ class ClienteController {
         exit;
     }
 
+    public function salvarDadosPerfil() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: ' . BASE_URL . '/perfil');
+            exit;
+        }
+
+        if (!isset($_SESSION['usuario_id'])) {
+            header('Location: ' . BASE_URL . '/login');
+            exit;
+        }
+
+        $id_usuario = $_SESSION['usuario_id'];
+        $nome = trim($_POST['nome'] ?? '');
+        $telefone = trim($_POST['telefone'] ?? '');
+        $nascimento = $_POST['nascimento'] ?? null;
+
+        if (empty($nome) || empty($telefone)) {
+            $_SESSION['erro_perfil'] = "Nome e telefone são obrigatórios.";
+            header('Location: ' . BASE_URL . '/perfil');
+            exit;
+        }
+
+        $cliente = $this->clienteModel->buscarPorCodUsuario($id_usuario);
+        
+        if (!$cliente) {
+            $_SESSION['erro_perfil'] = "Perfil de cliente não encontrado.";
+            header('Location: ' . BASE_URL . '/perfil');
+            exit;
+        }
+
+        $id_cliente = $cliente['id_cliente'];
+        $observacoes = $cliente['observacoes'] ?? null;
+
+        $resultado = $this->clienteService->atualizarDadosCliente(
+            $id_usuario, 
+            $id_cliente, 
+            $nome, 
+            $telefone, 
+            $nascimento, 
+            $observacoes
+        );
+
+        if ($resultado['sucesso']) {
+            $_SESSION['sucesso_perfil'] = "Dados atualizados com sucesso!";
+            // Atualiza dados na sessão para refletir imediatamente na UI
+            $_SESSION['usuario_nome'] = $nome;
+            $_SESSION['usuario_telefone'] = $telefone;
+        } else {
+            $_SESSION['erro_perfil'] = $resultado['mensagem'] ?? "Erro ao atualizar dados.";
+        }
+
+        header('Location: ' . BASE_URL . '/perfil');
+        exit;
+    }
+
     public function home() {
         // 1. Verificação de sessão
         if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_tipo'] !== 'comum') {
