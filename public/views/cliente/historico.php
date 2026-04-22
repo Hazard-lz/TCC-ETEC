@@ -15,6 +15,7 @@ if (!isset($_SESSION['usuario_id'])) {
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/root.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/app-cliente.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/historico.css">
+    <?php require_once __DIR__ . '/../partials/onesignal.php'; ?>
 </head>
 <body>
 

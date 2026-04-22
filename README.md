@@ -101,6 +101,14 @@ DB_HOST=localhost
 DB_NAME=salao_db
 DB_USER=root
 DB_PASS=
+
+MAIL_HOST=smtp.dominio.com
+MAIL_USER=contato@seudominio.com.br
+MAIL_PASS=SuaSenha
+MAIL_PORT=587
+
+ONESIGNAL_APP_ID=seu_app_id_aqui
+ONESIGNAL_REST_API_KEY=sua_rest_api_key_aqui
 ```
 
 ---
@@ -109,7 +117,23 @@ DB_PASS=
 
 Com tudo configurado e o XAMPP rodando, abra o navegador e acesse:
 
-👉 http://localhost/web_salao
+👉 http://localhost/TCC-ETEC
+
+---
+
+### 7. Configuração de Notificações Push (OneSignal & Cron)
+
+O App Belezou possui alertas nativos gerenciados via OneSignal para avisar funcionários e clientes de marcações, bem como enviar lembretes 24h antes.
+
+> **Obs:** É obrigatório criar uma conta gratuita no [OneSignal](https://onesignal.com/) para obter as chaves de integração e configurá-las no seu arquivo `.env` para que todo o sistema funcione.
+
+1. **Posicionamento do Service Worker (Importante para testes locais!)**
+   Para rodar localmente no XAMPP, copie o arquivo `OneSignalSDKWorker.js` da sua pasta e cole-o **livre, direto na pasta htdocs** raiz (`C:\xampp\htdocs\OneSignalSDKWorker.js`).
+   
+2. **Lembretes de 24 horas (Cronjob)**
+   O arquivo `cron/notificar_24h_agendamentos.php` é feito para disparar notificações pontualmente 24 horas antes do agendamento.
+   - **Para testar no Windows:** Abra o **Agendador de Tarefas**, adicione um gatilho Diário, e na Ação aponte para executar seu PHP.
+   - Script de Ação Recomendado: `"C:\xampp\php\php.exe" -f "C:\xampp\htdocs\TCC-ETEC\cron\notificar_24h_agendamentos.php"`
 
 ---
 

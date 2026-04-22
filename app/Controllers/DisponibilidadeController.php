@@ -28,6 +28,7 @@ class DisponibilidadeController
             $idDisponibilidade = empty($_POST['id_disponibilidade']) ? null : $_POST['id_disponibilidade'];
             
             $nomeGrade = $_POST['nome_grade'] ?? 'Minha Grade';
+            $antecedenciaHoras = isset($_POST['antecedencia_horas']) ? (int)$_POST['antecedencia_horas'] : 0;
             $isAtiva = isset($_POST['is_ativa']) && $_POST['is_ativa'] == '1';
             
             $diasPost = $_POST['dias'] ?? []; 
@@ -46,7 +47,7 @@ class DisponibilidadeController
             }
 
             $resultado = $this->disponibilidadeService->salvarGrade(
-                $idFuncionario, $idDisponibilidade, $nomeGrade, $isAtiva, $diasConfigurados
+                $idFuncionario, $idDisponibilidade, $nomeGrade, $isAtiva, $diasConfigurados, $antecedenciaHoras
             );
 
             if ($resultado['sucesso']) {
@@ -86,6 +87,42 @@ class DisponibilidadeController
                 $_SESSION['msg_sucesso'] = $resultado['mensagem'];
             } else {
                 $_SESSION['msg_erro'] = $resultado['mensagem'];
+            }
+
+            header("Location: " . BASE_URL . "/funcionario/disponibilidade");
+            exit;
+        }
+    }
+
+    public function salvarAntecedencia()
+    {
+        if (session_status() === PHP_SESSION_NONE) { session_start(); }
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $idFuncionario = $_SESSION['usuario_id'];
+            $idDisponibilidade = $_POST['id_disponibilidade'] ?? '';
+            $antecedenciaHoras = isset($_POST['antecedencia_horas']) ? (int)$_POST['antecedencia_horas'] : 0;
+            
+            // To update just the antecedencia, we will reuse the service method but fetching the current data
+            // wait, DisponibilidadeModel already has atualizarGrade. We don't have a specific service method for just updating antecedencia,
+            // but we can call a new method on the model directly since it's a simple update.
+            require_once __DIR__ . '/../Models/Disponibilidade.php';
+            $dispModel = new Disponibilidade();
+            
+            // Security check
+            $todas = $dispModel->buscarGradesFuncionario($idFuncionario);
+            $grade = null;
+            foreach ($todas as $g) {
+                if ($g['id_disponibilidade'] == $idDisponibilidade) {
+                    $grade = $g; break;
+                }
+            }
+            
+            if ($grade) {
+                $dispModel->atualizarGrade($idDisponibilidade, $grade['nome_grade'], $antecedenciaHoras);
+                $_SESSION['msg_sucesso'] = "Antecedência mínima atualizada com sucesso.";
+            } else {
+                $_SESSION['msg_erro'] = "Grade não encontrada.";
             }
 
             header("Location: " . BASE_URL . "/funcionario/disponibilidade");
@@ -163,4 +200,3 @@ class DisponibilidadeController
         }
     }
 }
-?>

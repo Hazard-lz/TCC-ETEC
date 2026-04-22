@@ -13,4 +13,3 @@ abstract class BaseService {
         return ['sucesso' => false, 'mensagem' => $mensagem];
     }
 }
-?>

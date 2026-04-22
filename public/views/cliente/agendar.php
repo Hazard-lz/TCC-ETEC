@@ -20,6 +20,7 @@ if (!isset($_SESSION['usuario_id'])) {
     <script>
         const BASE_URL = '<?= BASE_URL ?>';
     </script>
+    <?php require_once __DIR__ . '/../partials/onesignal.php'; ?>
 </head>
 
 <body>
@@ -66,7 +67,7 @@ if (!isset($_SESSION['usuario_id'])) {
                         <div class="cards-container">
                             <?php if (!empty($servicos)): ?>
                                 <?php foreach ($servicos as $svc): ?>
-                                    <div class="base-card selectable-card" style="padding: 1rem; margin-bottom: 0.8rem;" onclick="selecionarServico('<?= $svc['id_servico'] ?>', '<?= htmlspecialchars($svc['nome_servico']) ?>')">
+                                    <div class="base-card selectable-card" style="padding: 1rem; margin-bottom: 0.8rem;" onclick="selecionarServico('<?= $svc['id_servico'] ?>', '<?= htmlspecialchars($svc['nome_servico']) ?>', this)">
                                         <h4 style="color: var(--text-main); font-size: 1.1rem; margin-bottom: 0.3rem;"><?= htmlspecialchars($svc['nome_servico']) ?></h4>
                                         <p style="color: var(--text-muted); font-size: 0.9rem;">Duração: <?= $svc['duracao'] ?> min | R$ <?= number_format($svc['preco'], 2, ',', '.') ?></p>
                                     </div>
@@ -145,7 +146,7 @@ if (!isset($_SESSION['usuario_id'])) {
         </div>
     </div>
 
-    <script src="<?= BASE_URL ?>/public/resources/js/agendar.js"></script>
+    <script src="<?= BASE_URL ?>/public/resources/js/agendar.js?v=<?= time() ?>"></script>
 </body>
 
 </html>

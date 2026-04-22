@@ -80,7 +80,7 @@
                                         <?php unset($_SESSION['erro_perfil']); ?>
                                     <?php endif; ?>
 
-                                    <form id="formDados" action="<?= BASE_URL ?>/cliente/atualizar" method="POST">
+                                    <form id="formDados" action="<?= BASE_URL ?>/perfil/salvar/dados" method="POST">
                                         <div class="form-group">
                                             <label for="nome">Nome Completo</label>
                                             <input type="text" id="nome" name="nome" class="form-control" value="<?= htmlspecialchars($clienteNome) ?>" required>

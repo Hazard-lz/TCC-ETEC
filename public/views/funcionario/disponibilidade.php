@@ -15,6 +15,7 @@ $isNovaGrade = ($idDisponibilidade === 'nova');
 
 $dadosDias = []; 
 $nomeGradeAtual = '';
+$antecedenciaHorasAtual = 0;
 $isGradeAtiva = false;
 
 // 3. Descobrir qual é a grade REALMENTE ativa para mostrar no painel global
@@ -45,6 +46,7 @@ if (!$isNovaGrade && !empty($todasGrades)) {
     foreach($todasGrades as $g) {
         if ($g['id_disponibilidade'] == $idDisponibilidade) {
             $nomeGradeAtual = $g['nome_grade'];
+            $antecedenciaHorasAtual = $g['antecedencia_horas'] ?? 0;
             $isGradeAtiva = ($g['is_ativa'] == 1);
             break;
         }
@@ -124,7 +126,7 @@ $mostrarBotaoEditar = (!$isNovaGrade && !empty($idDisponibilidade)) ? 'block' : 
     <div class="base-card" style="max-width: 1000px; padding: 2rem;">
         
         <div class="grade-header">
-            <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+            <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap; flex-grow: 1;">
                 <label style="font-weight: bold; color: var(--text-main);">Grade Visualizada:</label>
                 
                 <form action="<?= BASE_URL ?>/funcionario/disponibilidade/selecionar" method="POST" style="margin: 0; display: flex; gap: 15px;">
@@ -147,12 +149,23 @@ $mostrarBotaoEditar = (!$isNovaGrade && !empty($idDisponibilidade)) ? 'block' : 
                 </form>
             </div>
 
-            <?php if(!empty($idDisponibilidade) && !$isGradeAtiva): ?>
-                <form action="<?= BASE_URL ?>/funcionario/disponibilidade/ativar" method="POST" style="margin: 0;">
-                    <input type="hidden" name="id_disponibilidade" value="<?= $idDisponibilidade ?>">
-                    <button type="submit" class="btn-primary" style="background: #28a745; border-color: #28a745; padding: 8px 15px;">Ativar esta Grade</button>
-                </form>
-            <?php endif; ?>
+            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                <?php if(!empty($idDisponibilidade) && !$isNovaGrade): ?>
+                    <form action="<?= BASE_URL ?>/funcionario/disponibilidade/salvar_antecedencia" method="POST" style="margin: 0; display: flex; align-items: center; gap: 8px; background: var(--bg-secondary); padding: 5px 15px; border-radius: 8px; border: 1px solid var(--border-color);">
+                        <input type="hidden" name="id_disponibilidade" value="<?= $idDisponibilidade ?>">
+                        <label style="font-weight: bold; color: var(--text-main); font-size: 0.9rem;">Antecedência <small>(Horas)</small>:</label>
+                        <input type="number" name="antecedencia_horas" value="<?= htmlspecialchars($antecedenciaHorasAtual) ?>" min="0" max="24" class="form-control" style="width: 70px; padding: 4px; height: 32px;" title="Bloqueia agendamentos de última hora nesta grade.">
+                        <button type="submit" class="btn-primary" style="padding: 4px 12px; height: 32px; background-color: #8b5cf6; color: #ffffff !important;">Salvar</button>
+                    </form>
+                <?php endif; ?>
+                
+                <?php if(!empty($idDisponibilidade) && !$isGradeAtiva): ?>
+                    <form action="<?= BASE_URL ?>/funcionario/disponibilidade/ativar" method="POST" style="margin: 0;">
+                        <input type="hidden" name="id_disponibilidade" value="<?= $idDisponibilidade ?>">
+                        <button type="submit" class="btn-primary" style="background: #28a745; border-color: #28a745; padding: 8px 15px; height: 42px;">Ativar Grade</button>
+                    </form>
+                <?php endif; ?>
+            </div>
         </div>
 
         <?php if (!$isNovaGrade && !empty($idDisponibilidade)): ?>
@@ -206,7 +219,8 @@ $mostrarBotaoEditar = (!$isNovaGrade && !empty($idDisponibilidade)) ? 'block' : 
 
                     <form action="<?= BASE_URL ?>/funcionario/disponibilidade/salvar" method="POST" onsubmit="return confirmarSalvamento(event)">
                         <input type="hidden" name="id_disponibilidade" value="<?= htmlspecialchars($idDisponibilidade) ?>">
-                        
+                        <input type="hidden" name="antecedencia_horas" value="<?= htmlspecialchars($antecedenciaHorasAtual) ?>">
+
                         <div style="display: flex; gap: 20px; align-items: flex-end; margin-bottom: 25px; flex-wrap: wrap;">
                             <div style="flex-grow: 1; min-width: 200px;">
                                 <label style="font-weight: bold; color: var(--text-main); display: block; margin-bottom: 8px;">

@@ -27,7 +27,7 @@ class ClienteService extends BaseService {
         }
 
         try {
-            $this->conn->beginTransaction();
+            if (!$this->conn->inTransaction()) { $this->conn->beginTransaction(); }
 
             // 1. Resolve a parte do Usuário (Senha, Email, etc)
             $resultadoUsuario = $this->usuarioService->registrarUsuario($nome, $email, $senha, 'comum', $telefone);
@@ -86,7 +86,7 @@ class ClienteService extends BaseService {
         }
 
         try {
-            $this->conn->beginTransaction();
+            if (!$this->conn->inTransaction()) { $this->conn->beginTransaction(); }
 
             $resultadoUsuario = $this->usuarioService->atualizarUsuario($id_usuario, $nome, $telefone);
             
@@ -115,13 +115,13 @@ class ClienteService extends BaseService {
         }
     }
 
-    public function registrarClienteRapido($nome, $telefone) {
+    public function registrarClienteRapido($nome, $telefone, $observacoes = null) {
         if (empty($nome) || empty($telefone)) {
             return $this->erro('Nome e telefone são obrigatórios para agendamentos manuais.');
         }
 
         try {
-            $this->conn->beginTransaction();
+            if (!$this->conn->inTransaction()) { $this->conn->beginTransaction(); }
 
             // Verifica se o telefone já existe (pode ser que o cliente já tenha vindo)
             $usuarioExistente = $this->usuarioModel->buscarPorTelefone($telefone);
@@ -143,8 +143,8 @@ class ClienteService extends BaseService {
                 $telefone
             );
 
-            // Cria o perfil de cliente (sem data de nascimento obrigatória e sem observações)
-            $idCliente = $this->clienteModel->cadastrar($idNovoUsuario, null, null);
+            // Cria o perfil de cliente (com observações, se houver)
+            $idCliente = $this->clienteModel->cadastrar($idNovoUsuario, null, $observacoes);
 
             $this->conn->commit();
 
@@ -203,4 +203,3 @@ class ClienteService extends BaseService {
         }
     }
 }
-?>

@@ -222,16 +222,21 @@ class FuncionarioController {
         $clienteModel = new Cliente();
 
         $idFuncionario = $funcionario['id_funcionario'];
+        $isAdmin = ($_SESSION['usuario_tipo'] === 'admin');
 
-        // 1. Busca as Métricas para os Cards (SRP - Controllers delegam as queries)
-        $totalAgendamentosHoje = $agendamentoModel->contarAgendamentosHoje($idFuncionario);
-        $faturamentoMes = $agendamentoModel->calcularFaturamentoMes($idFuncionario);
+        // 1. Busca as Métricas para os Cards
+        // Se for admin, busca do salão todo. Se for funcionário, busca apenas os próprios.
+        if ($isAdmin) {
+            $totalAgendamentosHoje = $agendamentoModel->contarAgendamentosHojeGeral();
+            $faturamentoMes = $agendamentoModel->calcularFaturamentoMesGeral();
+            $proximosAgendamentos = $agendamentoModel->listarProximosAgendamentosResumoGeral(5);
+        } else {
+            $totalAgendamentosHoje = $agendamentoModel->contarAgendamentosHoje($idFuncionario);
+            $faturamentoMes = $agendamentoModel->calcularFaturamentoMes($idFuncionario);
+            $proximosAgendamentos = $agendamentoModel->listarProximosAgendamentosResumo($idFuncionario, 5);
+        }
         
-        // Conta todos os clientes (Podes refatorar para contar apenas clientes únicos do funcionário depois)
         $totalClientes = count($clienteModel->listarTodos()); 
-
-        // 2. Busca a lista de próximos agendamentos
-        $proximosAgendamentos = $agendamentoModel->listarProximosAgendamentosResumo($idFuncionario, 5);
 
         // Formatação do Faturamento para BRL
         $faturamentoFormatado = number_format($faturamentoMes, 2, ',', '.');
@@ -249,5 +254,66 @@ class FuncionarioController {
 
         require_once __DIR__ . '/../../public/views/funcionario/dashboard.php';
     }
+
+    public function editarPerfil() {
+        if (session_status() === PHP_SESSION_NONE) { session_start(); }
+        $idLogado = $_SESSION['usuario_id'];
+        
+        $funcionario = $this->funcionarioModel->buscarPorCodUsuario($idLogado);
+        $usuario = $this->usuarioModel->buscarPorId($idLogado);
+
+        if (!$funcionario || !$usuario) {
+            $_SESSION['flash_erro'] = "Perfil de funcionário não encontrado.";
+            header('Location: ' . BASE_URL . '/login');
+            exit;
+        }
+
+        // Mescla os dados do usuário com a estrutura do funcionário para a view preencher os campos corretamente
+        $funcionario['email'] = $usuario['email'] ?? '';
+        $funcionario['nome'] = $usuario['nome'] ?? '';
+        $funcionario['telefone'] = $usuario['telefone'] ?? '';
+
+        require_once __DIR__ . '/../../public/views/funcionario/perfil.php';
+    }
+
+    public function salvarPerfil() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: ' . BASE_URL . '/funcionario/perfil');
+            exit;
+        }
+
+        if (session_status() === PHP_SESSION_NONE) { session_start(); }
+        $idLogado = $_SESSION['usuario_id'];
+        
+        $funcionario = $this->funcionarioModel->buscarPorCodUsuario($idLogado);
+        
+        if (!$funcionario) {
+            header('Location: ' . BASE_URL . '/login');
+            exit;
+        }
+
+        $id_funcionario = $funcionario['id_funcionario'];
+        $nome = $_POST['nome'] ?? '';
+        $email = $_POST['email'] ?? '';
+        $telefone = $_POST['telefone'] ?? null;
+        $especialidade = $_POST['especialidade'] ?? '';
+
+        // Preserva o salário original porque um funcionário comum não deve alterar o próprio salário
+        $salario = $funcionario['salario_base'] ?? 0;
+
+        $resultado = $this->funcionarioService->atualizarDadosFuncionario(
+            $idLogado, $id_funcionario, $nome, $telefone, $especialidade, $salario
+        );
+
+        if ($resultado['sucesso']) {
+            $_SESSION['flash_sucesso'] = "Seus dados foram atualizados com sucesso!";
+            // Atualiza sessão para o menu global
+            $_SESSION['usuario_nome'] = $nome;
+        } else {
+            $_SESSION['flash_erro'] = $resultado['mensagem'] ?? "Falha ao editar perfil.";
+        }
+
+        header('Location: ' . BASE_URL . '/funcionario/perfil');
+        exit;
+    }
 }
-?>

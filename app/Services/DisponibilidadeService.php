@@ -1,10 +1,11 @@
 <?php
 
+require_once __DIR__ . '/BaseService.php';
 require_once __DIR__ . '/../Models/Disponibilidade.php';
 require_once __DIR__ . '/../Models/Servico.php'; 
 require_once __DIR__ . '/../Models/Agendamento.php'; 
 
-class DisponibilidadeService {
+class DisponibilidadeService extends BaseService {
 
     private $disponibilidadeModel;
     private $agendamentoModel;
@@ -16,18 +17,18 @@ class DisponibilidadeService {
 
     private function validarLogicaDeHorarios($inicio, $fim, $int_inicio, $int_fim) {
         if (empty($inicio) || empty($fim)) {
-            return ['sucesso' => false, 'mensagem' => 'A hora de início e fim do expediente são obrigatórias.'];
+            return $this->erro('A hora de início e fim do expediente são obrigatórias.');
         }
 
         $tempoInicio = strtotime($inicio);
         $tempoFim = strtotime($fim);
 
         if ($tempoFim <= $tempoInicio) {
-            return ['sucesso' => false, 'mensagem' => 'A hora de saída deve ser MAIOR que a hora de entrada.'];
+            return $this->erro('A hora de saída deve ser MAIOR que a hora de entrada.');
         }
 
         if ((empty($int_inicio) && !empty($int_fim)) || (!empty($int_inicio) && empty($int_fim))) {
-            return ['sucesso' => false, 'mensagem' => 'Se houver intervalo, preencha o início e o fim do mesmo.'];
+            return $this->erro('Se houver intervalo, preencha o início e o fim do mesmo.');
         }
 
         if (!empty($int_inicio) && !empty($int_fim)) {
@@ -35,11 +36,11 @@ class DisponibilidadeService {
             $tempoIntFim = strtotime($int_fim);
 
             if ($tempoIntFim <= $tempoIntInicio) {
-                return ['sucesso' => false, 'mensagem' => 'O fim do intervalo deve ser DEPOIS do início do intervalo.'];
+                return $this->erro('O fim do intervalo deve ser DEPOIS do início do intervalo.');
             }
 
             if ($tempoIntInicio <= $tempoInicio || $tempoIntFim >= $tempoFim) {
-                return ['sucesso' => false, 'mensagem' => 'O horário de intervalo deve estar DENTRO do horário de expediente.'];
+                return $this->erro('O horário de intervalo deve estar DENTRO do horário de expediente.');
             }
         }
 
@@ -49,10 +50,10 @@ class DisponibilidadeService {
     // =========================================================================
     // ARQUITETURA: Orquestração de Grades (Criação/Atualização)
     // =========================================================================
-    public function salvarGrade($idFuncionario, $idDisponibilidade, $nomeGrade, $isAtiva, $diasConfigurados) {
-        if (empty($idFuncionario)) { return ['sucesso' => false, 'mensagem' => 'ID do funcionário não informado.']; }
-        if (empty($nomeGrade)) { return ['sucesso' => false, 'mensagem' => 'O nome da grade é obrigatório.']; }
-        if (empty($diasConfigurados) || !is_array($diasConfigurados)) { return ['sucesso' => false, 'mensagem' => 'Nenhum dia configurado.']; }
+    public function salvarGrade($idFuncionario, $idDisponibilidade, $nomeGrade, $isAtiva, $diasConfigurados, $antecedenciaHoras = 0) {
+        if (empty($idFuncionario)) { return $this->erro('ID do funcionário não informado.'); }
+        if (empty($nomeGrade)) { return $this->erro('O nome da grade é obrigatório.'); }
+        if (empty($diasConfigurados) || !is_array($diasConfigurados)) { return $this->erro('Nenhum dia configurado.'); }
 
         // ---------------------------------------------------------------------
         // VALIDAÇÕES DEFENSIVAS (PREVENÇÃO DE PAYLOAD INJECTION)
@@ -60,27 +61,27 @@ class DisponibilidadeService {
         
         // 1. Limite de Dias: Uma semana só tem 7 dias. Impede que arrays gigantes sobrecarreguem o loop.
         if (count($diasConfigurados) > 7) {
-            return ['sucesso' => false, 'mensagem' => 'Tentativa inválida. Uma grade não pode conter mais de 7 dias.'];
+            return $this->erro('Tentativa inválida. Uma grade não pode conter mais de 7 dias.');
         }
 
         // 2. Whitelist de Dias: Garante que as chaves do array batem exatamente com o ENUM do MySQL.
         $diasPermitidos = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'];
         foreach (array_keys($diasConfigurados) as $diaRecebido) {
             if (!in_array($diaRecebido, $diasPermitidos)) {
-                return ['sucesso' => false, 'mensagem' => "O dia '{$diaRecebido}' não é válido para a grade de horários."];
+                return $this->erro("O dia '{$diaRecebido}' não é válido para a grade de horários.");
             }
         }
         // ---------------------------------------------------------------------
 
         // 1. Se não houver ID, é uma grade nova. Criamos a "Capa".
         if (empty($idDisponibilidade)) {
-            $idDisponibilidade = $this->disponibilidadeModel->criarNovaGrade($idFuncionario, $nomeGrade);
+            $idDisponibilidade = $this->disponibilidadeModel->criarNovaGrade($idFuncionario, $nomeGrade, $antecedenciaHoras);
             if (!$idDisponibilidade) {
-                return ['sucesso' => false, 'mensagem' => 'Erro interno ao criar a nova grade.'];
+                return $this->erro('Erro interno ao criar a nova grade.');
             }
         } else {
-            // Se já existe, apenas atualizamos o nome por precaução
-            $this->disponibilidadeModel->atualizarNomeGrade($idDisponibilidade, $nomeGrade);
+            // Se já existe, atualizamos o nome e antecedência da grade
+            $this->disponibilidadeModel->atualizarGrade($idDisponibilidade, $nomeGrade, $antecedenciaHoras);
         }
 
         // 2. Se o utilizador marcou a checkbox para ativar esta grade agora
@@ -93,7 +94,7 @@ class DisponibilidadeService {
             if ($tempos['status'] === 'disponivel') {
                 $validacao = $this->validarLogicaDeHorarios($tempos['inicio'], $tempos['fim'], $tempos['int_inicio'], $tempos['int_fim']);
                 if (!$validacao['sucesso']) {
-                    return ['sucesso' => false, 'mensagem' => "Erro na {$dia}: " . $validacao['mensagem']];
+                    return $this->erro("Erro na {$dia}: " . $validacao['mensagem']);
                 }
             } else {
                 if (empty($tempos['inicio'])) { $tempos['inicio'] = '00:00'; }
@@ -114,7 +115,7 @@ class DisponibilidadeService {
             $this->disponibilidadeModel->salvarDiaConfigurado($idDisponibilidade, $dia, $dadosDia);
         }
 
-        return ['sucesso' => true, 'mensagem' => 'Grade de horários salva com sucesso!'];
+        return $this->sucesso('Grade de horários salva com sucesso!');
     }
 
     /**
@@ -123,8 +124,8 @@ class DisponibilidadeService {
     public function ativarGrade($idFuncionario, $idDisponibilidade) {
         $ativou = $this->disponibilidadeModel->definirGradeAtiva($idFuncionario, $idDisponibilidade);
         return $ativou ? 
-            ['sucesso' => true, 'mensagem' => 'Grade ativada com sucesso.'] : 
-            ['sucesso' => false, 'mensagem' => 'Falha ao ativar a grade.'];
+            $this->sucesso('Grade ativada com sucesso.') : 
+            $this->erro('Falha ao ativar a grade.');
     }
 
 
@@ -169,7 +170,8 @@ class DisponibilidadeService {
             $agendamentosDoDia = [];
         }
 
-        $horariosLivres = $this->filtrarHorariosValidos($slotsPossiveis, $agendamentosDoDia, $dataDesejada, $duracaoServicoMinutos);
+        $antecedenciaMinima = isset($gradeAtiva['antecedencia_horas']) ? (int)$gradeAtiva['antecedencia_horas'] : 0;
+        $horariosLivres = $this->filtrarHorariosValidos($slotsPossiveis, $agendamentosDoDia, $dataDesejada, $duracaoServicoMinutos, $antecedenciaMinima);
 
         return array_values($horariosLivres);
     }
@@ -208,9 +210,12 @@ class DisponibilidadeService {
         return $slots;
     }
 
-    private function filtrarHorariosValidos($slots, $agendamentos, $dataDesejada, $duracaoServico) {
+    private function filtrarHorariosValidos($slots, $agendamentos, $dataDesejada, $duracaoServico, $antecedenciaHoras = 0) {
         $hoje = date('Y-m-d');
-        $horaAtual = date('H:i');
+        
+        // Aplica a antecedência configurada pelo funcionário (ex: só aceita reserva para daqui a 5 horas)
+        $horaAtual = date('H:i', strtotime("+{$antecedenciaHoras} hours"));
+        
         $isHoje = ($dataDesejada === $hoje);
         $horariosFiltrados = [];
 
@@ -243,25 +248,21 @@ class DisponibilidadeService {
      */
     public function excluirGrade($idDisponibilidade, $idFuncionario) {
         if (empty($idDisponibilidade)) { 
-            return ['sucesso' => false, 'mensagem' => 'ID da grade não informado.']; 
+            return $this->erro('ID da grade não informado.'); 
         }
         
         // 1. TRAVA DE SEGURANÇA: Verifica se a grade que ele quer apagar é a ativa
         $gradeAtual = $this->disponibilidadeModel->buscarGradeAtiva($idFuncionario);
         
         if ($gradeAtual && $gradeAtual['id_disponibilidade'] == $idDisponibilidade) {
-            return [
-                'sucesso' => false,
-                'mensagem' => 'Você não pode excluir a grade que está ativa no momento. Ative outra grade de horários primeiro para poder excluir esta.'
-            ];
+            return $this->erro('Você não pode excluir a grade que está ativa no momento. Ative outra grade de horários primeiro para poder excluir esta.');
         }
 
         // 2. Se não for a ativa, prossegue com o Hard Delete
         $excluiu = $this->disponibilidadeModel->excluirGrade($idDisponibilidade, $idFuncionario);
         
         return $excluiu ? 
-            ['sucesso' => true, 'mensagem' => 'A grade foi permanentemente excluída.'] : 
-            ['sucesso' => false, 'mensagem' => 'Erro ao tentar excluir a grade de horários.'];
+            $this->sucesso('A grade foi permanentemente excluída.') : 
+            $this->erro('Erro ao tentar excluir a grade de horários.');
     }
 }
-?>

@@ -19,9 +19,6 @@ class ClienteController {
             exit;
         }
 
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
         $tipoAcesso = $_SESSION['usuario_tipo'] ?? 'comum';
 
         $id_cliente = $_POST['id_cliente'] ?? '';
@@ -56,9 +53,6 @@ class ClienteController {
             exit;
         }
 
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
         $tipoAcesso = $_SESSION['usuario_tipo'] ?? 'comum'; 
         
         if ($tipoAcesso !== 'admin') {
@@ -78,9 +72,63 @@ class ClienteController {
         exit;
     }
 
+    public function salvarDadosPerfil() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: ' . BASE_URL . '/perfil');
+            exit;
+        }
+
+        if (!isset($_SESSION['usuario_id'])) {
+            header('Location: ' . BASE_URL . '/login');
+            exit;
+        }
+
+        $id_usuario = $_SESSION['usuario_id'];
+        $nome = trim($_POST['nome'] ?? '');
+        $telefone = trim($_POST['telefone'] ?? '');
+        $nascimento = $_POST['nascimento'] ?? null;
+
+        if (empty($nome) || empty($telefone)) {
+            $_SESSION['erro_perfil'] = "Nome e telefone são obrigatórios.";
+            header('Location: ' . BASE_URL . '/perfil');
+            exit;
+        }
+
+        $cliente = $this->clienteModel->buscarPorCodUsuario($id_usuario);
+        
+        if (!$cliente) {
+            $_SESSION['erro_perfil'] = "Perfil de cliente não encontrado.";
+            header('Location: ' . BASE_URL . '/perfil');
+            exit;
+        }
+
+        $id_cliente = $cliente['id_cliente'];
+        $observacoes = $cliente['observacoes'] ?? null;
+
+        $resultado = $this->clienteService->atualizarDadosCliente(
+            $id_usuario, 
+            $id_cliente, 
+            $nome, 
+            $telefone, 
+            $nascimento, 
+            $observacoes
+        );
+
+        if ($resultado['sucesso']) {
+            $_SESSION['sucesso_perfil'] = "Dados atualizados com sucesso!";
+            // Atualiza dados na sessão para refletir imediatamente na UI
+            $_SESSION['usuario_nome'] = $nome;
+            $_SESSION['usuario_telefone'] = $telefone;
+        } else {
+            $_SESSION['erro_perfil'] = $resultado['mensagem'] ?? "Erro ao atualizar dados.";
+        }
+
+        header('Location: ' . BASE_URL . '/perfil');
+        exit;
+    }
+
     public function home() {
         // 1. Verificação de sessão
-        if (session_status() === PHP_SESSION_NONE) { session_start(); }
         if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_tipo'] !== 'comum') {
             header('Location: ' . BASE_URL . '/login');
             exit;
@@ -90,22 +138,17 @@ class ClienteController {
         $cliente = $this->clienteModel->buscarPorCodUsuario($_SESSION['usuario_id']);
 
         // 3. Busca o próximo agendamento (se existir)
-        require_once __DIR__ . '/../Models/Agendamento.php';
         $agendamentoModel = new Agendamento();
         $proximoAgendamento = $agendamentoModel->buscarProximoAgendamentoCliente($cliente['id_cliente']);
 
         if ($proximoAgendamento) {
-            // Formata a data para ficar bonita na tela (ex: "24 de Março às 10:30")
-            $dataObj = new DateTime($proximoAgendamento['data_agendamento']);
-            $meses = ['', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-            $mesNome = $meses[(int)$dataObj->format('m')];
-            
-            $horaFormatada = substr($proximoAgendamento['hora_inicio'], 0, 5);
-            $proximoAgendamento['data_display'] = $dataObj->format('d') . " de " . $mesNome . " às " . $horaFormatada;
+            $proximoAgendamento['data_display'] = Helpers::dataExtenso(
+                $proximoAgendamento['data_agendamento'], 
+                $proximoAgendamento['hora_inicio']
+            );
         }
 
         // 4. Busca os Serviços Ativos para listar como "Populares"
-        require_once __DIR__ . '/../Models/Servico.php';
         $servicoModel = new Servico();
         $todosServicos = $servicoModel->listarPorStatus('ativo');
         
@@ -128,4 +171,3 @@ class ClienteController {
         require_once __DIR__ . '/../../public/views/cliente/main.php';
     }
 }
-?>

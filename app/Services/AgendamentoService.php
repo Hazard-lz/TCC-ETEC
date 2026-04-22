@@ -3,6 +3,7 @@ require_once __DIR__ . '/BaseService.php';
 require_once __DIR__ . '/../Models/Agendamento.php';
 require_once __DIR__ . '/../Models/Servico.php';
 require_once __DIR__ . '/../../database/Conexao.php';
+require_once __DIR__ . '/OneSignalService.php';
 
 class AgendamentoService extends BaseService
 {
@@ -25,10 +26,15 @@ class AgendamentoService extends BaseService
     public function realizarAgendamento($idCliente, $idFuncionario, $idServico, $data, $horaInicio, $idFuncionarioCriador = null)
     {
         try {
-            // 1. Inicia Transação (Garante que agendamento e itens_agendamento sejam salvos juntos)
-            $this->conn->beginTransaction();
+            // 1. Validação de data: impede agendamentos no passado
+            if ($data < date('Y-m-d')) {
+                return ['sucesso' => false, 'mensagem' => 'Não é possível agendar em datas passadas.'];
+            }
 
-            // 2. Busca do serviço: usa os nomes reais do schema (preco e duracao)
+            // 2. Inicia Transação (Garante que agendamento e itens_agendamento sejam salvos juntos)
+            if (!$this->conn->inTransaction()) { $this->conn->beginTransaction(); }
+
+            // 3. Busca do serviço: usa os nomes reais do schema (preco e duracao)
             $servico = $this->servicoModel->buscarPorId($idServico);
             if (!$servico) {
                 throw new Exception("O serviço selecionado não existe ou está inativo.");
@@ -119,9 +125,34 @@ class AgendamentoService extends BaseService
             return ['sucesso' => false, 'mensagem' => 'Status inválido.'];
         }
 
+        // Validação de transição de estado: status finalizados não podem regredir
+        $agendamento = $this->agendamentoModel->buscarPorId($idAgendamento);
+        if ($agendamento && in_array($agendamento['status'], ['concluido', 'cancelado']) && $novoStatus !== $agendamento['status']) {
+            return ['sucesso' => false, 'mensagem' => 'Não é possível alterar um agendamento que já foi ' . $agendamento['status'] . '.'];
+        }
+
         $atualizou = $this->agendamentoModel->atualizarStatus($idAgendamento, $novoStatus);
 
         if ($atualizou) {
+            // ==========================================
+            // INTEGRAÇÃO ONESIGNAL (Cenários 1 e 3)
+            // ==========================================
+            try {
+                if ($novoStatus === 'marcado' || $novoStatus === 'cancelado') {
+                    $agendamentoAtualizado = $this->agendamentoModel->buscarPorId($idAgendamento);
+                    if ($agendamentoAtualizado && !empty($agendamentoAtualizado['cliente_cod_usuario'])) {
+                        $oneSignal = new OneSignalService();
+                        $msg = ($novoStatus === 'marcado') 
+                            ? "Seu agendamento foi marcado!" 
+                            : "Seu agendamento foi cancelado, tente marcar novamente em outro horário.";
+                        
+                        $oneSignal->enviarNotificacao($agendamentoAtualizado['cliente_cod_usuario'], $msg, 'http://localhost/TCC-ETEC/historico');
+                    }
+                }
+            } catch (Exception $e) {
+                error_log("Aviso: Falha ao enviar notificação push: " . $e->getMessage());
+            }
+
             return ['sucesso' => true, 'mensagem' => 'Status do agendamento atualizado.'];
         }
 
