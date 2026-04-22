@@ -13,7 +13,7 @@
     <div class="login-wrapper">
         
         <div class="base-card login-card">
-            <img src="<?= BASE_URL ?>/public/resources/images/Belezou.png" alt="Belezou App Logo" class="login-logo">
+            <img src="<?= BASE_URL ?>/public/resources/images/belezou_color.png" alt="Belezou App Logo" class="login-logo">
             
             <p style="text-align: center; margin-bottom: 1.5rem; color: #4b5563;">
                 Introduza o código recebido e a sua nova senha.

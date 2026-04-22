@@ -18,7 +18,7 @@ if (!isset($_SESSION['email_verificacao'])) {
 <body>
     <div class="login-wrapper">
         <div class="base-card login-card">
-            <img src="<?= BASE_URL ?>/public/resources/images/Belezou.png" alt="Belezou App Logo" class="login-logo" style="margin-bottom: 1rem;">
+            <img src="<?= BASE_URL ?>/public/resources/images/belezou_color.png" alt="Belezou App Logo" class="login-logo" style="margin-bottom: 1rem;">
             
             <h2 style="color: var(--color-purple); font-size: 1.3rem; margin-bottom: 0.5rem; text-align: center;">Verifique o seu E-mail</h2>
             <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem; line-height: 1.4; text-align: center;">

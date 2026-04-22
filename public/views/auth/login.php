@@ -13,7 +13,7 @@
     <div class="login-wrapper">
         
         <div class="base-card login-card">
-            <img src="<?= BASE_URL ?>/public/resources/images/Belezou.png" alt="Belezou App Logo" class="login-logo">
+            <img src="<?= BASE_URL ?>/public/resources/images/belezou_color.png" alt="Belezou App Logo" class="login-logo">
             
             <?php 
                 // FEEDBACK LOOP: Mensagem genérica de sucesso

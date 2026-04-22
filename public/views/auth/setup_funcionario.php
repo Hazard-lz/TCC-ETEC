@@ -13,7 +13,7 @@
     <div class="login-wrapper">
         
         <div class="base-card login-card">
-            <img src="<?= BASE_URL ?>/public/resources/images/Belezou.png" alt="Belezou App Logo" class="login-logo">
+            <img src="<?= BASE_URL ?>/public/resources/images/belezou_color.png" alt="Belezou App Logo" class="login-logo">
             
             <h2 style="text-align: center; margin-bottom: 0.5rem; color: var(--color-purple);">Bem-vindo à Equipe!</h2>
             <p style="text-align: center; margin-bottom: 1.5rem; color: #4b5563;">
