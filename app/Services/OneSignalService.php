@@ -1,15 +1,14 @@
 <?php
-require_once __DIR__ . '/../../database/Conexao.php'; // Para garantir a leitura do .env se não estiver lido
+require_once __DIR__ . '/../../database/Conexao.php';
 
 class OneSignalService
 {
     private $appId;
     private $restApiKey;
-    private $apiUrl = 'https://onesignal.com/api/v1/notifications';
+    private $apiUrl = 'https://api.onesignal.com/notifications';
 
     public function __construct()
     {
-        // Garante que as variáveis de ambiente estejam acessíveis chamando o getConexao caso ainda na pagina ninguem tenha chamado
         if (!isset($_ENV['ONESIGNAL_APP_ID'])) {
             try {
                 Conexao::getConexao(); 
@@ -21,22 +20,30 @@ class OneSignalService
     }
 
     /**
-     * Envia notificação por Push para um cliente específico através do external_id (cod_usuario)
+     * Envia notificação por Push para um usuário específico através do subscription_id salvo no banco.
      */
     public function enviarNotificacao($codUsuario, $mensagem, $url = null, $titulo = "Belezou App")
     {
+        // Busca o subscription_id do OneSignal no banco de dados
+        $conn = Conexao::getConexao();
+        $stmt = $conn->prepare("SELECT onesignal_sub_id FROM usuarios WHERE id_usuario = :id AND onesignal_sub_id IS NOT NULL");
+        $stmt->execute([':id' => $codUsuario]);
+        $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$usuario || empty($usuario['onesignal_sub_id'])) {
+            error_log("OneSignal: Nenhum subscription_id encontrado para o usuario $codUsuario");
+            return ['response' => '{"errors":["no subscription_id in database"]}', 'http_code' => 0];
+        }
+
         $fields = [
             'app_id' => $this->appId,
-            'include_aliases' => [
-                'external_id' => [strval($codUsuario)]
-            ],
-            'target_channel' => 'push',
+            'include_subscription_ids' => [$usuario['onesignal_sub_id']],
             'headings' => [
                 'en' => $titulo,
                 'pt' => $titulo
             ],
             'contents' => [
-                'en' => $mensagem, // O OneSignal geralmente usa 'en' como padrão, independente do idioma real para simplicidade
+                'en' => $mensagem,
                 'pt' => $mensagem
             ]
         ];
@@ -50,23 +57,28 @@ class OneSignalService
 
     private function dispararCurl($fields)
     {
-        $fields = json_encode($fields);
+        $fieldsJson = json_encode($fields);
+
+        // Detecta se a chave é v2 (os_v2_app_...) para usar o header correto
+        $authPrefix = (str_starts_with($this->restApiKey, 'os_v2_')) ? 'Key' : 'Basic';
 
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $this->apiUrl);
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
             'Content-Type: application/json; charset=utf-8',
-            'Authorization: Basic ' . $this->restApiKey
+            "Authorization: $authPrefix " . $this->restApiKey
         ]);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_HEADER, false);
         curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $fields);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // Importante para rodar via localhost
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $fieldsJson);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
+
+        error_log("OneSignal push response HTTP $httpCode: $response");
 
         return [
             'response' => $response,

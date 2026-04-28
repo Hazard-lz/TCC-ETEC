@@ -60,7 +60,8 @@ class Agendamento extends BaseModel {
                        u_func.nome AS funcionario_nome, 
                        ia.nome_servico_registrado AS nome_servico, 
                        ia.hora_inicio, ia.hora_fim, ia.preco_cobrado,
-                       c.cod_usuario AS cliente_cod_usuario
+                       c.cod_usuario AS cliente_cod_usuario,
+                       f.cod_usuario AS funcionario_cod_usuario
                 FROM agendamentos a
                 INNER JOIN clientes c ON a.cod_cliente = c.id_cliente
                 INNER JOIN usuarios u_cli ON c.cod_usuario = u_cli.id_usuario
@@ -68,7 +69,6 @@ class Agendamento extends BaseModel {
                 INNER JOIN funcionario_servicos fs ON ia.cod_sv_func = fs.id_sv_funcionario
                 INNER JOIN funcionarios f ON fs.cod_funcionario = f.id_funcionario
                 INNER JOIN usuarios u_func ON f.cod_usuario = u_func.id_usuario
-                INNER JOIN servicos s ON fs.cod_servico = s.id_servico
                 WHERE a.id_agendamento = :id_agendamento";
                 
         return $this->executarQuery($sql, [':id_agendamento' => $id_agendamento], 'unico');
@@ -84,7 +84,6 @@ class Agendamento extends BaseModel {
                 FROM agendamentos a
                 INNER JOIN itens_agendamento ia ON a.id_agendamento = ia.cod_agendamento
                 INNER JOIN funcionario_servicos fs ON ia.cod_sv_func = fs.id_sv_funcionario
-                INNER JOIN servicos s ON fs.cod_servico = s.id_servico
                 INNER JOIN funcionarios f ON fs.cod_funcionario = f.id_funcionario
                 INNER JOIN usuarios u_func ON f.cod_usuario = u_func.id_usuario
                 WHERE a.cod_cliente = :cod_cliente
@@ -106,7 +105,6 @@ class Agendamento extends BaseModel {
                 INNER JOIN usuarios u_cli ON c.cod_usuario = u_cli.id_usuario
                 INNER JOIN itens_agendamento ia ON a.id_agendamento = ia.cod_agendamento
                 INNER JOIN funcionario_servicos fs ON ia.cod_sv_func = fs.id_sv_funcionario
-                INNER JOIN servicos s ON fs.cod_servico = s.id_servico
                 WHERE fs.cod_funcionario = :cod_funcionario 
                   AND a.data_agendamento = :data
                   AND a.status != 'cancelado'
@@ -308,5 +306,77 @@ class Agendamento extends BaseModel {
                   AND a.status IN ('pendente', 'marcado')";
                   
         return $this->executarQuery($sql, [], 'todos');
+    }
+
+    // =========================================================================
+    // RELATÓRIO DE DESEMPENHO
+    // =========================================================================
+
+    /**
+     * Retorna métricas gerais de desempenho de um funcionário num período.
+     */
+    public function relatorioDesempenho($idFuncionario, $dataInicio, $dataFim) {
+        $sql = "SELECT 
+                    SUM(CASE WHEN a.status = 'concluido' THEN 1 ELSE 0 END) AS total_concluidos,
+                    SUM(CASE WHEN a.status = 'concluido' THEN ia.preco_cobrado ELSE 0 END) AS faturamento_bruto,
+                    SUM(CASE WHEN a.status = 'cancelado' THEN 1 ELSE 0 END) AS total_cancelados,
+                    COUNT(a.id_agendamento) AS total_geral
+                FROM agendamentos a
+                INNER JOIN itens_agendamento ia ON a.id_agendamento = ia.cod_agendamento
+                INNER JOIN funcionario_servicos fs ON ia.cod_sv_func = fs.id_sv_funcionario
+                WHERE fs.cod_funcionario = :id_func
+                  AND a.data_agendamento BETWEEN :data_inicio AND :data_fim";
+
+        return $this->executarQuery($sql, [
+            ':id_func' => $idFuncionario,
+            ':data_inicio' => $dataInicio,
+            ':data_fim' => $dataFim
+        ], 'unico');
+    }
+
+    /**
+     * Retorna ranking de serviços prestados pelo funcionário no período.
+     */
+    public function relatorioServicosPorFuncionario($idFuncionario, $dataInicio, $dataFim) {
+        $sql = "SELECT ia.nome_servico_registrado AS nome_servico,
+                       COUNT(*) AS quantidade
+                FROM agendamentos a
+                INNER JOIN itens_agendamento ia ON a.id_agendamento = ia.cod_agendamento
+                INNER JOIN funcionario_servicos fs ON ia.cod_sv_func = fs.id_sv_funcionario
+                WHERE fs.cod_funcionario = :id_func
+                  AND a.data_agendamento BETWEEN :data_inicio AND :data_fim
+                  AND a.status = 'concluido'
+                GROUP BY ia.nome_servico_registrado
+                ORDER BY quantidade DESC";
+
+        return $this->executarQuery($sql, [
+            ':id_func' => $idFuncionario,
+            ':data_inicio' => $dataInicio,
+            ':data_fim' => $dataFim
+        ], 'todos');
+    }
+
+    /**
+     * Retorna lista de clientes atendidos pelo funcionário e a frequência.
+     */
+    public function relatorioClientesPorFuncionario($idFuncionario, $dataInicio, $dataFim) {
+        $sql = "SELECT u.nome AS cliente_nome,
+                       COUNT(*) AS frequencia
+                FROM agendamentos a
+                INNER JOIN clientes c ON a.cod_cliente = c.id_cliente
+                INNER JOIN usuarios u ON c.cod_usuario = u.id_usuario
+                INNER JOIN itens_agendamento ia ON a.id_agendamento = ia.cod_agendamento
+                INNER JOIN funcionario_servicos fs ON ia.cod_sv_func = fs.id_sv_funcionario
+                WHERE fs.cod_funcionario = :id_func
+                  AND a.data_agendamento BETWEEN :data_inicio AND :data_fim
+                  AND a.status = 'concluido'
+                GROUP BY c.id_cliente, u.nome
+                ORDER BY frequencia DESC";
+
+        return $this->executarQuery($sql, [
+            ':id_func' => $idFuncionario,
+            ':data_inicio' => $dataInicio,
+            ':data_fim' => $dataFim
+        ], 'todos');
     }
 }

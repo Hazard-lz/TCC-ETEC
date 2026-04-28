@@ -25,6 +25,9 @@ class AuthController
         if ($resultado['sucesso']) {
             $usuario = $resultado['dados_usuario'];
 
+            // VERIFICA SE O USUÁRIO PERTENCE À EQUIPE DO SALÃO
+            $isFuncionario = $this->funcionarioModel->buscarPorCodUsuario($usuario['id_usuario']);
+
             // Regenera o ID para evitar ataques de fixação
             session_regenerate_id(true);
 
@@ -34,34 +37,28 @@ class AuthController
             $_SESSION['usuario_email'] = $usuario['email'];
             $_SESSION['usuario_telefone'] = $usuario['telefone'];
 
-            // VERIFICA SE O USUÁRIO PERTENCE À EQUIPE DO SALÃO
-            $isFuncionario = $this->funcionarioModel->buscarPorCodUsuario($usuario['id_usuario']);
-
-            // Se for admin OU se existir na tabela de funcionários...
             if ($usuario['tipo'] === 'admin' || $isFuncionario) {
-
                 $_SESSION['is_funcionario'] = true;
+                $expira = time() + (60 * 60 * 24 * 7); // 7 dias
 
-                // Cookie persiste por 1 semana (7 dias) para a equipe não precisar logar todo dia
+                // Cookie auxiliar para o index.php saber o tipo ANTES do session_start
+                setcookie('belezou_tipo', 'func', [
+                    'expires' => $expira, 'path' => '/', 'httponly' => true, 'samesite' => 'Strict'
+                ]);
+                // Força o cookie de sessão com a validade correta (7 dias)
                 setcookie(session_name(), session_id(), [
-                    'expires' => time() + (60 * 60 * 24 * 7),
-                    'path' => '/',
-                    'domain' => '',
-                    'secure' => false,
-                    'httponly' => true,
-                    'samesite' => 'Strict'
+                    'expires' => $expira, 'path' => '/', 'httponly' => true, 'samesite' => 'Strict'
                 ]);
 
                 header("Location: " . BASE_URL . "/funcionario/dashboard");
             } else {
-                // SE NÃO FOR FUNCIONÁRIO, É CLIENTE!
+                $expira = time() + (60 * 60 * 24 * 30); // 30 dias
+
+                setcookie('belezou_tipo', 'cli', [
+                    'expires' => $expira, 'path' => '/', 'httponly' => true, 'samesite' => 'Strict'
+                ]);
                 setcookie(session_name(), session_id(), [
-                    'expires' => time() + (60 * 60 * 24 * 30),
-                    'path' => '/',
-                    'domain' => '',
-                    'secure' => false,
-                    'httponly' => true,
-                    'samesite' => 'Strict'
+                    'expires' => $expira, 'path' => '/', 'httponly' => true, 'samesite' => 'Strict'
                 ]);
 
                 header("Location: " . BASE_URL . "/");
@@ -114,6 +111,9 @@ class AuthController
                 $params["httponly"]
             );
         }
+
+        // Limpa o cookie auxiliar de tipo de utilizador
+        setcookie('belezou_tipo', '', ['expires' => time() - 42000, 'path' => '/']);
 
         session_destroy();
 

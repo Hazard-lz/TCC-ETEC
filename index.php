@@ -1,16 +1,24 @@
 <?php
 date_default_timezone_set('America/Sao_Paulo');
 
-$qntd_dias = 30;
-// 30 dias em segundos
-$segundosLimite = 60 * 60 * 24 * $qntd_dias;
-
 // 1. Avisa o servidor para NÃO apagar os ficheiros físicos de sessão antes de 30 dias
-ini_set('session.gc_maxlifetime', $segundosLimite);
+ini_set('session.gc_maxlifetime', 60 * 60 * 24 * 30);
 
-// 2. BLINDAGEM DO COOKIE DE SESSÃO (Padrão: Morre ao fechar o navegador)
+// 2. COOKIE DE SESSÃO COM LIFETIME DINÂMICO
+// Lê um cookie auxiliar definido durante o login para saber o tipo de utilizador
+// ANTES de abrir a sessão (pois session_set_cookie_params só funciona antes do session_start)
+$tipoLogado = $_COOKIE['belezou_tipo'] ?? '';
+
+if ($tipoLogado === 'func') {
+    $cookieLifetime = 60 * 60 * 24 * 7;   // Funcionário: 7 dias
+} elseif ($tipoLogado === 'cli') {
+    $cookieLifetime = 60 * 60 * 24 * 30;  // Cliente: 30 dias
+} else {
+    $cookieLifetime = 0;                   // Visitante: morre ao fechar o navegador
+}
+
 session_set_cookie_params([
-    'lifetime' => 0,             // 0 = Seguro para a equipa (morre ao fechar a aba)
+    'lifetime' => $cookieLifetime,
     'path' => '/',
     'domain' => '',
     'secure' => false,           // Mude para 'true' quando tiver HTTPS em produção
@@ -23,6 +31,21 @@ session_start();
 require_once __DIR__ . '/vendor/autoload.php';
 
 define('BASE_URL', '/TCC-ETEC');
+
+// =========================================================================
+// AUTO-CONCLUSÃO: Agendamentos "marcados" há mais de 7 dias viram "concluido"
+// Roda no máximo 1x a cada 10 minutos para não pesar
+// =========================================================================
+if (!isset($_SESSION['ultima_autoconclusao']) || (time() - $_SESSION['ultima_autoconclusao']) > 600) {
+    try {
+        require_once __DIR__ . '/database/Conexao.php';
+        $conn = Conexao::getConexao();
+        $conn->exec("UPDATE agendamentos SET status = 'concluido' WHERE status = 'marcado' AND data_agendamento < DATE_SUB(CURDATE(), INTERVAL 7 DAY)");
+        $_SESSION['ultima_autoconclusao'] = time();
+    } catch (Exception $e) {
+        // Silencioso — não deve travar a navegação
+    }
+}
 
 // =========================================================================
 // 1. ARQUITETURA: AUTOLOADER (Carregamento Dinâmico de Classes)

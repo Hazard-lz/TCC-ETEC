@@ -38,6 +38,7 @@ foreach ($proximosAgendamentos as $ag) {
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/admin.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/dashboard.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/listas.css"> 
+    <?php require_once __DIR__ . '/../partials/onesignal.php'; ?>
 </head>
 <body>
 

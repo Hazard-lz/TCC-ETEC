@@ -38,6 +38,7 @@ function renderizarLayoutGlobal(usuario) {
             <li class="nav-title" style="margin-top: 1rem; padding-left: 1.5rem; font-size: 0.75rem; font-weight: bold; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 1px;">Administração</li>
             <li class="nav-item"><a href="${BASE_URL}/admin/servicos" class="nav-link ${pathAtual.includes('/admin/servicos') ? 'active' : ''}" title="Catálogo de Serviços"><i class="bi bi-card-checklist me-2"></i> <span>Catálogo de Serviços</span></a></li>
             <li class="nav-item"><a href="${BASE_URL}/admin/funcionarios" class="nav-link ${pathAtual.includes('funcionarios') ? 'active' : ''}" title="Funcionários"><i class="bi bi-person-badge me-2"></i> <span>Funcionários</span></a></li>
+            <li class="nav-item"><a href="${BASE_URL}/admin/relatorios/desempenho" class="nav-link ${pathAtual.includes('relatorios') ? 'active' : ''}" title="Relatórios"><i class="bi bi-graph-up me-2"></i> <span>Relatórios</span></a></li>
         `;
     }
 

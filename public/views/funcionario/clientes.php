@@ -27,6 +27,7 @@ $isAdmin = (isset($_SESSION['usuario_tipo']) && $_SESSION['usuario_tipo'] === 'a
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/listas.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/cliente.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/modal.css">
+    <?php require_once __DIR__ . '/../partials/onesignal.php'; ?>
 </head>
 <body>
 

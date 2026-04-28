@@ -37,6 +37,7 @@ $router->get('/agendar', 'AgendamentoController@carregarTelaCliente');
 $router->post('/agendar', 'AgendamentoController@salvar');
 
 $router->get('/historico', 'AgendamentoController@historicoCliente');
+$router->post('/historico/cancelar', 'AgendamentoController@cancelarPeloCliente');
 
 
 // ===========================================================
@@ -132,6 +133,8 @@ $router->get('/admin/funcionarios/reenviar-email', function () {
     exit;
 });
 
+$router->get('/admin/relatorios/desempenho', 'RelatorioController@desempenhoFuncionario');
+
 
 // ===========================================================
 // ROTAS DA EQUIPE (FUNCIONÁRIOS E ADMIN)
@@ -171,6 +174,25 @@ $router->view('/funcionario/servicos', 'funcionario/servicos');
 $router->view('/funcionario/disponibilidade', 'funcionario/disponibilidade');
 
 $router->post('/api/horarios-livres', 'DisponibilidadeController@buscarHorariosLivres');
+
+// API para o JavaScript registrar o subscription_id do OneSignal
+$router->post('/api/onesignal/registrar', function () {
+    header('Content-Type: application/json');
+    $dados = json_decode(file_get_contents("php://input"), true);
+    $subId = $dados['subscription_id'] ?? '';
+
+    if (empty($subId) || !isset($_SESSION['usuario_id'])) {
+        echo json_encode(['sucesso' => false]);
+        exit;
+    }
+
+    require_once __DIR__ . '/../../database/Conexao.php';
+    $conn = Conexao::getConexao();
+    $stmt = $conn->prepare("UPDATE usuarios SET onesignal_sub_id = :sub_id WHERE id_usuario = :id");
+    $stmt->execute([':sub_id' => $subId, ':id' => $_SESSION['usuario_id']]);
+    echo json_encode(['sucesso' => true]);
+    exit;
+});
 
 $router->get('/api/profissionais-por-servico', 'FuncionarioController@listarProfissionaisPorServicoApi');
 

@@ -262,4 +262,57 @@ class AgendamentoController {
 
         require_once __DIR__ . '/../../public/views/funcionario/agendamentos.php';
     }
+
+    /**
+     * Action: POST para /historico/cancelar
+     * Responsável por cancelar um agendamento a pedido do próprio cliente.
+     */
+    public function cancelarPeloCliente() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $_SESSION['flash_erro'] = "Método inválido.";
+            header('Location: ' . BASE_URL . '/historico');
+            exit;
+        }
+
+        $id_agendamento = $_POST['id_agendamento'] ?? '';
+
+        if (empty($id_agendamento)) {
+            $_SESSION['flash_erro'] = "Dados insuficientes para cancelar.";
+            header('Location: ' . BASE_URL . '/historico');
+            exit;
+        }
+
+        // Validação de segurança
+        $agendamentoModel = new Agendamento();
+        $agendamento = $agendamentoModel->buscarPorId($id_agendamento);
+        
+        $cliente = $this->clienteModel->buscarPorCodUsuario($_SESSION['usuario_id']);
+
+        if (!$agendamento || !$cliente || $agendamento['cod_cliente'] !== $cliente['id_cliente']) {
+            $_SESSION['flash_erro'] = "Você não tem permissão para cancelar este agendamento.";
+            header('Location: ' . BASE_URL . '/historico');
+            exit;
+        }
+
+        // Regra de negócio: só pode cancelar até 1 dia antes
+        $dataAgendamento = new DateTime($agendamento['data_agendamento']);
+        $hoje = new DateTime(date('Y-m-d'));
+
+        if ($dataAgendamento <= $hoje) {
+            $_SESSION['flash_erro'] = "Não é possível cancelar no mesmo dia do agendamento ou em datas passadas. Cancelamentos apenas com 1 dia de antecedência.";
+            header('Location: ' . BASE_URL . '/historico');
+            exit;
+        }
+
+        $resultado = $this->agendamentoService->alterarStatus($id_agendamento, 'cancelado', 'cliente');
+
+        if ($resultado['sucesso']) {
+            $_SESSION['flash_sucesso'] = "Agendamento cancelado com sucesso!";
+        } else {
+            $_SESSION['flash_erro'] = $resultado['mensagem'];
+        }
+
+        header('Location: ' . BASE_URL . '/historico');
+        exit;
+    }
 }

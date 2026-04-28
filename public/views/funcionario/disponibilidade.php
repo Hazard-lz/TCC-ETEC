@@ -88,6 +88,7 @@ $mostrarBotaoEditar = (!$isNovaGrade && !empty($idDisponibilidade)) ? 'block' : 
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/admin.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/disponibilidade.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/modal.css">
+    <?php require_once __DIR__ . '/../partials/onesignal.php'; ?>
 </head>
 <body>
     

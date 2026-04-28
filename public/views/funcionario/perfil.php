@@ -16,6 +16,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
     <link rel="stylesheet" href="<?= BASE_URL ?? '' ?>/public/resources/css/admin-layout.css">
     <link rel="stylesheet" href="<?= BASE_URL ?? '' ?>/public/resources/css/admin.css">
     <link rel="stylesheet" href="<?= BASE_URL ?? '' ?>/public/resources/css/funcionario.css">
+    <?php require_once __DIR__ . '/../partials/onesignal.php'; ?>
 </head>
 
 <body>

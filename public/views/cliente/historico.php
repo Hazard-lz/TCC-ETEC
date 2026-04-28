@@ -50,6 +50,12 @@ if (!isset($_SESSION['usuario_id'])) {
                     <?php if (!empty($proximos)): ?>
                         <?php foreach ($proximos as $ag): 
                             $estilo = getBadgeCss($ag['status']);
+                            $podeCancelar = false;
+                            $dataAgendamento = new DateTime($ag['data_agendamento']);
+                            $hoje = new DateTime(date('Y-m-d'));
+                            if ($dataAgendamento > $hoje && in_array($ag['status'], ['pendente', 'marcado'])) {
+                                $podeCancelar = true;
+                            }
                         ?>
                             <div class="history-card <?= $estilo['card'] ?>">
                                 <div class="history-header">
@@ -63,6 +69,14 @@ if (!isset($_SESSION['usuario_id'])) {
                                     </div>
                                     <div class="history-price">R$ <?= $ag['preco_formatado'] ?></div>
                                 </div>
+                                <?php if ($podeCancelar): ?>
+                                <div style="margin-top: 15px; border-top: 1px solid #ffebee; padding-top: 10px;">
+                                    <form action="<?= BASE_URL ?>/historico/cancelar" method="POST" onsubmit="return confirm('Tem certeza que deseja cancelar este agendamento?');">
+                                        <input type="hidden" name="id_agendamento" value="<?= $ag['id_agendamento'] ?>">
+                                        <button type="submit" style="width: 100%; padding: 8px; border-radius: 8px; background-color: var(--color-pink); color: white; border: none; cursor: pointer; font-weight: 600; font-size: 0.9rem;">Cancelar Agendamento</button>
+                                    </form>
+                                </div>
+                                <?php endif; ?>
                             </div>
                         <?php endforeach; ?>
                     <?php else: ?>

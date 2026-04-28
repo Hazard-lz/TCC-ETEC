@@ -6,9 +6,9 @@
   OneSignalDeferred.push(async function(OneSignal) {
     await OneSignal.init({
       appId: "4af62891-b85a-4ecd-a224-a5fe4df9a5d5",
-      allowLocalhostAsSecureOrigin: true, // Força funcionamento no localhost sem HTTPS
+      allowLocalhostAsSecureOrigin: true,
       notifyButton: {
-        enable: true, // Habilita o "Sino" no canto inferior direito
+        enable: true,
       }
     });
 
@@ -23,12 +23,34 @@
     if (userId) {
         await OneSignal.login(userId);
     }
+
+    // Envia o subscription_id ao servidor para salvar no banco
+    // (necessário porque o external_id do OneSignal não funciona via API)
+    const subId = OneSignal.User.PushSubscription.id;
+    if (subId) {
+        fetch("<?= BASE_URL ?>/api/onesignal/registrar", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ subscription_id: subId })
+        }).then(r => r.json()).then(d => {
+            if (d.sucesso) console.log("OneSignal subscription_id salvo no servidor:", subId);
+        }).catch(e => console.log("Erro ao salvar subscription_id:", e));
+    }
+
+    // Detecta mudanças no subscription_id (ex: usuário revogou e permitiu de novo)
+    OneSignal.User.PushSubscription.addEventListener('change', function(event) {
+        const newSubId = event.current.id;
+        if (newSubId) {
+            fetch("<?= BASE_URL ?>/api/onesignal/registrar", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ subscription_id: newSubId })
+            });
+        }
+    });
     
     // Captura o momento exato em que a notificação Push chega COM O SITE ABERTO (Foco)
     OneSignal.Notifications.addEventListener('foregroundWillDisplay', function(event) {
-        // Dispara um alerta na tela do navegador para ter certeza de que você viu!
-        // event.preventDefault(); // (Se você quiser bloquear o sino do Windows e deixar só o Alerta de tela, descomente isso)
-        
         let titulo = event.notification.title || "Atualização de Agendamento!";
         let mensagem = event.notification.body || "Você tem uma nova notificação do Belezou App.";
         

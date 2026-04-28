@@ -74,6 +74,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         .header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
         .action-buttons { display: flex; gap: 0.8rem; }
     </style>
+    <?php require_once __DIR__ . '/../partials/onesignal.php'; ?>
 </head>
 <body>
 
@@ -186,11 +187,16 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                         </form>
                     </div>
 
-                    <div id="boxAcoesMarcado" style="display: none;">
-                        <form action="<?= BASE_URL ?>/funcionario/agenda/status" method="POST">
+                    <div id="boxAcoesMarcado" style="display: none; gap: 0.5rem;">
+                        <form action="<?= BASE_URL ?>/funcionario/agenda/status" method="POST" style="flex:1">
                             <input type="hidden" name="id_agendamento" class="inputIdAgendamento">
                             <input type="hidden" name="novo_status" value="concluido">
                             <button type="submit" class="btn-primary" style="background: #3b82f6; width: 100%;">Concluir Atendimento</button>
+                        </form>
+                        <form action="<?= BASE_URL ?>/funcionario/agenda/status" method="POST" style="flex:1">
+                            <input type="hidden" name="id_agendamento" class="inputIdAgendamento">
+                            <input type="hidden" name="novo_status" value="cancelado">
+                            <button type="submit" class="btn-primary" style="background: #ef4444; width: 100%;" onclick="return confirm('Deseja realmente cancelar este agendamento?');">Cancelar Agendamento</button>
                         </form>
                     </div>
                 </div>
@@ -263,7 +269,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                     document.querySelectorAll('.inputIdAgendamento').forEach(input => input.value = info.event.id);
                     
                     document.getElementById('boxAcoesPendente').style.display = props.status === 'pendente' ? 'flex' : 'none';
-                    document.getElementById('boxAcoesMarcado').style.display = props.status === 'marcado' ? 'block' : 'none';
+                    document.getElementById('boxAcoesMarcado').style.display = props.status === 'marcado' ? 'flex' : 'none';
 
                     document.getElementById('modalDetalhes').classList.add('active');
                 }
@@ -303,6 +309,16 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                 });
             });
         });
+    </script>
+    <script>
+        // Auto-refresh: Atualiza a agenda a cada 30 segundos
+        // Só recarrega se nenhum modal estiver aberto (para não interromper ações)
+        setInterval(function() {
+            const modalAberto = document.querySelector('.modal-overlay.active');
+            if (!modalAberto) {
+                location.reload();
+            }
+        }, 30000);
     </script>
 </body>
 </html>

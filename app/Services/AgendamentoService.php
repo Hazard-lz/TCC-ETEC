@@ -117,7 +117,7 @@ class AgendamentoService extends BaseService
     /**
      * Altera o status verificando a integridade com o ENUM do Schema.
      */
-    public function alterarStatus($idAgendamento, $novoStatus)
+    public function alterarStatus($idAgendamento, $novoStatus, $origem = 'funcionario')
     {
         $statusValidos = ['pendente', 'concluido', 'cancelado', 'marcado'];
 
@@ -138,15 +138,25 @@ class AgendamentoService extends BaseService
             // INTEGRAÇÃO ONESIGNAL (Cenários 1 e 3)
             // ==========================================
             try {
-                if ($novoStatus === 'marcado' || $novoStatus === 'cancelado') {
-                    $agendamentoAtualizado = $this->agendamentoModel->buscarPorId($idAgendamento);
-                    if ($agendamentoAtualizado && !empty($agendamentoAtualizado['cliente_cod_usuario'])) {
-                        $oneSignal = new OneSignalService();
-                        $msg = ($novoStatus === 'marcado') 
-                            ? "Seu agendamento foi marcado!" 
-                            : "Seu agendamento foi cancelado, tente marcar novamente em outro horário.";
-                        
-                        $oneSignal->enviarNotificacao($agendamentoAtualizado['cliente_cod_usuario'], $msg, 'http://localhost/TCC-ETEC/historico');
+                $agendamentoAtualizado = $this->agendamentoModel->buscarPorId($idAgendamento);
+                if ($agendamentoAtualizado) {
+                    $oneSignal = new OneSignalService();
+                    
+                    if ($origem === 'cliente' && $novoStatus === 'cancelado') {
+                        // O cliente cancelou, avisa o funcionário
+                        if (!empty($agendamentoAtualizado['funcionario_cod_usuario'])) {
+                            $msg = "O cliente {$agendamentoAtualizado['cliente_nome']} cancelou o agendamento de {$agendamentoAtualizado['nome_servico']}.";
+                            $oneSignal->enviarNotificacao($agendamentoAtualizado['funcionario_cod_usuario'], $msg, 'http://localhost/TCC-ETEC/funcionario/agenda');
+                        }
+                    } else {
+                        // O funcionário/admin alterou, avisa o cliente
+                        if (($novoStatus === 'marcado' || $novoStatus === 'cancelado') && !empty($agendamentoAtualizado['cliente_cod_usuario'])) {
+                            $msg = ($novoStatus === 'marcado') 
+                                ? "Seu agendamento foi marcado!" 
+                                : "Seu agendamento foi cancelado, tente marcar novamente em outro horário.";
+                            
+                            $oneSignal->enviarNotificacao($agendamentoAtualizado['cliente_cod_usuario'], $msg, 'http://localhost/TCC-ETEC/historico');
+                        }
                     }
                 }
             } catch (Exception $e) {
