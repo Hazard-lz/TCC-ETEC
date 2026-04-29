@@ -86,6 +86,9 @@ if (!isset($_SESSION['usuario_id'])) {
                         <!-- ── Passo 1: Serviços ── -->
                         <div class="step-content active" id="step-1">
                             <h3 class="section-title">Escolha o Serviço</h3>
+                            <div class="form-group mb-3" style="margin-bottom: 1.5rem;">
+                                <input type="text" id="busca-servico" class="form-control" placeholder="Pesquisar serviço...">
+                            </div>
                             <div class="cards-container">
                                 <?php if (!empty($servicos)): ?>
                                     <?php foreach ($servicos as $svc): ?>
@@ -110,6 +113,9 @@ if (!isset($_SESSION['usuario_id'])) {
                         <!-- ── Passo 2: Profissionais ── -->
                         <div class="step-content" id="step-2">
                             <h3 class="section-title">Escolha o Profissional</h3>
+                            <div class="form-group mb-3" style="margin-bottom: 1.5rem; display: none;" id="box-busca-profissional">
+                                <input type="text" id="busca-profissional" class="form-control" placeholder="Pesquisar profissional...">
+                            </div>
                             <div class="cards-container" id="container-profissionais">
                                 <p style="text-align: center; color: var(--text-muted);">Aguardando seleção de serviço...</p>
                             </div>

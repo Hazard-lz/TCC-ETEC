@@ -37,6 +37,9 @@ $servicos = array_merge($ativos, $inativos);
     </div>
 
     <div class="base-card">
+        <div class="form-group mb-3" style="margin-bottom: 1.5rem;">
+            <input type="text" class="form-control input-pesquisa-tabela" placeholder="Pesquisar serviço...">
+        </div>
         <div class="table-responsive">
             <table class="data-table">
                 <thead>

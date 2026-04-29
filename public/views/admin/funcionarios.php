@@ -60,6 +60,9 @@ $totalAdmins = $usuarioModel->contarAdminsAtivos();
     <?php endif; ?>
 
     <div class="base-card">
+        <div class="form-group mb-3" style="margin-bottom: 1.5rem;">
+            <input type="text" class="form-control input-pesquisa-tabela" placeholder="Pesquisar funcionário...">
+        </div>
         <div class="table-responsive">
             <table class="data-table">
                 <thead>

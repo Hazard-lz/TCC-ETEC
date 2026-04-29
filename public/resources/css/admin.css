@@ -162,7 +162,7 @@ button, .btn {
 }
 
 /* Ajuste para inputs desativados/somente leitura */
-.form-control:read-only, .form-control:disabled {
+.form-control[readonly], .form-control:disabled {
     background-color: var(--bg-color);
     cursor: not-allowed;
     opacity: 0.8;

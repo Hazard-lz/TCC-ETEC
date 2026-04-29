@@ -187,8 +187,15 @@ async function buscarProfissionais(idServico) {
     const response = await fetch(`${BASE_URL}/api/profissionais-por-servico?id_servico=${idServico}`);
     const data = await response.json();
     container.innerHTML = '';
+    
+    const boxBusca = document.getElementById('box-busca-profissional');
+    if (boxBusca) boxBusca.style.display = 'none';
+    const inputBusca = document.getElementById('busca-profissional');
+    if (inputBusca) inputBusca.value = '';
 
     if (data.sucesso && data.profissionais.length > 0) {
+      if (boxBusca) boxBusca.style.display = 'block';
+      
       data.profissionais.forEach((prof) => {
         const especialidade = prof.especialidade || 'Profissional';
         const div = document.createElement('div');
@@ -355,3 +362,40 @@ document.querySelectorAll('.step-indicator[data-passo]').forEach((indicador) => 
     setBotoesPasso(destino, jaTemSelecao);
   });
 });
+
+// ─── PESQUISA DINÂMICA (FILTRO EM TEMPO REAL) ────────────────────────────────
+
+document.addEventListener('DOMContentLoaded', () => {
+  const buscaServico = document.getElementById('busca-servico');
+  if (buscaServico) {
+    buscaServico.addEventListener('input', function() {
+      const termo = this.value.toLowerCase();
+      const cards = document.querySelectorAll('#step-1 .selectable-card');
+      cards.forEach(card => {
+        const textoCard = card.textContent.toLowerCase();
+        if (textoCard.includes(termo)) {
+          card.style.display = ''; // ou flex, se original fosse
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    });
+  }
+
+  const buscaProfissional = document.getElementById('busca-profissional');
+  if (buscaProfissional) {
+    buscaProfissional.addEventListener('input', function() {
+      const termo = this.value.toLowerCase();
+      const cards = document.querySelectorAll('#step-2 .selectable-card');
+      cards.forEach(card => {
+        const textoCard = card.textContent.toLowerCase();
+        if (textoCard.includes(termo)) {
+          card.style.display = ''; 
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    });
+  }
+});
+

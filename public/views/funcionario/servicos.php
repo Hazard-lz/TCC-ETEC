@@ -59,6 +59,9 @@ if ($dadosFunc) {
     <div class="base-card" style="max-width: 600px; padding: 2rem;">
         
         <?php if ($idFuncionarioLogado): ?>
+            <div class="form-group mb-3" style="margin-bottom: 1.5rem;">
+                <input type="text" class="form-control input-pesquisa-tabela" placeholder="Pesquisar serviço...">
+            </div>
             <form action="<?= BASE_URL ?>/funcionario/servicos/salvar" method="POST">
                 
                 <div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 2rem;">
