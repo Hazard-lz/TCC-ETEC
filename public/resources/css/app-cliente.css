@@ -79,16 +79,31 @@
     overflow-y: auto; /* Adiciona barra de rolagem APENAS ao conteúdo */
 }
 
-/* Personaliza a barra de rolagem (Fica com aspeto de App) */
-.app-content::-webkit-scrollbar {
+/* ─── SCROLLBAR ESTILIZADA (GLOBAL PARA O APP) ─── */
+::-webkit-scrollbar {
     width: 6px;
+    height: 6px;
 }
-.app-content::-webkit-scrollbar-track {
+
+::-webkit-scrollbar-track {
     background: transparent;
-}
-.app-content::-webkit-scrollbar-thumb {
-    background: var(--border-color);
     border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--color-purple);
+    border-radius: 10px;
+    transition: background 0.3s;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--color-pink);
+}
+
+/* Firefox */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-purple) transparent;
 }
 
 .section-title {

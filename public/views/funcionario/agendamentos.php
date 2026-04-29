@@ -245,8 +245,8 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                             {
                                 id: '<?= $ag['id_agendamento'] ?>',
                                 title: '<?= addslashes($ag['cliente_nome']) ?>\n<?= addslashes($ag['nome_servico']) ?>',
-                                start: '<?= (new DateTime($ag['hora_inicio']))->format("Y-m-d\TH:i:s") ?>',
-                                end: '<?= (new DateTime($ag['hora_fim']))->format("Y-m-d\TH:i:s") ?>',
+                                start: '<?= $dia['data'] ?>T<?= $ag['hora_inicio'] ?>',
+                                end: '<?= $dia['data'] ?>T<?= $ag['hora_fim'] ?>',
                                 className: 'evento-<?= $ag['status'] ?>',
                                 extendedProps: {
                                     cliente: '<?= addslashes($ag['cliente_nome']) ?>',
