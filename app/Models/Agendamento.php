@@ -93,6 +93,33 @@ class Agendamento extends BaseModel {
     }
 
     /**
+     * Histórico para a tela do Funcionário (inclui busca para Admin).
+     */
+    public function listarHistoricoFuncionario($id_funcionario = null) {
+        $sql = "SELECT a.id_agendamento, a.data_agendamento, a.status, a.cod_cliente,
+                       ia.nome_servico_registrado AS nome_servico, ia.hora_inicio, ia.preco_cobrado,
+                       u_cli.nome AS cliente_nome, u_cli.telefone AS cliente_telefone,
+                       u_func.nome AS funcionario_nome
+                FROM agendamentos a
+                INNER JOIN itens_agendamento ia ON a.id_agendamento = ia.cod_agendamento
+                INNER JOIN funcionario_servicos fs ON ia.cod_sv_func = fs.id_sv_funcionario
+                INNER JOIN funcionarios f ON fs.cod_funcionario = f.id_funcionario
+                INNER JOIN usuarios u_func ON f.cod_usuario = u_func.id_usuario
+                INNER JOIN clientes c ON a.cod_cliente = c.id_cliente
+                INNER JOIN usuarios u_cli ON c.cod_usuario = u_cli.id_usuario";
+        
+        $params = [];
+        if ($id_funcionario !== null) {
+            $sql .= " WHERE fs.cod_funcionario = :cod_funcionario";
+            $params[':cod_funcionario'] = $id_funcionario;
+        }
+
+        $sql .= " ORDER BY a.data_agendamento DESC, ia.hora_inicio DESC";
+                
+        return $this->executarQuery($sql, $params, 'todos');
+    }
+
+    /**
      * Agenda diária para a tela do Funcionário/Admin.
      */
     public function listarAgendaFuncionario($id_funcionario, $data) {
@@ -248,6 +275,17 @@ class Agendamento extends BaseModel {
             ':status' => $novo_status,
             ':id' => $id_agendamento
         ]);
+    }
+
+    /**
+     * Cancela automaticamente agendamentos pendentes cuja data já passou.
+     */
+    public function cancelarPendentesExpirados() {
+        $sql = "UPDATE agendamentos 
+                SET status = 'cancelado' 
+                WHERE status = 'pendente' 
+                  AND data_agendamento < CURDATE()";
+        return $this->executarQuery($sql);
     }
 
     // =========================================================================

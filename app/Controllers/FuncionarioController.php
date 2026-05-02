@@ -4,23 +4,26 @@ require_once __DIR__ . '/../Services/FuncionarioService.php';
 require_once __DIR__ . '/../Models/Funcionario.php';
 require_once __DIR__ . '/../Models/Usuario.php'; // Adicionado para lidar com o nível de acesso
 
-class FuncionarioController {
+class FuncionarioController
+{
 
     private $funcionarioService;
     private $funcionarioModel;
     private $usuarioModel;
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->funcionarioService = new FuncionarioService();
         $this->funcionarioModel = new Funcionario();
-        $this->usuarioModel = new Usuario(); 
+        $this->usuarioModel = new Usuario();
     }
 
     /**
      * Rota principal que recebe o POST do formulário HTML
      * Action: /funcionario/salvar
      */
-    public function salvar() {
+    public function salvar()
+    {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             $_SESSION['flash_erro'] = "Método inválido.";
             header('Location: ' . BASE_URL . '/admin/funcionarios');
@@ -33,12 +36,17 @@ class FuncionarioController {
         $telefone = $_POST['telefone'] ?? null;
         $especialidade = $_POST['especialidade'] ?? '';
         $salario = $_POST['salario'] ?? null;
-        $tipo = $_POST['tipo'] ?? 'comum'; 
+        $tipo = $_POST['tipo'] ?? 'comum';
 
         if (empty($id_funcionario)) {
             // CADASTRAR NOVO (Sem a senha)
             $resultado = $this->funcionarioService->registrarFuncionario(
-                $nome, $email, $telefone, $especialidade, $salario, $tipo
+                $nome,
+                $email,
+                $telefone,
+                $especialidade,
+                $salario,
+                $tipo
             );
         } else {
             // EDITAR EXISTENTE
@@ -51,7 +59,12 @@ class FuncionarioController {
 
             $id_usuario = $funcionarioAtual['cod_usuario'];
             $resultado = $this->funcionarioService->atualizarDadosFuncionario(
-                $id_usuario, $id_funcionario, $nome, $telefone, $especialidade, $salario
+                $id_usuario,
+                $id_funcionario,
+                $nome,
+                $telefone,
+                $especialidade,
+                $salario
             );
 
             if ($resultado['sucesso']) {
@@ -73,7 +86,8 @@ class FuncionarioController {
      * Action: /setup-funcionario (GET)
      * Responsabilidade: Renderizar o HTML da tela de criação de senha.
      */
-    public function setupSenha() {
+    public function setupSenha()
+    {
         // Recebe os parâmetros da URL. Usamos o operador ?? para evitar erros de 'undefined index'.
         $token = $_GET['token'] ?? '';
         $email = $_GET['email'] ?? '';
@@ -94,7 +108,8 @@ class FuncionarioController {
      * Action: /setup-funcionario/salvar (POST)
      * Responsabilidade: Receber os dados do form, chamar a lógica de negócio e redirecionar.
      */
-    public function finalizarSetupSenha() {
+    public function finalizarSetupSenha()
+    {
         // Coleta os dados que vieram do formulário HTML
         $email = $_POST['email'] ?? '';
         $token = $_POST['token'] ?? '';
@@ -113,7 +128,7 @@ class FuncionarioController {
         // Para isso, precisamos instanciar o UsuarioService no construtor do FuncionarioController ou aqui
         require_once __DIR__ . '/../Services/UsuarioService.php';
         $usuarioService = new UsuarioService();
-        
+
         $resultado = $usuarioService->finalizarCadastroEquipe($email, $token, $senha, $confirma_senha);
 
         // Decisão de Redirecionamento com base no retorno do Service
@@ -133,7 +148,8 @@ class FuncionarioController {
      * Action: /admin/funcionarios/status (POST)
      * Responsabilidade: Receber a requisição da tabela de listagem e alternar o status.
      */
-    public function alterarStatus() {
+    public function alterarStatus()
+    {
         // Validação de segurança básica para garantir que é um POST
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             $_SESSION['flash_erro'] = "Método inválido.";
@@ -168,14 +184,15 @@ class FuncionarioController {
         exit;
     }
 
-    public function reenviarEmail() {
+    public function reenviarEmail()
+    {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             header('Location: ' . BASE_URL . '/admin/funcionarios');
             exit;
         }
 
         $id_usuario = $_POST['cod_usuario'] ?? '';
-        
+
         require_once __DIR__ . '/../Services/UsuarioService.php';
         $usuarioService = new UsuarioService();
         $resultado = $usuarioService->reenviarEmailSetupFuncionario($id_usuario);
@@ -189,7 +206,8 @@ class FuncionarioController {
         exit;
     }
 
-    public function listarProfissionaisPorServicoApi() {
+    public function listarProfissionaisPorServicoApi()
+    {
         header('Content-Type: application/json');
         $id_servico = $_GET['id_servico'] ?? '';
 
@@ -203,12 +221,15 @@ class FuncionarioController {
         exit;
     }
 
-    public function dashboard() {
-        if (session_status() === PHP_SESSION_NONE) { session_start(); }
-        
+    public function dashboard()
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
         $id_usuario = $_SESSION['usuario_id'];
         $funcionario = $this->funcionarioModel->buscarPorCodUsuario($id_usuario);
-        
+
         if (!$funcionario) {
             $_SESSION['flash_erro'] = "Perfil de funcionário não encontrado.";
             header('Location: ' . BASE_URL . '/login');
@@ -217,8 +238,10 @@ class FuncionarioController {
 
         require_once __DIR__ . '/../Models/Agendamento.php';
         require_once __DIR__ . '/../Models/Cliente.php';
-        
+
         $agendamentoModel = new Agendamento();
+        $agendamentoModel->cancelarPendentesExpirados();
+
         $clienteModel = new Cliente();
 
         $idFuncionario = $funcionario['id_funcionario'];
@@ -235,8 +258,8 @@ class FuncionarioController {
             $faturamentoMes = $agendamentoModel->calcularFaturamentoMes($idFuncionario);
             $proximosAgendamentos = $agendamentoModel->listarProximosAgendamentosResumo($idFuncionario, 5);
         }
-        
-        $totalClientes = count($clienteModel->listarTodos()); 
+        $listaClientes = $clienteModel->listarTodos();
+        $totalClientes = $listaClientes ? count($listaClientes) : 0;
 
         // Formatação do Faturamento para BRL
         $faturamentoFormatado = number_format($faturamentoMes, 2, ',', '.');
@@ -255,10 +278,13 @@ class FuncionarioController {
         require_once __DIR__ . '/../../public/views/funcionario/dashboard.php';
     }
 
-    public function editarPerfil() {
-        if (session_status() === PHP_SESSION_NONE) { session_start(); }
+    public function editarPerfil()
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
         $idLogado = $_SESSION['usuario_id'];
-        
+
         $funcionario = $this->funcionarioModel->buscarPorCodUsuario($idLogado);
         $usuario = $this->usuarioModel->buscarPorId($idLogado);
 
@@ -276,17 +302,20 @@ class FuncionarioController {
         require_once __DIR__ . '/../../public/views/funcionario/perfil.php';
     }
 
-    public function salvarPerfil() {
+    public function salvarPerfil()
+    {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             header('Location: ' . BASE_URL . '/funcionario/perfil');
             exit;
         }
 
-        if (session_status() === PHP_SESSION_NONE) { session_start(); }
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
         $idLogado = $_SESSION['usuario_id'];
-        
+
         $funcionario = $this->funcionarioModel->buscarPorCodUsuario($idLogado);
-        
+
         if (!$funcionario) {
             header('Location: ' . BASE_URL . '/login');
             exit;
@@ -302,7 +331,12 @@ class FuncionarioController {
         $salario = $funcionario['salario_base'] ?? 0;
 
         $resultado = $this->funcionarioService->atualizarDadosFuncionario(
-            $idLogado, $id_funcionario, $nome, $telefone, $especialidade, $salario
+            $idLogado,
+            $id_funcionario,
+            $nome,
+            $telefone,
+            $especialidade,
+            $salario
         );
 
         if ($resultado['sucesso']) {

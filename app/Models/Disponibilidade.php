@@ -1,7 +1,8 @@
 <?php
 require_once __DIR__ . '/BaseModel.php';
 
-class Disponibilidade extends BaseModel {
+class Disponibilidade extends BaseModel
+{
 
     // =========================================================================
     // 1. GESTÃO DA "CAPA" (AS GRADES)
@@ -10,10 +11,11 @@ class Disponibilidade extends BaseModel {
     /**
      * Cria uma nova grade de horários para o funcionário.
      */
-    public function criarNovaGrade($cod_funcionario, $nome_grade, $antecedencia_horas = 0) {
+    public function criarNovaGrade($cod_funcionario, $nome_grade, $antecedencia_horas = 0)
+    {
         $sql = "INSERT INTO disponibilidade (cod_funcionario, nome_grade, antecedencia_horas, is_ativa) 
                 VALUES (:cod_funcionario, :nome_grade, :antecedencia, 0)";
-                
+
         return $this->executarQuery($sql, [
             ':cod_funcionario' => $cod_funcionario,
             ':nome_grade' => $nome_grade,
@@ -24,7 +26,8 @@ class Disponibilidade extends BaseModel {
     /**
      * Atualiza o nome e antecedência de uma grade existente.
      */
-    public function atualizarGrade($id_disponibilidade, $nome_grade, $antecedencia_horas = 0) {
+    public function atualizarGrade($id_disponibilidade, $nome_grade, $antecedencia_horas = 0)
+    {
         $sql = "UPDATE disponibilidade SET nome_grade = :nome, antecedencia_horas = :antecedencia WHERE id_disponibilidade = :id";
         return $this->executarQuery($sql, [':nome' => $nome_grade, ':antecedencia' => $antecedencia_horas, ':id' => $id_disponibilidade]);
     }
@@ -33,7 +36,8 @@ class Disponibilidade extends BaseModel {
      * ARQUITETURA: Transação de Estado (State Swap)
      * Garante que apenas UMA grade está ativa. Zera todas e ativa apenas a escolhida.
      */
-    public function definirGradeAtiva($cod_funcionario, $id_disponibilidade) {
+    public function definirGradeAtiva($cod_funcionario, $id_disponibilidade)
+    {
         try {
             $this->conn->beginTransaction();
 
@@ -63,7 +67,8 @@ class Disponibilidade extends BaseModel {
     /**
      * Busca todas as grades criadas pelo funcionário (para mostrar no Dropdown/Lista da View).
      */
-    public function buscarGradesFuncionario($cod_funcionario) {
+    public function buscarGradesFuncionario($cod_funcionario)
+    {
         $sql = "SELECT * FROM disponibilidade WHERE cod_funcionario = :cod_funcionario ORDER BY is_ativa DESC, data_criacao DESC";
         return $this->executarQuery($sql, [':cod_funcionario' => $cod_funcionario], 'todos');
     }
@@ -71,11 +76,12 @@ class Disponibilidade extends BaseModel {
     /**
      * Busca a grade que está a ditar as regras atualmente.
      */
-    public function buscarGradeAtiva($cod_funcionario) {
+    public function buscarGradeAtiva($cod_funcionario)
+    {
         $sql = "SELECT id_disponibilidade, nome_grade, antecedencia_horas 
                 FROM disponibilidade 
                 WHERE cod_funcionario = :cod_funcionario AND is_ativa = 1";
-                
+
         return $this->executarQuery($sql, [':cod_funcionario' => $cod_funcionario], 'unico');
     }
 
@@ -86,10 +92,11 @@ class Disponibilidade extends BaseModel {
     /**
      * O método de Upsert Dinâmico.
      */
-    public function salvarDiaConfigurado($cod_disponibilidade, $dia_semana, $dadosDia) {
+    public function salvarDiaConfigurado($cod_disponibilidade, $dia_semana, $dadosDia)
+    {
         $sqlBusca = "SELECT id_dia FROM disponibilidade_dias 
                      WHERE cod_disponibilidade = :cod AND dia_semana = :dia";
-        
+
         $existe = $this->executarQuery($sqlBusca, [':cod' => $cod_disponibilidade, ':dia' => $dia_semana], 'todos');
 
         $camposUpdate = [];
@@ -120,7 +127,8 @@ class Disponibilidade extends BaseModel {
     /**
      * Busca os dias de uma grade ESPECÍFICA (para carregar os inputs na tela de edição).
      */
-    public function buscarDiasDaGrade($id_disponibilidade) {
+    public function buscarDiasDaGrade($id_disponibilidade)
+    {
         $sql = "SELECT * FROM disponibilidade_dias WHERE cod_disponibilidade = :id_disponibilidade";
         return $this->executarQuery($sql, [':id_disponibilidade' => $id_disponibilidade], 'todos');
     }
@@ -129,7 +137,8 @@ class Disponibilidade extends BaseModel {
      * O Motor de Busca: Agora exige o ID da Grade em vez do ID do funcionário,
      * garantindo que lê as horas corretas.
      */
-    public function buscarGradePorDia($id_disponibilidade, $dia_semana) {
+    public function buscarGradePorDia($id_disponibilidade, $dia_semana)
+    {
         $sql = "SELECT 
                     hora_inicio_trabalho AS hora_inicio, 
                     hora_fim_trabalho AS hora_fim, 
@@ -138,23 +147,46 @@ class Disponibilidade extends BaseModel {
                 FROM disponibilidade_dias
                 WHERE cod_disponibilidade = :id_disponibilidade 
                   AND dia_semana = :dia_semana
-                  AND status = 'disponivel'"; 
-        
+                  AND status = 'disponivel'";
+
         $resultado = $this->executarQuery($sql, [
             ':id_disponibilidade' => $id_disponibilidade,
             ':dia_semana' => $dia_semana
         ], 'todos');
-        
+
         return !empty($resultado) ? $resultado[0] : false;
     }
 
-    public function excluirGrade($id_disponibilidade, $cod_funcionario) {
+    public function excluirGrade($id_disponibilidade, $cod_funcionario)
+    {
         $sql = "DELETE FROM disponibilidade 
                 WHERE id_disponibilidade = :id AND cod_funcionario = :cod";
-                
+
         return $this->executarQuery($sql, [
             ':id' => $id_disponibilidade,
             ':cod' => $cod_funcionario
         ]);
+    }
+
+    /**
+     * Busca os limites de horário (mínimo e máximo) da grade de disponibilidade.
+     */
+    public function buscarLimitesHorarios($id_disponibilidade)
+    {
+        $sql = "SELECT 
+                    MIN(hora_inicio_trabalho) as min_hora, 
+                    MAX(hora_fim_trabalho) as max_hora 
+                FROM disponibilidade_dias 
+                WHERE cod_disponibilidade = :id 
+                  AND status = 'disponivel'
+                  AND hora_inicio_trabalho IS NOT NULL
+                  AND hora_fim_trabalho IS NOT NULL";
+
+        $res = $this->executarQuery($sql, [':id' => $id_disponibilidade], 'unico');
+
+        return [
+            'min' => !empty($res['min_hora']) ? $res['min_hora'] : '06:00:00',
+            'max' => !empty($res['max_hora']) ? $res['max_hora'] : '23:59:00'
+        ];
     }
 }

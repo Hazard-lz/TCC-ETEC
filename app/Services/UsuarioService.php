@@ -6,20 +6,23 @@ require_once __DIR__ . '/../Models/Cliente.php';
 require_once __DIR__ . '/EmailService.php';
 require_once __DIR__ . '/../../database/Conexao.php'; // Adicionado para uso de Transactions
 
-class UsuarioService extends BaseService {
+class UsuarioService extends BaseService
+{
 
     private $usuarioModel;
     private $clienteModel;
     private $conn;
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->usuarioModel = new Usuario();
         $this->clienteModel = new Cliente();
         $this->conn = Conexao::getConexao(); // Inicializando a conexão para as Transactions
     }
 
-    public function registrarUsuario($nome, $email, $senha, $tipo = 'comum', $telefone = null) {
-        
+    public function registrarUsuario($nome, $email, $senha, $tipo = 'comum', $telefone = null)
+    {
+
         // 1. Validações básicas de formato
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             return $this->erro('Formato de e-mail inválido.');
@@ -34,18 +37,18 @@ class UsuarioService extends BaseService {
         // 2. VERIFICA O TELEFONE (Evolução do Cliente Rápido)
         if (!empty($telefone)) {
             $usuarioExistenteTelefone = $this->usuarioModel->buscarPorTelefone($telefone);
-            
+
             if ($usuarioExistenteTelefone) {
                 // Busca os dados para saber se é um cliente rápido (sem e-mail)
                 $dadosUsuario = $this->usuarioModel->buscarPorId($usuarioExistenteTelefone['id_usuario']);
-                
+
                 if (empty($dadosUsuario['email'])) {
                     // É um usuário fantasma! Vamos ATUALIZAR para uma conta completa
                     $senhaHash = password_hash($senha, PASSWORD_DEFAULT);
-                    
+
                     // Atualiza o registro existente em vez de criar um novo
                     $sucesso = $this->usuarioModel->atualizarCadastroCompleto($dadosUsuario['id_usuario'], $nome, $email, $senhaHash);
-                    
+
                     if ($sucesso !== false) {
                         $idNovoUsuario = $dadosUsuario['id_usuario'];
                     } else {
@@ -81,7 +84,7 @@ class UsuarioService extends BaseService {
                         <p>O seu código de verificação é:</p>
                         <h1 style='color: #8b5cf6; letter-spacing: 5px; font-size: 2.5rem; background: #f8fafc; padding: 10px; border-radius: 8px; display: inline-block;'>{$codigo}</h1>
                      </div>";
-                     
+
             $emailService->enviar($email, $nome, $assunto, $html);
 
             return $this->sucesso('Cadastrado com sucesso!', ['id' => $idNovoUsuario]);
@@ -90,7 +93,8 @@ class UsuarioService extends BaseService {
         return $this->erro('Falha inesperada ao registrar usuário.');
     }
 
-    public function registrarUsuarioDaEquipe($nome, $email, $telefone, $tipo) {
+    public function registrarUsuarioDaEquipe($nome, $email, $telefone, $tipo)
+    {
         if ($this->usuarioModel->buscarPorEmail($email)) {
             return $this->erro('Este e-mail já está cadastrado no sistema.');
         }
@@ -101,10 +105,10 @@ class UsuarioService extends BaseService {
             $token = mt_rand(100000, 999999);
             $this->usuarioModel->salvarCodigo($idNovoUsuario, $token, 2880);
 
-            require_once __DIR__ . '/EmailService.php'; 
+            require_once __DIR__ . '/EmailService.php';
             $emailService = new EmailService();
             $assunto = "Bem-vindo à equipe - Crie sua senha de acesso";
-            
+
             $host = !empty($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : 'localhost';
             $protocolo = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? "https" : "http";
             $urlCompleta = $protocolo . "://" . $host . BASE_URL;
@@ -128,11 +132,12 @@ class UsuarioService extends BaseService {
 
             return $this->sucesso('Funcionário cadastrado com sucesso! Um e-mail foi enviado.', ['id' => $idNovoUsuario]);
         }
-        
+
         return $this->erro('Falha ao registrar dados de acesso no banco.');
     }
 
-    public function finalizarCadastroEquipe($email, $token, $senha, $confirmaSenha) {
+    public function finalizarCadastroEquipe($email, $token, $senha, $confirmaSenha)
+    {
         if ($senha !== $confirmaSenha) {
             return $this->erro('As senhas não coincidem.');
         }
@@ -141,16 +146,18 @@ class UsuarioService extends BaseService {
         }
 
         $usuario = $this->usuarioModel->verificarCodigo($email, $token);
-        
+
         if (!$usuario) {
             return $this->erro('Link inválido ou expirado. Solicite ao gerente que reenvie o acesso.');
         }
 
         $senhaHash = password_hash($senha, PASSWORD_DEFAULT);
-        
+
         try {
             // Utilizando transação para garantir que ambas as operações sejam feitas com segurança
-            if (!$this->conn->inTransaction()) { $this->conn->beginTransaction(); }
+            if (!$this->conn->inTransaction()) {
+                $this->conn->beginTransaction();
+            }
 
             $this->usuarioModel->atualizarSenha($usuario['id_usuario'], $senhaHash);
             $this->usuarioModel->confirmarEmail($usuario['id_usuario']);
@@ -165,7 +172,8 @@ class UsuarioService extends BaseService {
         }
     }
 
-    public function autenticar($email, $senha) {
+    public function autenticar($email, $senha)
+    {
         $usuario = $this->usuarioModel->buscarPorEmail($email);
 
         // CORREÇÃO CRÍTICA: Impedir o Fatal Error validando se o usuário existe antes de acessar arrays
@@ -188,7 +196,7 @@ class UsuarioService extends BaseService {
 
         if (isset($usuario['email_verificado']) && $usuario['email_verificado'] == 0) {
             return [
-                'sucesso' => false, 
+                'sucesso' => false,
                 'mensagem' => 'E-mail não verificado.',
                 'requer_verificacao' => true,
                 'email' => $usuario['email']
@@ -209,9 +217,10 @@ class UsuarioService extends BaseService {
         return $this->sucesso('Login realizado com sucesso.', ['dados_usuario' => $usuario]);
     }
 
-    public function validarCodigo($email, $codigo) {
+    public function validarCodigo($email, $codigo)
+    {
         $user = $this->usuarioModel->verificarCodigo($email, $codigo);
-        
+
         if ($user) {
             $this->usuarioModel->confirmarEmail($user['id_usuario']);
             return $this->sucesso('E-mail verificado com sucesso! Pode fazer login.');
@@ -219,14 +228,15 @@ class UsuarioService extends BaseService {
         return $this->erro('Código inválido ou já utilizado. Verifique o seu e-mail.');
     }
 
-    public function solicitarRecuperacaoSenha($email) {
+    public function solicitarRecuperacaoSenha($email)
+    {
         $usuario = $this->usuarioModel->buscarPorEmail($email);
-        
+
         if (!$usuario) {
             return $this->sucesso('Se o e-mail estiver registado, receberá um código em breve.');
         }
 
-        $codigo = mt_rand(100000, 999999); 
+        $codigo = mt_rand(100000, 999999);
         $this->usuarioModel->salvarCodigo($usuario['id_usuario'], $codigo, 30);
 
         $emailService = new EmailService();
@@ -244,7 +254,8 @@ class UsuarioService extends BaseService {
         return $this->sucesso('Se o e-mail estiver registado, receberá um código em breve.');
     }
 
-    public function redefinirSenha($email, $codigo, $novaSenha, $confirmaSenha) {
+    public function redefinirSenha($email, $codigo, $novaSenha, $confirmaSenha)
+    {
         if ($novaSenha !== $confirmaSenha) {
             return $this->erro('As senhas não coincidem.');
         }
@@ -253,7 +264,7 @@ class UsuarioService extends BaseService {
         }
 
         $usuario = $this->usuarioModel->verificarCodigo($email, $codigo);
-        
+
         if (!$usuario) {
             return $this->erro('Código inválido ou expirado. Peça um novo código.');
         }
@@ -264,14 +275,15 @@ class UsuarioService extends BaseService {
         return $this->sucesso('Senha alterada com sucesso! Já pode fazer login.');
     }
 
-    public function trocarSenhaConhecida($idUsuario, $senhaAtual, $novaSenha, $confirmaSenha) {
+    public function trocarSenhaConhecida($idUsuario, $senhaAtual, $novaSenha, $confirmaSenha)
+    {
         if ($novaSenha !== $confirmaSenha) {
             return $this->erro('A nova senha e a confirmação não coincidem.');
         }
         if (strlen($novaSenha) < 8) {
             return $this->erro('A nova senha deve ter pelo menos 8 caracteres.');
         }
-        
+
         $usuario = $this->usuarioModel->buscarPorId($idUsuario);
         $usuarioCompleto = $this->usuarioModel->buscarPorEmail($usuario['email']);
 
@@ -280,14 +292,15 @@ class UsuarioService extends BaseService {
         }
 
         $senhaHash = password_hash($novaSenha, PASSWORD_DEFAULT);
-        $this->usuarioModel->atualizarSenha($idUsuario, $senhaHash); 
+        $this->usuarioModel->atualizarSenha($idUsuario, $senhaHash);
 
         return $this->sucesso('Senha alterada com segurança!');
     }
 
-    public function atualizarUsuario($id_usuario, $nome, $telefone) {
+    public function atualizarUsuario($id_usuario, $nome, $telefone)
+    {
         $telefone = !empty(trim($telefone)) ? trim($telefone) : null;
-        
+
         if ($telefone) {
             $existente = $this->usuarioModel->buscarPorTelefoneDiferenteDe($telefone, $id_usuario);
             if ($existente) {
@@ -302,13 +315,14 @@ class UsuarioService extends BaseService {
         return $this->erro('Erro ao atualizar os dados do usuário no banco de dados.');
     }
 
-    public function reenviarCodigoVerificacao($email) {
+    public function reenviarCodigoVerificacao($email)
+    {
         $usuario = $this->usuarioModel->buscarPorEmail($email);
-        
+
         if (!$usuario) {
             return $this->erro('Usuário não encontrado.');
         }
-        
+
         if ($usuario['email_verificado'] == 1) {
             return $this->erro('Este e-mail já foi verificado. Você já pode fazer login.');
         }
@@ -316,7 +330,7 @@ class UsuarioService extends BaseService {
         $codigoExistente = $usuario['codigo_verificacao'];
         $expiracaoAtual = $usuario['expiracao_codigo'];
         $agora = date('Y-m-d H:i:s');
-        
+
         if (!empty($codigoExistente) && !empty($expiracaoAtual) && $expiracaoAtual > $agora) {
             $codigoParaEnviar = $codigoExistente;
             $mensagemAlerta = 'Reenviamos o código que já estava ativo para o seu e-mail.';
@@ -333,20 +347,24 @@ class UsuarioService extends BaseService {
                     <p>Aqui está o seu código de verificação de acesso:</p>
                     <h1 style='color: #8b5cf6; letter-spacing: 5px; font-size: 2.5rem; background: #f8fafc; padding: 10px; border-radius: 8px; display: inline-block;'>{$codigoParaEnviar}</h1>
                  </div>";
-                 
+
         $emailService->enviar($email, $usuario['nome'], $assunto, $html);
 
         return $this->sucesso($mensagemAlerta);
     }
 
-    public function reenviarEmailSetupFuncionario($id_usuario) {
+    public function reenviarEmailSetupFuncionario($id_usuario)
+    {
         $usuario = $this->usuarioModel->buscarPorId($id_usuario);
-        
-        if (!$usuario) return $this->erro('Usuário não encontrado.');
-        if ($usuario['status'] !== 'ativo') return $this->erro('Não é possível enviar acesso para um funcionário inativo.');
-        
+
+        if (!$usuario)
+            return $this->erro('Usuário não encontrado.');
+        if ($usuario['status'] !== 'ativo')
+            return $this->erro('Não é possível enviar acesso para um funcionário inativo.');
+
         $usuarioCompleto = $this->usuarioModel->buscarPorEmail($usuario['email']);
-        if ($usuarioCompleto['email_verificado'] == 1) return $this->erro('Este funcionário já criou a senha e verificou o e-mail.');
+        if ($usuarioCompleto['email_verificado'] == 1)
+            return $this->erro('Este funcionário já criou a senha e verificou o e-mail.');
 
         $token = mt_rand(100000, 999999);
         $this->usuarioModel->salvarCodigo($id_usuario, $token, 2880);
@@ -368,12 +386,12 @@ class UsuarioService extends BaseService {
 
         $textoPuro = "Olá, {$usuario['nome']}!\n\nO seu link de acesso foi gerado novamente pelo administrador.\n\nPara concluir seu cadastro e criar sua senha de acesso, copie e cole o link abaixo no seu navegador:\n\n{$link}";
 
-        require_once __DIR__ . '/EmailService.php'; 
+        require_once __DIR__ . '/EmailService.php';
         $emailService = new EmailService();
         if ($emailService->enviar($usuario['email'], $usuario['nome'], $assunto, $html, $textoPuro)) {
             return $this->sucesso('E-mail de configuração reenviado com sucesso!');
         }
-        
+
         return $this->erro('Falha técnica ao tentar enviar o e-mail.');
     }
 }

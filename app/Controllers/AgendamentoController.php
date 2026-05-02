@@ -3,6 +3,7 @@
 require_once __DIR__ . '/../Services/AgendamentoService.php';
 require_once __DIR__ . '/../Models/Cliente.php';
 require_once __DIR__ . '/../Models/Funcionario.php';
+require_once __DIR__ . '/../Models/Disponibilidade.php';
 
 class AgendamentoController {
 
@@ -178,6 +179,7 @@ class AgendamentoController {
 
         // 3. Busca os dados brutos
         $agendamentoModel = new Agendamento();
+        $agendamentoModel->cancelarPendentesExpirados();
         $agendamentos = $agendamentoModel->listarPorCliente($cliente['id_cliente']);
 
         // 4. Separação de Lógica e Formatação (Data Prep)
@@ -235,6 +237,7 @@ class AgendamentoController {
         $ano = $domingoBase->format('Y');
 
         $agendamentoModel = new Agendamento();
+        $agendamentoModel->cancelarPendentesExpirados();
 
         // 2. ARQUITETURA: Cria o array de 7 dias perfeitinho para a View não se partir
         $diasSemanaInfo = [];
@@ -259,6 +262,19 @@ class AgendamentoController {
 
         $clientes = $this->clienteModel->listarTodos();
         $profissionais = $this->funcionarioModel->listarTodos();
+
+        // 4. Limites de horário do calendário baseados na disponibilidade
+        $disponibilidadeModel = new Disponibilidade();
+        $gradeAtiva = $disponibilidadeModel->buscarGradeAtiva($funcionario['id_funcionario']);
+        
+        $slotMinTime = '08:00:00';
+        $slotMaxTime = '23:59:00';
+        
+        if ($gradeAtiva) {
+            $limites = $disponibilidadeModel->buscarLimitesHorarios($gradeAtiva['id_disponibilidade']);
+            $slotMinTime = $limites['min'];
+            $slotMaxTime = $limites['max'];
+        }
 
         require_once __DIR__ . '/../../public/views/funcionario/agendamentos.php';
     }
@@ -314,5 +330,69 @@ class AgendamentoController {
 
         header('Location: ' . BASE_URL . '/historico');
         exit;
+    }
+
+    public function historicoFuncionario() {
+        if (!isset($_SESSION['usuario_id'])) {
+            header('Location: ' . BASE_URL . '/login');
+            exit;
+        }
+
+        $id_usuario = $_SESSION['usuario_id'];
+        $funcionarioLogado = $this->funcionarioModel->buscarPorCodUsuario($id_usuario);
+        
+        if (!$funcionarioLogado && $_SESSION['usuario_tipo'] !== 'admin') {
+            header('Location: ' . BASE_URL . '/login');
+            exit;
+        }
+
+        $isAdmin = $_SESSION['usuario_tipo'] === 'admin';
+        
+        $funcionarioIdParaBuscar = null;
+
+        if ($isAdmin && isset($_GET['id_funcionario']) && !empty($_GET['id_funcionario'])) {
+            $funcionarioIdParaBuscar = $_GET['id_funcionario'];
+        } else {
+            if ($funcionarioLogado) {
+                $funcionarioIdParaBuscar = $funcionarioLogado['id_funcionario'];
+            }
+        }
+
+        $agendamentoModel = new Agendamento();
+        $agendamentoModel->cancelarPendentesExpirados();
+        $agendamentos = [];
+        
+        // Se for admin e não tiver selecionado ninguém (ou não tiver perfil de funcionário), e a intenção for mostrar todos:
+        // Neste caso, a query tratará id_funcionario = null como buscar todos
+        // Mas se quisermos que a tela inicial sem id selecione o próprio perfil ou fique vazia?
+        // Vamos mostrar o próprio perfil (se existir), senão mostrar todos (se admin).
+        $agendamentos = $agendamentoModel->listarHistoricoFuncionario($funcionarioIdParaBuscar);
+
+        // Fetch all employees for the select if admin
+        $funcionarios = [];
+        if ($isAdmin) {
+            $funcionarios = $this->funcionarioModel->listarTodos();
+        }
+
+        // Process data
+        $proximos = [];
+        $anteriores = [];
+
+        if ($agendamentos) {
+            foreach ($agendamentos as $ag) {
+                $dataConvertida = new DateTime($ag['data_agendamento']);
+                $ag['data_formatada'] = $dataConvertida->format('d/m/Y');
+                $ag['hora_formatada'] = substr($ag['hora_inicio'], 0, 5);
+                $ag['preco_formatado'] = number_format($ag['preco_cobrado'], 2, ',', '.');
+
+                if (in_array($ag['status'], ['pendente', 'marcado'])) {
+                    $proximos[] = $ag;
+                } else {
+                    $anteriores[] = $ag;
+                }
+            }
+        }
+
+        require_once __DIR__ . '/../../public/views/funcionario/historico.php';
     }
 }

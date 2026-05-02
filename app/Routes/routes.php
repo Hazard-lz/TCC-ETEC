@@ -145,6 +145,8 @@ $router->get('/funcionario/dashboard', 'FuncionarioController@dashboard');
 $router->get('/funcionario/agenda', 'AgendamentoController@agendaFuncionario');
 $router->post('/funcionario/agenda', 'AgendamentoController@salvar');
 
+$router->get('/funcionario/historico', 'AgendamentoController@historicoFuncionario');
+
 $router->post('/funcionario/agenda/status', 'AgendamentoController@alterarStatus');
 
 $router->view('/funcionario/clientes', 'funcionario/clientes');
