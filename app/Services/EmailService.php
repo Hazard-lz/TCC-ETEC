@@ -26,7 +26,13 @@ class EmailService extends BaseService {
             $this->mail->SMTPAuth   = true;                                   
             $this->mail->Username   = $_ENV['MAIL_USER'];                     
             $this->mail->Password   = $_ENV['MAIL_PASS'];                     
-            $this->mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+            
+            if ($_ENV['MAIL_PORT'] == 465) {
+                $this->mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+            } else {
+                $this->mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+            }
+            
             $this->mail->Port       = $_ENV['MAIL_PORT']; 
             
             // Força o charset para UTF-8 (evita problemas com acentuação)
