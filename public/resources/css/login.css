@@ -50,24 +50,4 @@
     color: var(--color-pink);
     text-decoration: underline;
 }
-
-/* Botão Secundário (Cadastre-se) */
-.btn-secondary {
-    display: block;
-    width: 100%;
-    text-align: center;
-    padding: 0.9rem;
-    margin-top: 1rem;
-    background: transparent;
-    border: 2px solid var(--color-purple);
-    border-radius: var(--radius-md);
-    color: var(--color-purple);
-    font-size: 1.05rem;
-    font-weight: 700;
-    text-decoration: none;
-    transition: all var(--transition-default);
-}
-
-.btn-secondary:hover {
-    background: rgba(139, 92, 246, 0.05);
-}
+
