@@ -1,14 +1,23 @@
 <?php
 
 require_once __DIR__ . '/../Services/DisponibilidadeService.php';
+require_once __DIR__ . '/../Models/Funcionario.php';
 
 class DisponibilidadeController
 {
     private $disponibilidadeService;
+    private $funcionarioModel;
 
     public function __construct()
     {
         $this->disponibilidadeService = new DisponibilidadeService();
+        $this->funcionarioModel = new Funcionario();
+    }
+
+    private function getFuncionarioLogadoId() {
+        if (!isset($_SESSION['usuario_id'])) return null;
+        $funcionario = $this->funcionarioModel->buscarPorCodUsuario($_SESSION['usuario_id']);
+        return $funcionario ? $funcionario['id_funcionario'] : null;
     }
 
     public function salvar()
@@ -22,7 +31,12 @@ class DisponibilidadeController
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
-            $idFuncionario = $_SESSION['usuario_id']; 
+            $idFuncionario = $this->getFuncionarioLogadoId();
+            if (!$idFuncionario) {
+                $_SESSION['msg_erro'] = "Perfil de funcionário não encontrado.";
+                header("Location: " . BASE_URL . "/funcionario/disponibilidade");
+                exit;
+            }
             
             // Se vier vazio, é null (Nova Grade)
             $idDisponibilidade = empty($_POST['id_disponibilidade']) ? null : $_POST['id_disponibilidade'];
@@ -78,7 +92,7 @@ class DisponibilidadeController
         if (session_status() === PHP_SESSION_NONE) { session_start(); }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $idFuncionario = $_SESSION['usuario_id'];
+            $idFuncionario = $this->getFuncionarioLogadoId();
             $idDisponibilidade = $_POST['id_disponibilidade'] ?? '';
             
             $resultado = $this->disponibilidadeService->ativarGrade($idFuncionario, $idDisponibilidade);
@@ -99,7 +113,7 @@ class DisponibilidadeController
         if (session_status() === PHP_SESSION_NONE) { session_start(); }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $idFuncionario = $_SESSION['usuario_id'];
+            $idFuncionario = $this->getFuncionarioLogadoId();
             $idDisponibilidade = $_POST['id_disponibilidade'] ?? '';
             $antecedenciaHoras = isset($_POST['antecedencia_horas']) ? (int)$_POST['antecedencia_horas'] : 0;
             
@@ -152,7 +166,7 @@ class DisponibilidadeController
         if (session_status() === PHP_SESSION_NONE) { session_start(); }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $idFuncionario = $_SESSION['usuario_id']; // Trava de segurança IDOR
+            $idFuncionario = $this->getFuncionarioLogadoId(); // Trava de segurança IDOR
             $idDisponibilidade = $_POST['id_disponibilidade'] ?? '';
             
             $resultado = $this->disponibilidadeService->excluirGrade($idDisponibilidade, $idFuncionario);

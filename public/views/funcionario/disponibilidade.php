@@ -3,11 +3,17 @@
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
 
 require_once __DIR__ . '/../../../app/Models/Disponibilidade.php';
+require_once __DIR__ . '/../../../app/Models/Funcionario.php';
+
 $dispModel = new Disponibilidade();
-$idFuncionario = $_SESSION['usuario_id'];
+$funcModel = new Funcionario();
+
+$idUsuario = $_SESSION['usuario_id'];
+$dadosFuncionario = $funcModel->buscarPorCodUsuario($idUsuario);
+$idFuncionario = $dadosFuncionario ? $dadosFuncionario['id_funcionario'] : null;
 
 // 1. Busca todas as grades que o funcionário já criou no banco de dados
-$todasGrades = $dispModel->buscarGradesFuncionario($idFuncionario);
+$todasGrades = $idFuncionario ? $dispModel->buscarGradesFuncionario($idFuncionario) : [];
 
 // 2. ARQUITETURA UX (POST em vez de GET): Lemos a grade selecionada da Sessão
 $idDisponibilidade = $_SESSION['grade_visualizada'] ?? '';
