@@ -272,6 +272,15 @@ async function liberarHorarios() {
 
   if (!dataSelecionada || !idServico || !idFuncionario) return;
 
+  // Validação de antecedência no frontend: bloqueia datas passadas
+  const hoje = new Date();
+  hoje.setHours(0, 0, 0, 0);
+  const dataSel = new Date(dataSelecionada + 'T00:00:00');
+  if (dataSel < hoje) {
+    containerHorarios.innerHTML = '<p style="color: red;">Não é possível agendar em datas passadas. Selecione outra data.</p>';
+    return;
+  }
+
   try {
     const response = await fetch(BASE_URL + '/api/horarios-livres', {
       method: 'POST',
@@ -291,7 +300,7 @@ async function liberarHorarios() {
         containerHorarios.appendChild(div);
       });
     } else {
-      containerHorarios.innerHTML = '<p style="color: red;">Nenhum horário disponível.</p>';
+      containerHorarios.innerHTML = '<p style="color: red;">Nenhum horário disponível nesta data.</p>';
     }
   } catch (error) {
     console.error('Erro na API de Disponibilidade:', error);

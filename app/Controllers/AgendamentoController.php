@@ -5,19 +5,22 @@ require_once __DIR__ . '/../Models/Cliente.php';
 require_once __DIR__ . '/../Models/Funcionario.php';
 require_once __DIR__ . '/../Models/Disponibilidade.php';
 
-class AgendamentoController {
+class AgendamentoController
+{
 
     private $agendamentoService;
     private $clienteModel;
     private $funcionarioModel;
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->agendamentoService = new AgendamentoService();
         $this->clienteModel = new Cliente();
         $this->funcionarioModel = new Funcionario();
     }
 
-    public function carregarTelaCliente() {
+    public function carregarTelaCliente()
+    {
         // Verifica se o usuário comum está logado
         if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_tipo'] !== 'comum') {
             $_SESSION['flash_erro'] = "Faça login para agendar um horário.";
@@ -27,7 +30,7 @@ class AgendamentoController {
 
         // Busca os dados ativos no banco
         $servicoModel = new Servico();
-        
+
         // Busca os dados ativos no banco
         $servicos = $servicoModel->listarPorStatus('ativo');
 
@@ -38,7 +41,8 @@ class AgendamentoController {
      * Action: POST para /agendar (Cliente) ou /funcionario/agenda (Funcionário)
      * Responsável por receber os dados do form de agendamento.
      */
-    public function salvar() {
+    public function salvar()
+    {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             $_SESSION['flash_erro'] = "Método de requisição inválido.";
             header('Location: ' . BASE_URL . '/');
@@ -59,7 +63,7 @@ class AgendamentoController {
         // 2. Identificar quem está a fazer a ação através da sessão
         $id_usuario_logado = $_SESSION['usuario_id'];
         $tipo_usuario_logado = $_SESSION['usuario_tipo'];
-        
+
         $id_cliente = null;
         $id_funcionario_criador = null;
 
@@ -73,14 +77,14 @@ class AgendamentoController {
                 exit;
             }
             $id_cliente = $cliente['id_cliente'];
-            
+
         } else {
             // Um admin ou funcionário está a agendar para um cliente (via balcão)
             $id_cliente = $_POST['id_cliente'] ?? '';
-            
+
             if (empty($id_cliente)) {
                 $_SESSION['flash_erro'] = "É obrigatório selecionar um cliente para o agendamento.";
-                header('Location: ' . BASE_URL . '/funcionario/agenda'); 
+                header('Location: ' . BASE_URL . '/funcionario/agenda');
                 exit;
             }
 
@@ -93,21 +97,21 @@ class AgendamentoController {
 
         // 4. Chamar o Service com as regras de negócio pesadas
         $resultado = $this->agendamentoService->realizarAgendamento(
-            $id_cliente, 
-            $id_funcionario_prestador, 
-            $id_servico, 
-            $data, 
-            $hora_inicio, 
+            $id_cliente,
+            $id_funcionario_prestador,
+            $id_servico,
+            $data,
+            $hora_inicio,
             $id_funcionario_criador
         );
 
         // 5. Feedback Visual e Redirecionamento
         if ($resultado['sucesso']) {
             $_SESSION['flash_sucesso'] = $resultado['mensagem'];
-            
+
             // Redireciona para as novas rotas limpas
             if ($tipo_usuario_logado === 'comum') {
-                header('Location: ' . BASE_URL . '/historico'); 
+                header('Location: ' . BASE_URL . '/historico');
             } else {
                 header('Location: ' . BASE_URL . '/funcionario/agenda');
             }
@@ -122,7 +126,8 @@ class AgendamentoController {
      * Action: POST para /funcionario/agenda/status
      * Responsável por cancelar ou concluir um agendamento.
      */
-    public function alterarStatus() {
+    public function alterarStatus()
+    {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             $_SESSION['flash_erro'] = "Método inválido.";
             header('Location: ' . BASE_URL . '/');
@@ -151,7 +156,8 @@ class AgendamentoController {
     /**
      * Utilitário privado para garantir que o utilizador volta para a tela correta.
      */
-    private function redirecionarAposErro() {
+    private function redirecionarAposErro()
+    {
         if (isset($_SESSION['usuario_tipo']) && $_SESSION['usuario_tipo'] === 'comum') {
             header('Location: ' . BASE_URL . '/agendar');
         } else {
@@ -162,7 +168,8 @@ class AgendamentoController {
         exit;
     }
 
-    public function historicoCliente() {
+    public function historicoCliente()
+    {
         // 1. Verificação de Segurança
         if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_tipo'] !== 'comum') {
             header('Location: ' . BASE_URL . '/login');
@@ -209,10 +216,11 @@ class AgendamentoController {
         require_once __DIR__ . '/../../public/views/cliente/historico.php';
     }
 
-    public function agendaFuncionario() {
+    public function agendaFuncionario()
+    {
         $id_usuario = $_SESSION['usuario_id'];
         $funcionario = $this->funcionarioModel->buscarPorCodUsuario($id_usuario);
-        
+
         if (!$funcionario) {
             $_SESSION['flash_erro'] = "Perfil de funcionário não encontrado.";
             header('Location: ' . BASE_URL . '/login');
@@ -229,61 +237,101 @@ class AgendamentoController {
         $hoje = date('Y-m-d');
 
         // Lógica matemática infalível para ir buscar o Domingo desta semana (0 = Domingo)
-        $diaSemana = (int)$dataBase->format('w'); 
+        $diaSemana = (int) $dataBase->format('w');
         $domingoBase = clone $dataBase;
         $domingoBase->modify("-{$diaSemana} days");
 
-        $mesNome = Helpers::MESES[(int)$domingoBase->format('m')];
+        $mesNome = Helpers::MESES[(int) $domingoBase->format('m')];
         $ano = $domingoBase->format('Y');
 
         $agendamentoModel = new Agendamento();
         $agendamentoModel->cancelarPendentesExpirados();
 
-        // 2. ARQUITETURA: Cria o array de 7 dias perfeitinho para a View não se partir
-        $diasSemanaInfo = [];
-        $nomesDias = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-        
-        $loopData = clone $domingoBase;
-        for ($i = 0; $i < 7; $i++) {
-            $dataAtual = $loopData->format('Y-m-d');
-            $diasSemanaInfo[] = [
-                'data' => $dataAtual,
-                'nome' => $nomesDias[$i],
-                'dia_num' => $loopData->format('d'),
-                'is_today' => ($dataAtual === $hoje),
-                'agendamentos' => $agendamentoModel->listarAgendaFuncionario($funcionario['id_funcionario'], $dataAtual) ?: []
-            ];
-            $loopData->modify('+1 day'); // Avança para o dia seguinte
-        }
-
-        // 3. Dados para o Modal
+        // 2. Dados para o Modal
         $servicoModel = new Servico();
         $servicos = $servicoModel->listarPorStatus('ativo');
 
         $clientes = $this->clienteModel->listarTodos();
         $profissionais = $this->funcionarioModel->listarTodos();
 
-        // 4. Limites de horário do calendário baseados na disponibilidade
+        // 3. Limites de horário do calendário baseados na disponibilidade
         $disponibilidadeModel = new Disponibilidade();
         $gradeAtiva = $disponibilidadeModel->buscarGradeAtiva($funcionario['id_funcionario']);
-        
+
         $slotMinTime = '08:00:00';
         $slotMaxTime = '23:59:00';
-        
+
         if ($gradeAtiva) {
             $limites = $disponibilidadeModel->buscarLimitesHorarios($gradeAtiva['id_disponibilidade']);
             $slotMinTime = $limites['min'];
             $slotMaxTime = $limites['max'];
         }
 
+        // 4. Passa o id_funcionario para a View usar na chamada da API
+        $idFuncionarioLogado = $funcionario['id_funcionario'];
+
         require_once __DIR__ . '/../../public/views/funcionario/agendamentos.php';
+    }
+
+    /**
+     * API JSON: Retorna os agendamentos de um período para o FullCalendar carregar sob demanda.
+     * Chamado via GET: /api/agenda-eventos?start=YYYY-MM-DD&end=YYYY-MM-DD
+     */
+    public function apiEventos()
+    {
+        header('Content-Type: application/json');
+
+        if (!isset($_SESSION['usuario_id'])) {
+            echo json_encode([]);
+            exit;
+        }
+
+        $funcionario = $this->funcionarioModel->buscarPorCodUsuario($_SESSION['usuario_id']);
+        if (!$funcionario) {
+            echo json_encode([]);
+            exit;
+        }
+
+        date_default_timezone_set('America/Sao_Paulo');
+        $dataInicio = $_GET['start'] ?? date('Y-m-d');
+        $dataFim = $_GET['end'] ?? date('Y-m-d', strtotime('+7 days'));
+
+        $agendamentoModel = new Agendamento();
+        $agendamentos = $agendamentoModel->listarAgendaFuncionarioPeriodo(
+            $funcionario['id_funcionario'],
+            $dataInicio,
+            $dataFim
+        );
+
+        $eventos = [];
+        if ($agendamentos) {
+            foreach ($agendamentos as $ag) {
+                $eventos[] = [
+                    'id' => $ag['id_agendamento'],
+                    'title' => $ag['cliente_nome'] . "\n" . $ag['nome_servico'] . "\n👤 " . ($ag['profissional_nome'] ?? ''),
+                    'start' => $ag['data_agendamento'] . 'T' . $ag['hora_inicio'],
+                    'end' => $ag['data_agendamento'] . 'T' . $ag['hora_fim'],
+                    'className' => 'evento-' . $ag['status'],
+                    'extendedProps' => [
+                        'cliente' => $ag['cliente_nome'],
+                        'servico' => $ag['nome_servico'],
+                        'profissional' => $ag['profissional_nome'] ?? '',
+                        'status' => $ag['status']
+                    ]
+                ];
+            }
+        }
+
+        echo json_encode($eventos);
+        exit;
     }
 
     /**
      * Action: POST para /historico/cancelar
      * Responsável por cancelar um agendamento a pedido do próprio cliente.
      */
-    public function cancelarPeloCliente() {
+    public function cancelarPeloCliente()
+    {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             $_SESSION['flash_erro'] = "Método inválido.";
             header('Location: ' . BASE_URL . '/historico');
@@ -301,7 +349,7 @@ class AgendamentoController {
         // Validação de segurança
         $agendamentoModel = new Agendamento();
         $agendamento = $agendamentoModel->buscarPorId($id_agendamento);
-        
+
         $cliente = $this->clienteModel->buscarPorCodUsuario($_SESSION['usuario_id']);
 
         if (!$agendamento || !$cliente || $agendamento['cod_cliente'] !== $cliente['id_cliente']) {
@@ -332,7 +380,8 @@ class AgendamentoController {
         exit;
     }
 
-    public function historicoFuncionario() {
+    public function historicoFuncionario()
+    {
         if (!isset($_SESSION['usuario_id'])) {
             header('Location: ' . BASE_URL . '/login');
             exit;
@@ -340,14 +389,14 @@ class AgendamentoController {
 
         $id_usuario = $_SESSION['usuario_id'];
         $funcionarioLogado = $this->funcionarioModel->buscarPorCodUsuario($id_usuario);
-        
+
         if (!$funcionarioLogado && $_SESSION['usuario_tipo'] !== 'admin') {
             header('Location: ' . BASE_URL . '/login');
             exit;
         }
 
         $isAdmin = $_SESSION['usuario_tipo'] === 'admin';
-        
+
         $funcionarioIdParaBuscar = null;
 
         if ($isAdmin && isset($_GET['id_funcionario']) && !empty($_GET['id_funcionario'])) {
@@ -361,7 +410,7 @@ class AgendamentoController {
         $agendamentoModel = new Agendamento();
         $agendamentoModel->cancelarPendentesExpirados();
         $agendamentos = [];
-        
+
         // Se for admin e não tiver selecionado ninguém (ou não tiver perfil de funcionário), e a intenção for mostrar todos:
         // Neste caso, a query tratará id_funcionario = null como buscar todos
         // Mas se quisermos que a tela inicial sem id selecione o próprio perfil ou fique vazia?

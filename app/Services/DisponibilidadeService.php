@@ -211,16 +211,18 @@ class DisponibilidadeService extends BaseService {
     }
 
     private function filtrarHorariosValidos($slots, $agendamentos, $dataDesejada, $duracaoServico, $antecedenciaHoras = 0) {
-        $hoje = date('Y-m-d');
+        $agora = new DateTime();
+        $limiteAntecedencia = (clone $agora)->modify("+{$antecedenciaHoras} hours");
         
-        // Aplica a antecedência configurada pelo funcionário (ex: só aceita reserva para daqui a 5 horas)
-        $horaAtual = date('H:i', strtotime("+{$antecedenciaHoras} hours"));
-        
-        $isHoje = ($dataDesejada === $hoje);
         $horariosFiltrados = [];
 
         foreach ($slots as $slot) {
-            if ($isHoje && $slot <= $horaAtual) { continue; }
+            $dataHoraSlot = new DateTime($dataDesejada . ' ' . $slot);
+            
+            // Se o horário do slot for no passado ou dentro do período de antecedência exigido, bloqueia
+            if ($dataHoraSlot <= $limiteAntecedencia) { 
+                continue; 
+            }
 
             $conflito = false;
             $inicioNovo = strtotime($slot);
