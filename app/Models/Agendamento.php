@@ -400,14 +400,19 @@ class Agendamento extends BaseModel {
                 FROM agendamentos a
                 INNER JOIN itens_agendamento ia ON a.id_agendamento = ia.cod_agendamento
                 INNER JOIN funcionario_servicos fs ON ia.cod_sv_func = fs.id_sv_funcionario
-                WHERE fs.cod_funcionario = :id_func
-                  AND a.data_agendamento BETWEEN :data_inicio AND :data_fim";
+                WHERE a.data_agendamento BETWEEN :data_inicio AND :data_fim";
 
-        return $this->executarQuery($sql, [
-            ':id_func' => $idFuncionario,
+        $params = [
             ':data_inicio' => $dataInicio,
             ':data_fim' => $dataFim
-        ], 'unico');
+        ];
+
+        if (!empty($idFuncionario) && $idFuncionario !== 'todos') {
+            $sql .= " AND fs.cod_funcionario = :id_func";
+            $params[':id_func'] = $idFuncionario;
+        }
+
+        return $this->executarQuery($sql, $params, 'unico');
     }
 
     /**
@@ -419,17 +424,22 @@ class Agendamento extends BaseModel {
                 FROM agendamentos a
                 INNER JOIN itens_agendamento ia ON a.id_agendamento = ia.cod_agendamento
                 INNER JOIN funcionario_servicos fs ON ia.cod_sv_func = fs.id_sv_funcionario
-                WHERE fs.cod_funcionario = :id_func
-                  AND a.data_agendamento BETWEEN :data_inicio AND :data_fim
-                  AND a.status = 'concluido'
-                GROUP BY ia.nome_servico_registrado
-                ORDER BY quantidade DESC";
+                WHERE a.data_agendamento BETWEEN :data_inicio AND :data_fim
+                  AND a.status = 'concluido'";
 
-        return $this->executarQuery($sql, [
-            ':id_func' => $idFuncionario,
+        $params = [
             ':data_inicio' => $dataInicio,
             ':data_fim' => $dataFim
-        ], 'todos');
+        ];
+
+        if (!empty($idFuncionario) && $idFuncionario !== 'todos') {
+            $sql .= " AND fs.cod_funcionario = :id_func";
+            $params[':id_func'] = $idFuncionario;
+        }
+
+        $sql .= " GROUP BY ia.nome_servico_registrado ORDER BY quantidade DESC";
+
+        return $this->executarQuery($sql, $params, 'todos');
     }
 
     /**
@@ -443,16 +453,49 @@ class Agendamento extends BaseModel {
                 INNER JOIN usuarios u ON c.cod_usuario = u.id_usuario
                 INNER JOIN itens_agendamento ia ON a.id_agendamento = ia.cod_agendamento
                 INNER JOIN funcionario_servicos fs ON ia.cod_sv_func = fs.id_sv_funcionario
-                WHERE fs.cod_funcionario = :id_func
-                  AND a.data_agendamento BETWEEN :data_inicio AND :data_fim
-                  AND a.status = 'concluido'
-                GROUP BY c.id_cliente, u.nome
-                ORDER BY frequencia DESC";
+                WHERE a.data_agendamento BETWEEN :data_inicio AND :data_fim
+                  AND a.status = 'concluido'";
 
-        return $this->executarQuery($sql, [
-            ':id_func' => $idFuncionario,
+        $params = [
             ':data_inicio' => $dataInicio,
             ':data_fim' => $dataFim
-        ], 'todos');
+        ];
+
+        if (!empty($idFuncionario) && $idFuncionario !== 'todos') {
+            $sql .= " AND fs.cod_funcionario = :id_func";
+            $params[':id_func'] = $idFuncionario;
+        }
+
+        $sql .= " GROUP BY c.id_cliente, u.nome ORDER BY frequencia DESC";
+
+        return $this->executarQuery($sql, $params, 'todos');
+    }
+
+    /**
+     * Retorna o faturamento e volume de atendimentos dia a dia (Para o Chart.js)
+     */
+    public function relatorioFaturamentoDiario($idFuncionario, $dataInicio, $dataFim) {
+        $sql = "SELECT a.data_agendamento as data,
+                       SUM(ia.preco_cobrado) AS faturamento,
+                       COUNT(ia.id_item) AS atendimentos
+                FROM agendamentos a
+                INNER JOIN itens_agendamento ia ON a.id_agendamento = ia.cod_agendamento
+                INNER JOIN funcionario_servicos fs ON ia.cod_sv_func = fs.id_sv_funcionario
+                WHERE a.data_agendamento BETWEEN :data_inicio AND :data_fim
+                  AND a.status = 'concluido'";
+                  
+        $params = [
+            ':data_inicio' => $dataInicio,
+            ':data_fim' => $dataFim
+        ];
+
+        if (!empty($idFuncionario) && $idFuncionario !== 'todos') {
+            $sql .= " AND fs.cod_funcionario = :id_func";
+            $params[':id_func'] = $idFuncionario;
+        }
+
+        $sql .= " GROUP BY a.data_agendamento ORDER BY a.data_agendamento ASC";
+
+        return $this->executarQuery($sql, $params, 'todos');
     }
 }

@@ -82,12 +82,57 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         .estado-vazio .icone { font-size: 3rem; margin-bottom: 1rem; }
         .estado-vazio p { font-size: 1.1rem; }
 
-        /* PDF: esconder botões e ajustar cores */
+        .btn-filtro-rapido {
+            background: none; border: 1px solid var(--color-purple); color: var(--color-purple);
+            padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .btn-filtro-rapido:hover { background: var(--color-purple); color: white; }
+        
+        .chart-container {
+            background: var(--surface-color); border-radius: var(--radius-lg); padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06); margin-bottom: 2rem;
+            height: 350px;
+        }
+
+        /* PDF Nativo (window.print) */
         @media print {
-            .filtro-form, .btn-exportar, .sidebar, .topbar, .sidebar-overlay { display: none !important; }
-            .main-wrapper { margin-left: 0 !important; }
-            body { background: white !important; }
-            .metrica-card, .base-card { box-shadow: none !important; border: 1px solid #e2e8f0; }
+            @page { margin: 10mm; size: A4 portrait; }
+            
+            html, body, .main-wrapper, #area-relatorio { 
+                background: white !important; color: black !important; 
+                margin: 0 !important; padding: 0 !important; 
+                width: 100% !important; max-width: 100% !important;
+                min-height: 0 !important; height: auto !important; 
+                overflow: visible !important;
+            }
+            
+            /* Remove margins from the page edges that might push a blank page */
+            body::after, .main-wrapper::after { display: none !important; }
+            
+            .filtro-form, .btn-exportar, .sidebar, .topbar, .sidebar-overlay, .btn-filtro-rapido { display: none !important; }
+            
+            .metricas-grid { display: flex !important; flex-wrap: wrap !important; gap: 10px !important; margin-bottom: 1.5rem !important; }
+            .metrica-card { flex: 1 1 45% !important; box-shadow: none !important; border: 1px solid #ddd !important; break-inside: avoid; page-break-inside: avoid; padding: 1rem !important; margin-bottom: 0 !important; }
+            
+            .chart-container { 
+                box-shadow: none !important; border: 1px solid #ddd !important; 
+                break-inside: avoid; page-break-inside: avoid; 
+                height: 280px !important; margin-bottom: 1.5rem !important; 
+                width: 100% !important; padding: 10px !important;
+            }
+            
+            /* Ocultar canvas e mostrar imagem no PDF */
+            canvas#faturamentoChart { display: none !important; }
+            img#chart-print-img { display: block !important; width: 100% !important; height: 100% !important; object-fit: contain !important; }
+
+            
+            .base-card { box-shadow: none !important; border: 1px solid #ddd !important; break-inside: avoid; page-break-inside: avoid; margin-bottom: 1.5rem !important; }
+            
+            .secao-relatorio:last-child { margin-bottom: 0 !important; }
+            .secao-relatorio:last-child .base-card { margin-bottom: 0 !important; }
+            
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
         }
     </style>
 </head>
@@ -108,6 +153,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
             <label>Funcionário</label>
             <select name="id_funcionario" required>
                 <option value="">Selecione...</option>
+                <option value="todos" <?= ($idFuncionario === 'todos') ? 'selected' : '' ?>>🌟 Visão Geral do Salão</option>
                 <?php foreach ($listaFuncionarios as $func): ?>
                     <option value="<?= $func['id_funcionario'] ?>" <?= ($idFuncionario == $func['id_funcionario']) ? 'selected' : '' ?>>
                         <?= htmlspecialchars($func['nome']) ?>
@@ -121,13 +167,23 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         </div>
         <div class="form-group">
             <label>Data Fim</label>
-            <input type="date" name="data_fim" value="<?= htmlspecialchars($dataFim) ?>" required>
+            <input type="date" name="data_fim" id="data_fim" value="<?= htmlspecialchars($dataFim) ?>" required>
         </div>
+        
+        <div style="flex-basis: 100%; display: flex; gap: 0.5rem; margin-top: -0.5rem;">
+            <button type="button" class="btn-filtro-rapido" onclick="setFiltroData('hoje')">Hoje</button>
+            <button type="button" class="btn-filtro-rapido" onclick="setFiltroData('semana')">Esta Semana</button>
+            <button type="button" class="btn-filtro-rapido" onclick="setFiltroData('mes')">Este Mês</button>
+        </div>
+
         <button type="submit" class="btn-gerar">📊 Gerar Relatório</button>
 
         <?php if ($metricas): ?>
             <button type="button" class="btn-exportar" onclick="exportarPDF()">
                 <i class="bi bi-file-earmark-pdf"></i> Exportar PDF
+            </button>
+            <button type="button" class="btn-exportar" style="background: #10b981;" onclick="exportarCSV()">
+                <i class="bi bi-file-earmark-spreadsheet"></i> Exportar CSV
             </button>
         <?php endif; ?>
     </form>
@@ -175,6 +231,15 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                     <div class="metrica-sub"><?= $totalCancelados ?> cancelado(s) de <?= $totalGeral ?> total</div>
                 </div>
             </div>
+
+            <!-- GRÁFICO DE FATURAMENTO DIÁRIO -->
+            <?php if (!empty($dadosDiarios)): ?>
+            <div class="chart-container" style="position: relative;">
+                <canvas id="faturamentoChart"></canvas>
+                <!-- A imagem fica invisível na tela normal, mas o CSS de impressão troca ela pelo canvas -->
+                <img id="chart-print-img" src="" style="display: none; pointer-events: none;" alt="Grafico">
+            </div>
+            <?php endif; ?>
 
             <!-- RANKING DE SERVIÇOS -->
             <div class="secao-relatorio">
@@ -253,30 +318,122 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
 
     <script src="<?= BASE_URL ?>/public/resources/js/admin.js"></script>
 
-    <!-- html2pdf.js para exportação PDF -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- Chart.js para gráficos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
     <script>
-        function exportarPDF() {
-            const area = document.getElementById('area-relatorio');
-            const nomeFunc = document.querySelector('.page-title h2')?.textContent || 'Relatorio';
+        // FILTROS RÁPIDOS DE DATA
+        function setFiltroData(tipo) {
+            const dataInicio = document.querySelector('input[name="data_inicio"]');
+            const dataFim = document.querySelector('input[name="data_fim"]');
+            const hoje = new Date();
             
-            const opt = {
-                margin:       [10, 10, 10, 10],
-                filename:     'relatorio_desempenho.pdf',
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true },
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-                pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
-            };
+            if (tipo === 'hoje') {
+                const hj = hoje.toISOString().split('T')[0];
+                dataInicio.value = hj;
+                dataFim.value = hj;
+            } else if (tipo === 'semana') {
+                const primeiroDia = new Date(hoje.setDate(hoje.getDate() - hoje.getDay()));
+                const ultimoDia = new Date(hoje.setDate(hoje.getDate() - hoje.getDay() + 6));
+                dataInicio.value = primeiroDia.toISOString().split('T')[0];
+                dataFim.value = ultimoDia.toISOString().split('T')[0];
+            } else if (tipo === 'mes') {
+                const primeiroDia = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+                const ultimoDia = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
+                dataInicio.value = primeiroDia.toISOString().split('T')[0];
+                dataFim.value = ultimoDia.toISOString().split('T')[0];
+            }
+        }
 
-            // Temporariamente força cores claras para o PDF ficar legível
-            const html = document.documentElement;
-            const temaAtual = html.getAttribute('data-theme');
-            html.removeAttribute('data-theme');
+        // GRÁFICO DE FATURAMENTO DIÁRIO (Chart.js)
+        let faturamentoChartInstance = null;
 
-            html2pdf().set(opt).from(area).save().then(() => {
-                if (temaAtual) html.setAttribute('data-theme', temaAtual);
+        <?php if (!empty($dadosDiarios)): ?>
+        document.addEventListener("DOMContentLoaded", function() {
+            const ctx = document.getElementById('faturamentoChart').getContext('2d');
+            const dadosPhp = <?= json_encode($dadosDiarios) ?>;
+            
+            const labels = dadosPhp.map(d => {
+                const p = d.data.split('-');
+                return `${p[2]}/${p[1]}`; // DD/MM
             });
+            const dadosFaturamento = dadosPhp.map(d => parseFloat(d.faturamento));
+            
+            faturamentoChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Faturamento Bruto Diário (R$)',
+                        data: dadosFaturamento,
+                        borderColor: '#8b5cf6',
+                        backgroundColor: 'rgba(139, 92, 246, 0.2)',
+                        borderWidth: 3,
+                        pointBackgroundColor: '#ec4899',
+                        pointRadius: 4,
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: false, // Desativa a animação para garantir renderização imediata
+                    plugins: {
+                        legend: { position: 'top' },
+                        title: { display: true, text: 'Evolução de Faturamento no Período' }
+                    },
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+
+            // Após renderizar o gráfico, tira a "foto" em Base64 para ficar aguardando a impressão
+            setTimeout(() => {
+                const img = document.getElementById('chart-print-img');
+                if (img && faturamentoChartInstance) {
+                    img.src = faturamentoChartInstance.toBase64Image();
+                }
+            }, 800);
+        });
+        <?php endif; ?>
+
+        // EXPORTAR PARA CSV (EXCEL)
+        function exportarCSV() {
+            // O \uFEFF é crucial para o Excel reconhecer os acentos (UTF-8 com BOM)
+            let csv = '\uFEFFRelatório de Desempenho\n\n';
+            
+            // Usando Ponto e Vírgula (;) ao invés de vírgula, pois é o padrão do Excel BR
+            csv += 'Métricas Gerais\n';
+            csv += `Atendimentos Concluídos;<?= $totalConcluidos ?? 0 ?>\n`;
+            csv += `Faturamento Bruto;R$ <?= number_format($faturamentoBruto ?? 0, 2, ',', '') ?>\n`;
+            csv += `Ticket Médio;R$ <?= number_format($ticketMedio ?? 0, 2, ',', '') ?>\n`;
+            csv += `Taxa de Cancelamento (%);<?= number_format($taxaCancelamento ?? 0, 1, ',', '') ?>%\n\n`;
+
+            // Ranking
+            csv += 'Ranking de Serviços\n';
+            csv += 'Serviço;Quantidade\n';
+            <?php if (!empty($rankingServicos)): ?>
+                <?php foreach($rankingServicos as $srv): ?>
+                    csv += `"<?= $srv['nome_servico'] ?>";<?= $srv['quantidade'] ?>\n`;
+                <?php endforeach; ?>
+            <?php endif; ?>
+
+            // Download
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", "relatorio_desempenho.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function exportarPDF() {
+            // Usa o motor nativo do Google Chrome/Navegador para salvar como PDF (muito superior e sem bugs de layout)
+            window.print();
         }
     </script>
 </body>

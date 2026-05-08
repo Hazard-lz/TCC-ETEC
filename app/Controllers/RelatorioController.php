@@ -33,12 +33,24 @@ class RelatorioController {
         $retencaoClientes = [];
         $funcionarioSelecionado = null;
 
+        $dadosDiarios = [];
+
         // Só executa as queries se os filtros estiverem completos
         if (!empty($idFuncionario) && !empty($dataInicio) && !empty($dataFim)) {
-            $funcionarioSelecionado = $this->funcionarioModel->buscarPorId($idFuncionario);
+            
+            if ($idFuncionario === 'todos') {
+                $funcionarioSelecionado = [
+                    'nome' => 'Visão Geral do Salão',
+                    'especialidade' => 'Todos os Profissionais'
+                ];
+            } else {
+                $funcionarioSelecionado = $this->funcionarioModel->buscarPorId($idFuncionario);
+            }
+
             $metricas = $this->agendamentoModel->relatorioDesempenho($idFuncionario, $dataInicio, $dataFim);
             $rankingServicos = $this->agendamentoModel->relatorioServicosPorFuncionario($idFuncionario, $dataInicio, $dataFim);
             $retencaoClientes = $this->agendamentoModel->relatorioClientesPorFuncionario($idFuncionario, $dataInicio, $dataFim);
+            $dadosDiarios = $this->agendamentoModel->relatorioFaturamentoDiario($idFuncionario, $dataInicio, $dataFim);
 
             // Cálculos derivados
             $totalConcluidos = (int) ($metricas['total_concluidos'] ?? 0);
