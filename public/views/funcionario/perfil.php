@@ -48,6 +48,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
     <div class="base-card" style="max-width: 800px; padding: 2rem;">
         
         <form id="formPerfilFuncionario" action="<?= BASE_URL ?? '' ?>/funcionario/perfil/salvar" method="POST">
+                                        <?= CsrfGuard::campoHidden() ?>
             
             <h3 class="section-title" style="margin-top: 0;">Dados Pessoais e Acesso</h3>
             <div class="form-grid">

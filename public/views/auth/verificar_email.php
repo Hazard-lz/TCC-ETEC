@@ -45,6 +45,7 @@ if (!isset($_SESSION['email_verificacao'])) {
             ?>
 
             <form action="<?= BASE_URL ?>/verificar-email/validar" method="POST">
+                                        <?= CsrfGuard::campoHidden() ?>
                 <div class="form-group" style="text-align: center;">
                     <label for="codigo" style="text-align: left; display: block;">Código de Verificação</label>
                     <input type="text" id="codigo" name="codigo" class="form-control" placeholder="000000" maxlength="6" style="font-size: 1.5rem; letter-spacing: 10px; text-align: center; font-weight: bold;" required>
@@ -54,6 +55,7 @@ if (!isset($_SESSION['email_verificacao'])) {
             </form>
 
             <form id="formReenviar" action="<?= BASE_URL ?>/verificar-email/reenviar" method="POST">
+                                        <?= CsrfGuard::campoHidden() ?>
                 <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0; text-align: center;">
                     Não recebeu o e-mail? <br>
                     <button id="btnReenviar" type="submit" style="background: none; border: none; color: var(--color-purple); font-weight: bold; text-decoration: underline; cursor: pointer; padding: 5px; margin-top: 5px; transition: all 0.3s;">

@@ -36,6 +36,7 @@
             ?>
 
             <form action="<?= BASE_URL ?>/setup-funcionario/salvar" method="POST" class="login-form">
+                                        <?= CsrfGuard::campoHidden() ?>
                 
                 <input type="hidden" name="email" value="<?= htmlspecialchars($email ?? '') ?>">
                 <input type="hidden" name="token" value="<?= htmlspecialchars($token ?? '') ?>">

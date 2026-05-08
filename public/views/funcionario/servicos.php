@@ -134,6 +134,7 @@ if ($dadosFunc) {
                 <input type="text" class="form-control input-pesquisa-tabela" placeholder="Pesquisar serviço..." id="pesquisaServicos">
             </div>
             <form action="<?= BASE_URL ?>/funcionario/servicos/salvar" method="POST">
+                                        <?= CsrfGuard::campoHidden() ?>
                 
                 <div class="servicos-grid" id="listaServicos">
                     <?php foreach ($todosServicos as $servico): ?>

@@ -50,6 +50,7 @@ if (!isset($_SESSION['usuario_id'])) {
 
                     <!-- ══ COLUNA ESQUERDA: STEPPER + FORM ══ -->
                     <form action="<?= BASE_URL ?>/agendar" method="POST" id="formWizardAgendamento" class="agendar-form-col">
+                                        <?= CsrfGuard::campoHidden() ?>
 
                         <!-- Inputs ocultos -->
                         <input type="hidden" name="id_servico" id="servico_id" required>

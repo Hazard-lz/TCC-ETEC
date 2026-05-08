@@ -31,7 +31,10 @@ try {
             $horaFormatada = substr($agendamento['hora_inicio'], 0, 5); // 09:30:00 -> 09:30
             $mensagem = "Não esqueça seu agendamento amanhã às " . $horaFormatada . ".";
             
-            $retorno = $oneSignal->enviarNotificacao($agendamento['cliente_cod_usuario'], $mensagem, 'http://localhost/TCC-ETEC/historico');
+            $appUrl = getenv('APP_URL') ?: 'http://localhost'; // Defina APP_URL no .env
+            $urlDestino = rtrim($appUrl, '/') . '/historico';
+
+            $retorno = $oneSignal->enviarNotificacao($agendamento['cliente_cod_usuario'], $mensagem, $urlDestino);
             
             echo "Notificando Usuario {$agendamento['cliente_cod_usuario']} (Ag. ID: {$agendamento['id_agendamento']}) => Code HTTP: " . $retorno['http_code'] . "\n";
             $sucessos++;

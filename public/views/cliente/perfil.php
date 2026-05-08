@@ -82,6 +82,7 @@
                                     <?php endif; ?>
 
                                     <form id="formDados" action="<?= BASE_URL ?>/perfil/salvar/dados" method="POST">
+                                        <?= CsrfGuard::campoHidden() ?>
                                         <div class="form-group">
                                             <label for="nome">Nome Completo</label>
                                             <input type="text" id="nome" name="nome" class="form-control" value="<?= htmlspecialchars($clienteNome) ?>" required>
@@ -119,6 +120,7 @@
                                     <?php endif; ?>
 
                                     <form id="formSenha" action="<?= BASE_URL ?>/auth/trocarSenha" method="POST">
+                                        <?= CsrfGuard::campoHidden() ?>
                                         <div class="form-group">
                                             <label for="senha_atual">Senha Atual</label>
                                             <input type="password" id="senha_atual" name="senha_atual" class="form-control" placeholder="Digite sua senha atual" required>

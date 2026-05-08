@@ -95,6 +95,7 @@ $isGerencia = in_array($tipoUsuario, ['admin', 'subadmin']);
                                         <?php if ($isGerencia): ?>
                                             <form action="<?= BASE_URL ?>/cliente/alterar-status" method="POST"
                                                 style="display:inline;">
+                                        <?= CsrfGuard::campoHidden() ?>
                                                 <input type="hidden" name="cod_usuario" value="<?= $cli['cod_usuario'] ?>">
                                                 <input type="hidden" name="status_atual" value="<?= $cli['status'] ?>">
 
@@ -128,6 +129,7 @@ $isGerencia = in_array($tipoUsuario, ['admin', 'subadmin']);
             </div>
             <div class="modal-body">
                 <form id="formCliente" action="<?= BASE_URL ?>/cliente/salvar" method="POST">
+                                        <?= CsrfGuard::campoHidden() ?>
                     <input type="hidden" id="id_cliente" name="id_cliente" value="">
                     <input type="hidden" id="id_usuario" name="id_usuario" value="">
 

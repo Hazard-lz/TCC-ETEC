@@ -30,6 +30,7 @@
             ?>
 
             <form id="cadastroForm" action="<?= BASE_URL ?>/cadastro/salvar" method="POST" class="login-form">
+                                        <?= CsrfGuard::campoHidden() ?>
 
                 <div class="form-group">
                     <label for="nome">Nome Completo</label>

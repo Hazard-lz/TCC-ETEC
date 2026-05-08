@@ -38,7 +38,9 @@ CsrfGuard::gerarToken();
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-define('BASE_URL', '/TCC-ETEC');
+// Detecta o BASE_URL dinamicamente (útil para raiz vs subpasta)
+$scriptDir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));
+define('BASE_URL', rtrim($scriptDir, '/'));
 
 // =========================================================================
 // AUTO-CONCLUSÃO: Agendamentos "marcados" há mais de 7 dias viram "concluido"

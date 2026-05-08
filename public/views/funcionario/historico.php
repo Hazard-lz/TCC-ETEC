@@ -103,7 +103,7 @@ $isGerencia = in_array($tipoUsuario, ['admin', 'subadmin']);
                 <p>Nenhum agendamento futuro encontrado.</p>
             </div>
         <?php endif; ?>
-        <div class="pagination-controls" id="pagination-proximos" style="display: none; justify-content: center; gap: 1rem; margin-top: 2rem;">
+        <div class="pagination-controls" id="pagination-proximos" style="display: none; justify-content: center; gap: 1rem; margin-top: 2rem; grid-column: 1 / -1; width: 100%;">
             <button class="btn-secondary" onclick="mudarPagina('proximos', -1)">Anterior</button>
             <span style="display: flex; align-items: center; color: var(--text-muted);" id="page-info-proximos">Página 1</span>
             <button class="btn-secondary" onclick="mudarPagina('proximos', 1)">Próxima</button>
@@ -138,7 +138,7 @@ $isGerencia = in_array($tipoUsuario, ['admin', 'subadmin']);
                 <p>Nenhum histórico passado encontrado.</p>
             </div>
         <?php endif; ?>
-        <div class="pagination-controls" id="pagination-anteriores" style="display: none; justify-content: center; gap: 1rem; margin-top: 2rem;">
+        <div class="pagination-controls" id="pagination-anteriores" style="display: none; justify-content: center; gap: 1rem; margin-top: 2rem; grid-column: 1 / -1; width: 100%;">
             <button class="btn-secondary" onclick="mudarPagina('anteriores', -1)">Anterior</button>
             <span style="display: flex; align-items: center; color: var(--text-muted);" id="page-info-anteriores">Página 1</span>
             <button class="btn-secondary" onclick="mudarPagina('anteriores', 1)">Próxima</button>

@@ -39,6 +39,7 @@
             ?>
 
             <form action="<?= BASE_URL ?>/auth/redefinirSenha" method="POST" class="login-form">
+                                        <?= CsrfGuard::campoHidden() ?>
                 
                 <div class="form-group">
                     <label for="codigo">Código de Verificação</label>
@@ -61,6 +62,7 @@
             </form>
 
             <form id="formReenviarRecuperacao" action="<?= BASE_URL ?>/auth/reenviar-codigo-recuperacao" method="POST">
+                                        <?= CsrfGuard::campoHidden() ?>
                 <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0; text-align: center;">
                     Não recebeu o e-mail? <br>
                     <button id="btnReenviarRecuperacao" type="submit" style="background: none; border: none; color: var(--color-purple); font-weight: bold; text-decoration: underline; cursor: pointer; padding: 5px; margin-top: 5px; transition: all 0.3s;">

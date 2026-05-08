@@ -32,6 +32,7 @@
             ?>
 
             <form action="<?= BASE_URL ?>/auth/esqueciSenha" method="POST" class="login-form">
+                                        <?= CsrfGuard::campoHidden() ?>
                 
                 <div class="form-group">
                     <label for="email">E-mail</label>

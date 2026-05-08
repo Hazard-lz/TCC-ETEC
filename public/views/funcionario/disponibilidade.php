@@ -135,6 +135,7 @@ $mostrarBotaoEditar = (!$isNovaGrade && !empty($idDisponibilidade)) ? 'block' : 
                 <label style="font-weight: bold; color: var(--text-main);">Grade Visualizada:</label>
                 
                 <form action="<?= BASE_URL ?>/funcionario/disponibilidade/selecionar" method="POST" style="margin: 0; display: flex; gap: 15px;">
+                                        <?= CsrfGuard::campoHidden() ?>
                     <select name="grade_selecionada" class="form-control form-select" style="width: auto; min-width: 250px;" onchange="this.form.submit()">
                         <?php if(empty($todasGrades)): ?>
                             <option value="">Nenhuma grade criada</option>
@@ -149,6 +150,7 @@ $mostrarBotaoEditar = (!$isNovaGrade && !empty($idDisponibilidade)) ? 'block' : 
                 </form>
                 
                 <form action="<?= BASE_URL ?>/funcionario/disponibilidade/selecionar" method="POST" style="margin: 0;">
+                                        <?= CsrfGuard::campoHidden() ?>
                     <input type="hidden" name="grade_selecionada" value="nova">
                     <button type="submit" class="btn-secondary">+ Nova Grade</button>
                 </form>
@@ -157,6 +159,7 @@ $mostrarBotaoEditar = (!$isNovaGrade && !empty($idDisponibilidade)) ? 'block' : 
             <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                 <?php if(!empty($idDisponibilidade) && !$isNovaGrade): ?>
                     <form action="<?= BASE_URL ?>/funcionario/disponibilidade/salvar_antecedencia" method="POST" class="antecedencia-form">
+                                        <?= CsrfGuard::campoHidden() ?>
                         <input type="hidden" name="id_disponibilidade" value="<?= $idDisponibilidade ?>">
                         <label>Antecedência <small>(Horas)</small>:</label>
                         <input type="number" name="antecedencia_horas" value="<?= htmlspecialchars($antecedenciaHorasAtual) ?>" min="0" max="24" class="form-control" title="Bloqueia agendamentos de última hora nesta grade.">
@@ -166,6 +169,7 @@ $mostrarBotaoEditar = (!$isNovaGrade && !empty($idDisponibilidade)) ? 'block' : 
                 
                 <?php if(!empty($idDisponibilidade) && !$isGradeAtiva): ?>
                     <form action="<?= BASE_URL ?>/funcionario/disponibilidade/ativar" method="POST" style="margin: 0;">
+                                        <?= CsrfGuard::campoHidden() ?>
                         <input type="hidden" name="id_disponibilidade" value="<?= $idDisponibilidade ?>">
                         <button type="submit" class="btn-ativar-grade">Ativar Grade</button>
                     </form>
@@ -223,6 +227,7 @@ $mostrarBotaoEditar = (!$isNovaGrade && !empty($idDisponibilidade)) ? 'block' : 
                     <?php endif; ?>
 
                     <form action="<?= BASE_URL ?>/funcionario/disponibilidade/salvar" method="POST" onsubmit="return confirmarSalvamento(event)">
+                                        <?= CsrfGuard::campoHidden() ?>
                         <input type="hidden" name="id_disponibilidade" value="<?= htmlspecialchars($idDisponibilidade) ?>">
                         <input type="hidden" name="antecedencia_horas" value="<?= htmlspecialchars($antecedenciaHorasAtual) ?>">
 
@@ -292,11 +297,13 @@ $mostrarBotaoEditar = (!$isNovaGrade && !empty($idDisponibilidade)) ? 'block' : 
 
         <?php if (!empty($idDisponibilidade)): ?>
         <form id="form-excluir" action="<?= BASE_URL ?>/funcionario/disponibilidade/excluir" method="POST" style="display: none;">
+                                        <?= CsrfGuard::campoHidden() ?>
             <input type="hidden" name="id_disponibilidade" value="<?= $idDisponibilidade ?>">
         </form>
         <?php endif; ?>
         
         <form id="form-cancelar" action="<?= BASE_URL ?>/funcionario/disponibilidade/selecionar" method="POST" style="display: none;">
+                                        <?= CsrfGuard::campoHidden() ?>
             <input type="hidden" name="grade_selecionada" value="">
         </form>
 

@@ -174,6 +174,7 @@ if (session_status() === PHP_SESSION_NONE) {
             </div>
             <div class="modal-body">
                 <form id="formAgendamento" action="<?= BASE_URL ?>/funcionario/agenda" method="POST">
+                    <?= CsrfGuard::campoHidden() ?>
                     <div class="form-group">
                         <label>Cliente</label>
                         <select name="id_cliente" class="form-control" required>
@@ -247,12 +248,14 @@ if (session_status() === PHP_SESSION_NONE) {
                 <div id="areaAcoes" style="margin-top: 1.5rem; display: flex; gap: 0.5rem; flex-direction: column;">
                     <div id="boxAcoesPendente" style="display: none; gap: 0.5rem;">
                         <form action="<?= BASE_URL ?>/funcionario/agenda/status" method="POST" style="flex:1">
+                            <?= CsrfGuard::campoHidden() ?>
                             <input type="hidden" name="id_agendamento" class="inputIdAgendamento">
                             <input type="hidden" name="novo_status" value="marcado">
                             <button type="submit" class="btn-primary"
                                 style="background: #10b981; width: 100%;">Confirmar</button>
                         </form>
                         <form action="<?= BASE_URL ?>/funcionario/agenda/status" method="POST" style="flex:1">
+                            <?= CsrfGuard::campoHidden() ?>
                             <input type="hidden" name="id_agendamento" class="inputIdAgendamento">
                             <input type="hidden" name="novo_status" value="cancelado">
                             <button type="submit" class="btn-primary"
@@ -262,12 +265,14 @@ if (session_status() === PHP_SESSION_NONE) {
 
                     <div id="boxAcoesMarcado" style="display: none; gap: 0.5rem;">
                         <form action="<?= BASE_URL ?>/funcionario/agenda/status" method="POST" style="flex:1">
+                            <?= CsrfGuard::campoHidden() ?>
                             <input type="hidden" name="id_agendamento" class="inputIdAgendamento">
                             <input type="hidden" name="novo_status" value="concluido">
                             <button type="submit" class="btn-primary" style="background: #3b82f6; width: 100%;">Concluir
                                 Atendimento</button>
                         </form>
                         <form action="<?= BASE_URL ?>/funcionario/agenda/status" method="POST" style="flex:1">
+                            <?= CsrfGuard::campoHidden() ?>
                             <input type="hidden" name="id_agendamento" class="inputIdAgendamento">
                             <input type="hidden" name="novo_status" value="cancelado">
                             <button type="submit" class="btn-primary" style="background: #ef4444; width: 100%;"
@@ -345,7 +350,7 @@ if (session_status() === PHP_SESSION_NONE) {
                     const selectHora = document.getElementById('hora');
 
                     if (func && serv && data) {
-                        selectHora.innerHTML = '<option>A carregar...</option>';
+                        selectHora.innerHTML = '<option>Carregando...</option>';
                         fetch("<?= BASE_URL ?>/api/horarios-livres", {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },

@@ -136,8 +136,28 @@ function iniciarEventosLayout() {
     const btnProfile = document.getElementById('btnProfileDropdown');
     const profileMenu = document.getElementById('profileMenu');
 
-    // 0. Relógio da Sidebar
+    // 0. Relógio da Sidebar e Restauração de Scroll
     iniciarRelogio();
+    
+    if (sidebar) {
+        // Restaura a posição do scroll que estava antes de mudar de página
+        const savedScroll = sessionStorage.getItem('belezou_sidebar_scroll');
+        if (savedScroll) {
+            // Tenta aplicar o scroll tanto no container principal quanto na lista caso ela tenha overflow
+            sidebar.scrollTop = savedScroll;
+            const nav = sidebar.querySelector('.sidebar-nav');
+            if (nav) nav.scrollTop = savedScroll;
+        }
+
+        // Salva a posição exata do scroll antes de sair/recarregar a página
+        window.addEventListener('beforeunload', () => {
+            let scrollTop = sidebar.scrollTop;
+            const nav = sidebar.querySelector('.sidebar-nav');
+            if (nav && nav.scrollTop > 0) scrollTop = nav.scrollTop;
+            
+            sessionStorage.setItem('belezou_sidebar_scroll', scrollTop);
+        });
+    }
 
     // 1. Menu Recolhível (Mesma lógica do ficheiro de referência)
     if (window.innerWidth > 992 && localStorage.getItem('belezou_sidebar_collapsed') === 'true') {

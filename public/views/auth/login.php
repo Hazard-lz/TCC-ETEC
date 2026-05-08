@@ -50,6 +50,7 @@
             ?>
 
             <form id="loginForm" action="<?= BASE_URL ?>/login/autenticar" method="POST" class="login-form">
+                                        <?= CsrfGuard::campoHidden() ?>
                 
                 <div class="form-group">
                     <label for="email">E-mail</label>

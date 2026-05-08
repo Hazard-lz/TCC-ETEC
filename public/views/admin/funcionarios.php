@@ -127,6 +127,7 @@ $totalAdmins = $usuarioModel->contarAdminsAtivos();
 
                                                     <?php if (isset($func['email_verificado']) && $func['email_verificado'] == 0): ?>
                                                         <form action="<?= BASE_URL ?? '' ?>/admin/funcionarios/reenviar-email" method="POST" style="margin: 0;">
+                                        <?= CsrfGuard::campoHidden() ?>
                                                             <input type="hidden" name="cod_usuario" value="<?= $func['cod_usuario'] ?>">
                                                             <button type="submit" class="btn-action" title="Reenviar E-mail de Configuração"
                                                                 onclick="return confirm('Deseja reenviar o link de criação de senha para este funcionário?');"
@@ -148,6 +149,7 @@ $totalAdmins = $usuarioModel->contarAdminsAtivos();
                                                         </button>
                                                     <?php else: ?>
                                                         <form action="<?= BASE_URL ?? '' ?>/admin/funcionarios/status" method="POST" style="margin: 0;">
+                                        <?= CsrfGuard::campoHidden() ?>
                                                             <input type="hidden" name="cod_usuario" value="<?= $func['cod_usuario'] ?>">
                                                             <input type="hidden" name="status_atual" value="<?= $func['status'] ?>">
 
@@ -189,6 +191,7 @@ $totalAdmins = $usuarioModel->contarAdminsAtivos();
 
             <div class="modal-body">
                 <form id="formFuncionario" action="<?= BASE_URL ?? '' ?>/admin/funcionarios/salvar" method="POST">
+                                        <?= CsrfGuard::campoHidden() ?>
                     <input type="hidden" id="id_funcionario" name="id_funcionario" value="">
 
                     <h3 class="section-title">Dados Pessoais e Acesso</h3>
