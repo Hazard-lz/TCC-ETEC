@@ -211,6 +211,7 @@ if (!isset($_SESSION['usuario_id'])) {
     </div>
 
     <script src="<?= BASE_URL ?>/public/resources/js/agendar.js?v=<?= time() ?>"></script>
+    <script src="<?= BASE_URL ?>/public/resources/js/app-cliente.js"></script>
 </body>
 
 </html>
