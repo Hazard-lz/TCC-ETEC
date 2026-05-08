@@ -315,11 +315,15 @@ class Agendamento extends BaseModel {
      * Cancela automaticamente agendamentos pendentes cuja data já passou.
      */
     public function cancelarPendentesExpirados() {
+        date_default_timezone_set('America/Sao_Paulo');
+        $hoje_brasil = date('Y-m-d');
+
         $sql = "UPDATE agendamentos 
                 SET status = 'cancelado' 
                 WHERE status = 'pendente' 
-                  AND data_agendamento < CURDATE()";
-        return $this->executarQuery($sql);
+                  AND data_agendamento < :hoje";
+                  
+        return $this->executarQuery($sql, [':hoje' => $hoje_brasil]);
     }
 
     // =========================================================================
