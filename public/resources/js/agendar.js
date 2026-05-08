@@ -141,7 +141,11 @@ document.getElementById('btn-continuar-global').addEventListener('click', () => 
   if (atual === 2) {
     // Avança para passo 3 e configura data mínima
     irParaPasso(2, 3);
-    const hoje = new Date().toISOString().split('T')[0];
+    const dataLocal = new Date();
+    const ano = dataLocal.getFullYear();
+    const mes = String(dataLocal.getMonth() + 1).padStart(2, '0');
+    const dia = String(dataLocal.getDate()).padStart(2, '0');
+    const hoje = `${ano}-${mes}-${dia}`;
     document.getElementById('data_agendamento').setAttribute('min', hoje);
     return;
   }
@@ -250,7 +254,11 @@ function selecionarProfissional(id, nome, elemento) {
 // Listener do botão mobile do passo 2
 document.getElementById('btn-next-2').addEventListener('click', () => {
   irParaPasso(2, 3);
-  const hoje = new Date().toISOString().split('T')[0];
+  const dataLocal = new Date();
+  const ano = dataLocal.getFullYear();
+  const mes = String(dataLocal.getMonth() + 1).padStart(2, '0');
+  const dia = String(dataLocal.getDate()).padStart(2, '0');
+  const hoje = `${ano}-${mes}-${dia}`;
   document.getElementById('data_agendamento').setAttribute('min', hoje);
 });
 

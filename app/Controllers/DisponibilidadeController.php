@@ -184,6 +184,7 @@ class DisponibilidadeController
 
     public function buscarHorariosLivres()
     {
+        date_default_timezone_set('America/Sao_Paulo');
         header('Content-Type: application/json');
         $dados = json_decode(file_get_contents("php://input"), true) ?? $_POST;
 
