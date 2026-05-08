@@ -198,6 +198,8 @@ $router->post('/api/onesignal/registrar', function () {
 
 $router->get('/api/profissionais-por-servico', 'FuncionarioController@listarProfissionaisPorServicoApi');
 
+$router->get('/api/agenda-eventos', 'AgendamentoController@apiEventos');
+
 $router->post('/funcionario/disponibilidade/salvar', 'DisponibilidadeController@salvar');
 $router->get('/funcionario/disponibilidade/salvar', function () {
     header("Location: " . BASE_URL . "/funcionario/disponibilidade");

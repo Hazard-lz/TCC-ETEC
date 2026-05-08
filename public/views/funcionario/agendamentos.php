@@ -239,6 +239,7 @@ if (session_status() === PHP_SESSION_NONE) {
             <div class="modal-body">
                 <p><strong>Cliente:</strong> <span id="detalhesCliente"></span></p>
                 <p><strong>Serviço:</strong> <span id="detalhesServico"></span></p>
+                <p><strong>Profissional:</strong> <span id="detalhesProfissional"></span></p>
                 <p><strong>Horário:</strong> <span id="detalhesHorario"></span></p>
                 <p><strong>Status:</strong> <span id="detalhesStatus"></span></p>
 
@@ -312,31 +313,13 @@ if (session_status() === PHP_SESSION_NONE) {
                     }
                 },
 
-                events: [
-                    <?php if (!empty($diasSemanaInfo)): ?>
-                            <?php foreach ($diasSemanaInfo as $dia): ?>
-                                    <?php foreach ($dia['agendamentos'] as $ag): ?>
-                                        {
-                                    id: '<?= $ag['id_agendamento'] ?>',
-                                    title: '<?= addslashes($ag['cliente_nome']) ?>\n<?= addslashes($ag['nome_servico']) ?>',
-                                    start: '<?= $dia['data'] ?>T<?= $ag['hora_inicio'] ?>',
-                                    end: '<?= $dia['data'] ?>T<?= $ag['hora_fim'] ?>',
-                                    className: 'evento-<?= $ag['status'] ?>',
-                                    extendedProps: {
-                                        cliente: '<?= addslashes($ag['cliente_nome']) ?>',
-                                        servico: '<?= addslashes($ag['nome_servico']) ?>',
-                                        status: '<?= $ag['status'] ?>'
-                                    }
-                                },
-                            <?php endforeach; ?>
-                            <?php endforeach; ?>
-                    <?php endif; ?>
-                ],
+                events: '<?= BASE_URL ?>/api/agenda-eventos',
 
                 eventClick: function (info) {
                     const props = info.event.extendedProps;
                     document.getElementById('detalhesCliente').textContent = props.cliente;
                     document.getElementById('detalhesServico').textContent = props.servico;
+                    document.getElementById('detalhesProfissional').textContent = props.profissional;
                     document.getElementById('detalhesHorario').textContent = info.event.start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                     document.getElementById('detalhesStatus').textContent = props.status.toUpperCase();
 
