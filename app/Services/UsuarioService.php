@@ -32,6 +32,14 @@ class UsuarioService extends BaseService
             return $this->erro('A senha deve ter no mínimo 8 caracteres.');
         }
 
+        // Higienização do telefone: remove qualquer caractere que não seja número
+        if ($telefone !== null) {
+            $telefone = preg_replace('/[^0-9]/', '', $telefone);
+            if (empty($telefone)) {
+                $telefone = null;
+            }
+        }
+
         $idNovoUsuario = null;
 
         // 2. VERIFICA O TELEFONE (Evolução do Cliente Rápido)
