@@ -18,6 +18,7 @@ $totalAdmins = $usuarioModel->contarAdminsAtivos();
 <html lang="pt-BR">
 
 <head>
+    <?= CsrfGuard::metaTag() ?>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gerenciar Funcionários - Belezou App</title>
@@ -80,7 +81,7 @@ $totalAdmins = $usuarioModel->contarAdminsAtivos();
                                     <?php foreach ($listaFuncionarios as $func): ?>
                                         <?php $isLogado = ($func['cod_usuario'] == $idLogado); ?>
                                         
-                                        <tr style="<?= $func['status'] === 'inativo' ? 'opacity: 0.6;' : '' ?> <?= $isLogado ? 'background-color: #f8fafc; border-left: 4px solid #8b5cf6;' : '' ?>">
+                                        <tr class="<?= $func['status'] === 'inativo' ? 'row-inactive' : '' ?>" style="<?= $isLogado ? 'border-left: 4px solid #8b5cf6;' : '' ?>">
                                             
                                             <td style="font-weight: 500;">
                                                 <?= htmlspecialchars($func['nome']) ?>
@@ -96,17 +97,19 @@ $totalAdmins = $usuarioModel->contarAdminsAtivos();
 
                                             <td>
                                                 <?php if ($func['status'] === 'ativo'): ?>
-                                                    <span class="badge" style="background-color: #dcfce7; color: #166534; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem;">Ativo</span>
+                                                    <span class="badge badge-ativo">Ativo</span>
                                                 <?php else: ?>
-                                                    <span class="badge" style="background-color: #fee2e2; color: #991b1b; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem;">Inativo</span>
+                                                    <span class="badge badge-inativo">Inativo</span>
                                                 <?php endif; ?>
                                             </td>
 
                                             <td>
                                                 <?php if (isset($func['tipo']) && $func['tipo'] === 'admin'): ?>
-                                                    <span class="badge badge-ativo">Admin</span>
+                                                    <span class="badge badge-admin">Admin</span>
+                                                <?php elseif (isset($func['tipo']) && $func['tipo'] === 'subadmin'): ?>
+                                                    <span class="badge badge-subadmin">Subadmin</span>
                                                 <?php else: ?>
-                                                    <span class="badge badge-inativo" style="background-color: #e2e8f0; color: #4a5568;">Comum</span>
+                                                    <span class="badge badge-inativo">Comum</span>
                                                 <?php endif; ?>
                                             </td>
                                             
@@ -133,8 +136,13 @@ $totalAdmins = $usuarioModel->contarAdminsAtivos();
                                                         </form>
                                                     <?php endif; ?>
 
-                                                    <?php if ($isLogado): ?>
-                                                        <button type="button" class="btn-action" title="Você não pode inativar a si mesmo." 
+                                                    <?php 
+                                                        $tipoLogado = $_SESSION['usuario_tipo'] ?? '';
+                                                        $alvoEhAdmin = (isset($func['tipo']) && $func['tipo'] === 'admin');
+                                                        $bloqueadoPorHierarquia = ($tipoLogado === 'subadmin' && $alvoEhAdmin);
+                                                    ?>
+                                                    <?php if ($isLogado || $bloqueadoPorHierarquia): ?>
+                                                        <button type="button" class="btn-action" title="<?= $isLogado ? 'Você não pode inativar a si mesmo.' : 'Sem permissão para alterar um administrador.' ?>" 
                                                                 style="background: none; border: none; font-size: 1.2rem; opacity: 0.3; cursor: not-allowed;">
                                                             🚫
                                                         </button>
@@ -191,7 +199,7 @@ $totalAdmins = $usuarioModel->contarAdminsAtivos();
                         </div>
                         <div class="form-group">
                             <label for="telefone">Telefone / WhatsApp</label>
-                            <input type="tel" id="telefone" name="telefone" class="form-control" required>
+                            <input type="tel" id="telefone" name="telefone" class="form-control">
                         </div>
                     </div>
 
@@ -210,24 +218,27 @@ $totalAdmins = $usuarioModel->contarAdminsAtivos();
                             <label for="salario">Salário Base</label>
                             <div class="input-group">
                                 <span class="input-group-text">R$</span>
-                                <input type="number" id="salario" name="salario" class="form-control input-money" step="0.01" min="0" required>
+                                <input type="number" id="salario" name="salario" class="form-control input-money" step="0.01" min="0">
                             </div>
                         </div>
                     </div>
 
                     <div class="form-group">
                         <label for="tipo">Nível de Acesso no Sistema</label>
-                        <select id="tipo" name="tipo" class="form-control" style="background-color: #ffffff; color: #333333; cursor: pointer; opacity: 1; pointer-events: auto; appearance: auto; border: 1px solid #cbd5e1;">
+                        <select id="tipo" name="tipo" class="form-control form-select">
                             <option value="comum">Profissional Comum</option>
-                            <option value="admin">Administrador (Acesso total)</option>
+                            <option value="subadmin">Subadministrador (Gestão sem relatórios)</option>
+                            <?php if ($_SESSION['usuario_tipo'] === 'admin'): ?>
+                                <option value="admin">Administrador (Acesso total)</option>
+                            <?php endif; ?>
                         </select>
                     </div>
 
                     <div id="funcionarioError" class="error-message">Verifique os campos preenchidos.</div>
 
-                    <div style="display: flex; gap: 1rem; margin-top: 2rem;">
-                        <button type="submit" class="btn-primary" style="margin-top: 0;">Salvar Funcionário</button>
-                        <button type="button" data-close-modal class="btn-primary" style="margin-top: 0; background: #e2e8f0; color: var(--text-main); box-shadow: none;">Cancelar</button>
+                    <div class="modal-actions">
+                        <button type="submit" class="btn-primary">Salvar Funcionário</button>
+                        <button type="button" data-close-modal class="btn-secondary">Cancelar</button>
                     </div>
                 </form>
             </div>

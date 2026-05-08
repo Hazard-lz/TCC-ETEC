@@ -37,7 +37,7 @@ class AuthController
             $_SESSION['usuario_email'] = $usuario['email'];
             $_SESSION['usuario_telefone'] = $usuario['telefone'];
 
-            if ($usuario['tipo'] === 'admin' || $isFuncionario) {
+            if (in_array($usuario['tipo'], ['admin', 'subadmin']) || $isFuncionario) {
                 $_SESSION['is_funcionario'] = true;
                 $expira = time() + (60 * 60 * 24 * 7); // 7 dias
 

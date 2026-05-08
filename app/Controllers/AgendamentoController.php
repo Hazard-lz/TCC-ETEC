@@ -264,7 +264,17 @@ class AgendamentoController
         if ($gradeAtiva) {
             $limites = $disponibilidadeModel->buscarLimitesHorarios($gradeAtiva['id_disponibilidade']);
             $slotMinTime = $limites['min'];
-            $slotMaxTime = $limites['max'];
+            
+            // Adicionar 2 horas ao final para dar espaço visual na agenda
+            $horasFim = (int) substr($limites['max'], 0, 2);
+            $restoFim = substr($limites['max'], 2); // Pega ":mm:ss"
+            $horasFimComFolga = $horasFim + 2;
+
+            if ($horasFimComFolga >= 24) {
+                $slotMaxTime = '23:59:59';
+            } else {
+                $slotMaxTime = str_pad($horasFimComFolga, 2, '0', STR_PAD_LEFT) . $restoFim;
+            }
         }
 
         // 4. Passa o id_funcionario para a View usar na chamada da API
@@ -396,10 +406,11 @@ class AgendamentoController
         }
 
         $isAdmin = $_SESSION['usuario_tipo'] === 'admin';
+        $isGerencia = in_array($_SESSION['usuario_tipo'], ['admin', 'subadmin']);
 
         $funcionarioIdParaBuscar = null;
 
-        if ($isAdmin && isset($_GET['id_funcionario']) && !empty($_GET['id_funcionario'])) {
+        if ($isGerencia && isset($_GET['id_funcionario']) && !empty($_GET['id_funcionario'])) {
             $funcionarioIdParaBuscar = $_GET['id_funcionario'];
         } else {
             if ($funcionarioLogado) {
@@ -411,15 +422,11 @@ class AgendamentoController
         $agendamentoModel->cancelarPendentesExpirados();
         $agendamentos = [];
 
-        // Se for admin e não tiver selecionado ninguém (ou não tiver perfil de funcionário), e a intenção for mostrar todos:
-        // Neste caso, a query tratará id_funcionario = null como buscar todos
-        // Mas se quisermos que a tela inicial sem id selecione o próprio perfil ou fique vazia?
-        // Vamos mostrar o próprio perfil (se existir), senão mostrar todos (se admin).
         $agendamentos = $agendamentoModel->listarHistoricoFuncionario($funcionarioIdParaBuscar);
 
-        // Fetch all employees for the select if admin
+        // Fetch all employees for the select if gerencia
         $funcionarios = [];
-        if ($isAdmin) {
+        if ($isGerencia) {
             $funcionarios = $this->funcionarioModel->listarTodos();
         }
 

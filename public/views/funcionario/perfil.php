@@ -5,6 +5,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
 <html lang="pt-BR">
 
 <head>
+    <?= CsrfGuard::metaTag() ?>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Meu Perfil - Belezou App</title>

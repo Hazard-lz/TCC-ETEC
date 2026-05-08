@@ -38,6 +38,16 @@ class FuncionarioController
         $salario = $_POST['salario'] ?? null;
         $tipo = $_POST['tipo'] ?? 'comum';
 
+        $tipoLogado = $_SESSION['usuario_tipo'] ?? '';
+
+        // ═══ ANTI-ESCALONAMENTO ═══
+        // Subadmin nunca pode atribuir o cargo 'admin'
+        if ($tipoLogado === 'subadmin' && $tipo === 'admin') {
+            $_SESSION['flash_erro'] = "Você não tem permissão para atribuir o cargo de administrador.";
+            header('Location: ' . BASE_URL . '/admin/funcionarios');
+            exit;
+        }
+
         if (empty($id_funcionario)) {
             // CADASTRAR NOVO (Sem a senha)
             $resultado = $this->funcionarioService->registrarFuncionario(
@@ -53,6 +63,15 @@ class FuncionarioController
             $funcionarioAtual = $this->funcionarioModel->buscarPorId($id_funcionario);
             if (!$funcionarioAtual) {
                 $_SESSION['flash_erro'] = "Funcionário não encontrado.";
+                header('Location: ' . BASE_URL . '/admin/funcionarios');
+                exit;
+            }
+
+            // ═══ PROTEÇÃO HIERÁRQUICA ═══
+            // Subadmin não pode editar um admin
+            $usuarioAlvo = $this->usuarioModel->buscarPorId($funcionarioAtual['cod_usuario']);
+            if ($tipoLogado === 'subadmin' && $usuarioAlvo && $usuarioAlvo['tipo'] === 'admin') {
+                $_SESSION['flash_erro'] = "Você não tem permissão para editar um administrador.";
                 header('Location: ' . BASE_URL . '/admin/funcionarios');
                 exit;
             }
@@ -150,14 +169,12 @@ class FuncionarioController
      */
     public function alterarStatus()
     {
-        // Validação de segurança básica para garantir que é um POST
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             $_SESSION['flash_erro'] = "Método inválido.";
             header('Location: ' . BASE_URL . '/admin/funcionarios');
             exit;
         }
 
-        // O HTML deve enviar via POST o ID do Usuário e o Status Atual
         $id_usuario = $_POST['cod_usuario'] ?? '';
         $status_atual = $_POST['status_atual'] ?? '';
 
@@ -167,10 +184,18 @@ class FuncionarioController
             exit;
         }
 
-        // ARQUITETURA (Ternário): Se for 'ativo' vira 'inativo', se for 'inativo' vira 'ativo'
+        // ═══ PROTEÇÃO HIERÁRQUICA ═══
+        // Subadmin não pode alterar o status de um admin
+        $tipoLogado = $_SESSION['usuario_tipo'] ?? '';
+        $usuarioAlvo = $this->usuarioModel->buscarPorId($id_usuario);
+        if ($tipoLogado === 'subadmin' && $usuarioAlvo && $usuarioAlvo['tipo'] === 'admin') {
+            $_SESSION['flash_erro'] = "Você não tem permissão para alterar o status de um administrador.";
+            header('Location: ' . BASE_URL . '/admin/funcionarios');
+            exit;
+        }
+
         $novo_status = ($status_atual === 'ativo') ? 'inativo' : 'ativo';
 
-        // Aciona o serviço criado no passo anterior
         $resultado = $this->funcionarioService->alterarStatusFuncionario($id_usuario, $novo_status);
 
         // Feedback visual usando sessões flash
@@ -223,10 +248,6 @@ class FuncionarioController
 
     public function dashboard()
     {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-
         $id_usuario = $_SESSION['usuario_id'];
         $funcionario = $this->funcionarioModel->buscarPorCodUsuario($id_usuario);
 
@@ -245,7 +266,7 @@ class FuncionarioController
         $clienteModel = new Cliente();
 
         $idFuncionario = $funcionario['id_funcionario'];
-        $isAdmin = ($_SESSION['usuario_tipo'] === 'admin');
+        $isAdmin = in_array($_SESSION['usuario_tipo'], ['admin', 'subadmin']);
 
         // 1. Busca as Métricas para os Cards
         // Se for admin, busca do salão todo. Se for funcionário, busca apenas os próprios.
@@ -280,9 +301,6 @@ class FuncionarioController
 
     public function editarPerfil()
     {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
         $idLogado = $_SESSION['usuario_id'];
 
         $funcionario = $this->funcionarioModel->buscarPorCodUsuario($idLogado);
@@ -309,9 +327,6 @@ class FuncionarioController
             exit;
         }
 
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
         $idLogado = $_SESSION['usuario_id'];
 
         $funcionario = $this->funcionarioModel->buscarPorCodUsuario($idLogado);

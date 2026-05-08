@@ -1,5 +1,6 @@
 /* =========================================
    DASHBOARD.CSS - ESTILOS DA TELA INICIAL
+   (admin.css já define: .data-table, .badge, .table-responsive)
    ========================================= */
 
 .dashboard-header {
@@ -31,6 +32,7 @@
   align-items: center;
   gap: 1rem;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--border-color);
 }
 .card-icon {
   width: 60px;
@@ -58,53 +60,21 @@
   color: var(--text-muted);
 }
 
-/* TABELA DE DADOS */
+/* Badges exclusivos do dashboard */
+.badge-marcado {
+  background-color: rgba(139, 92, 246, 0.15);
+  color: var(--color-purple);
+}
+
+/* Utilitário */
 .mt-4 {
   margin-top: 2rem;
 }
-.data-table {
-  width: 100%;
-  border-collapse: collapse;
-  min-width: 600px; /* Força largura mínima para não esmagar textos */
-}
-.data-table th,
-.data-table td {
-  padding: 1rem;
-  text-align: left;
-  border-bottom: 1px solid var(--border-color);
-}
-.data-table th {
-  background-color: #f8fafc;
-  color: var(--text-muted);
-  font-weight: 600;
-  font-size: 0.9rem;
-}
-
-.badge {
-  padding: 0.4rem 0.8rem;
-  border-radius: 20px;
-  font-size: 0.85rem;
-  font-weight: 600;
-}
-.badge-marcado {
-  background-color: rgba(139, 92, 246, 0.1);
-  color: var(--color-purple);
-}
-.badge-pendente {
-  background-color: rgba(244, 91, 105, 0.1);
-  color: var(--color-pink);
-}
 
 /* RESPONSIVIDADE DASHBOARD (CELULAR) */
-.table-responsive {
-  width: 100%;
-  overflow-x: auto; /* Cria a barra de rolagem horizontal */
-  -webkit-overflow-scrolling: touch;
-}
-
 @media (max-width: 768px) {
   .summary-grid {
-    grid-template-columns: 1fr; /* 1 card por linha */
+    grid-template-columns: 1fr;
     gap: 1rem;
   }
 }

@@ -36,7 +36,10 @@ class Conexao {
             list($nome, $valor) = explode('=', $linha, 2);
             
             // Limpa espaços em branco extras (trim) e salva a credencial na variável superglobal nativa do PHP ($_ENV)
-            $_ENV[trim($nome)] = trim($valor);
+            $nomeLimpo = trim($nome);
+            $valorLimpo = trim($valor);
+            $_ENV[$nomeLimpo] = $valorLimpo;
+            putenv("$nomeLimpo=$valorLimpo");
         }
     }
 

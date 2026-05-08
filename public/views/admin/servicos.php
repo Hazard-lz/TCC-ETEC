@@ -10,6 +10,7 @@ $servicos = array_merge($ativos, $inativos);
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+    <?= CsrfGuard::metaTag() ?>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gerenciar Serviços - Belezou App</title>
@@ -57,7 +58,7 @@ $servicos = array_merge($ativos, $inativos);
                     <?php endif; ?>
 
                     <?php foreach ($servicos as $servico): ?>
-                    <tr style="<?= $servico['status'] === 'inativo' ? 'opacity: 0.6;' : '' ?>">
+                    <tr class="<?= $servico['status'] === 'inativo' ? 'row-inactive' : '' ?>">
                         <td style="font-weight: 500;"><?= htmlspecialchars($servico['nome_servico']) ?></td>
                         <td>R$ <?= number_format($servico['preco'], 2, ',', '.') ?></td>
                         <td><?= $servico['duracao'] ?> min</td>
@@ -78,6 +79,7 @@ $servicos = array_merge($ativos, $inativos);
                                     <button class="btn-action btn-delete" title="Inativar" onclick="alterarStatusServico(<?= $servico['id_servico'] ?>, 'inativo')" style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">🚫</button>
                                 <?php else: ?>
                                     <button class="btn-action btn-edit" title="Ativar" onclick="alterarStatusServico(<?= $servico['id_servico'] ?>, 'ativo')" style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">✅</button>
+                                    <button class="btn-action btn-delete" title="Excluir Permanentemente" onclick="excluirServico(<?= $servico['id_servico'] ?>)" style="background: none; border: none; cursor: pointer; font-size: 1.2rem; color: var(--color-pink);">🗑️</button>
                                 <?php endif; ?>
                             </div>
                         </td>
@@ -132,9 +134,9 @@ $servicos = array_merge($ativos, $inativos);
                         </select>
                     </div>
                     
-                    <div style="display: flex; gap: 1rem; margin-top: 2rem;">
-                        <button type="submit" class="btn-primary" style="margin-top: 0;">Salvar Serviço</button>
-                        <button type="button" data-close-modal class="btn-primary" style="margin-top: 0; background: #e2e8f0; color: var(--text-main); box-shadow: none;">Cancelar</button>
+                    <div class="modal-actions">
+                        <button type="submit" class="btn-primary">Salvar Serviço</button>
+                        <button type="button" data-close-modal class="btn-secondary">Cancelar</button>
                     </div>
                 </form>
             </div>

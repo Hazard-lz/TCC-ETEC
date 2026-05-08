@@ -21,6 +21,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function renderizarLayoutGlobal(usuario) {
     const isAdmin = usuario.tipo === 'admin';
+    const isSubadmin = usuario.tipo === 'subadmin';
+    const isGerencia = isAdmin || isSubadmin;
     const primeiroNome = usuario.nome ? usuario.nome.split(' ')[0] : 'Usuário';
     const inicialNome = usuario.nome ? usuario.nome.charAt(0).toUpperCase() : 'U';
     const pathAtual = window.location.pathname;
@@ -34,13 +36,17 @@ function renderizarLayoutGlobal(usuario) {
         <li class="nav-item"><a href="${BASE_URL}/funcionario/disponibilidade" class="nav-link ${pathAtual.includes('disponibilidade') ? 'active' : ''}" title="Disponibilidade"><i class="bi bi-clock me-2"></i> <span>Disponibilidade</span></a></li>
     `;
 
-    if (isAdmin) {
+    if (isGerencia) {
         navLinks += `
             <li class="nav-title" style="margin-top: 1rem; padding-left: 1.5rem; font-size: 0.75rem; font-weight: bold; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 1px;">Administração</li>
             <li class="nav-item"><a href="${BASE_URL}/admin/servicos" class="nav-link ${pathAtual.includes('/admin/servicos') ? 'active' : ''}" title="Catálogo de Serviços"><i class="bi bi-card-checklist me-2"></i> <span>Catálogo de Serviços</span></a></li>
             <li class="nav-item"><a href="${BASE_URL}/admin/funcionarios" class="nav-link ${pathAtual.includes('funcionarios') ? 'active' : ''}" title="Funcionários"><i class="bi bi-person-badge me-2"></i> <span>Funcionários</span></a></li>
-            <li class="nav-item"><a href="${BASE_URL}/admin/relatorios/desempenho" class="nav-link ${pathAtual.includes('relatorios') ? 'active' : ''}" title="Relatórios"><i class="bi bi-graph-up me-2"></i> <span>Relatórios</span></a></li>
         `;
+
+        // Relatórios: exclusivo do admin (subadmin NÃO vê)
+        if (isAdmin) {
+            navLinks += `<li class="nav-item"><a href="${BASE_URL}/admin/relatorios/desempenho" class="nav-link ${pathAtual.includes('relatorios') ? 'active' : ''}" title="Relatórios"><i class="bi bi-graph-up me-2"></i> <span>Relatórios</span></a></li>`;
+        }
     }
 
     // NOVA ESTRUTURA BASEADA NO MENU_GLOBAL DE REFERÊNCIA
@@ -60,6 +66,10 @@ function renderizarLayoutGlobal(usuario) {
                     <h6>${primeiroNome}</h6>
                     <small>${usuario.tipo.toUpperCase()}</small>
                 </div>
+            </div>
+            <div class="sidebar-clock" id="sidebarClock">
+                <span class="clock-time" id="clockTime"></span>
+                <span class="clock-date" id="clockDate"></span>
             </div>
         </div>
 
@@ -126,6 +136,9 @@ function iniciarEventosLayout() {
     const btnProfile = document.getElementById('btnProfileDropdown');
     const profileMenu = document.getElementById('profileMenu');
 
+    // 0. Relógio da Sidebar
+    iniciarRelogio();
+
     // 1. Menu Recolhível (Mesma lógica do ficheiro de referência)
     if (window.innerWidth > 992 && localStorage.getItem('belezou_sidebar_collapsed') === 'true') {
         sidebar.classList.add('collapsed');
@@ -184,6 +197,27 @@ function iniciarEventosLayout() {
             }
         });
     }
+}
+
+function iniciarRelogio() {
+    const clockTime = document.getElementById('clockTime');
+    const clockDate = document.getElementById('clockDate');
+    if (!clockTime || !clockDate) return;
+
+    const dias = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+    const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+
+    function atualizar() {
+        const agora = new Date();
+        const h = String(agora.getHours()).padStart(2, '0');
+        const m = String(agora.getMinutes()).padStart(2, '0');
+        const s = String(agora.getSeconds()).padStart(2, '0');
+        clockTime.textContent = `${h}:${m}:${s}`;
+        clockDate.textContent = `${dias[agora.getDay()]}, ${agora.getDate()} ${meses[agora.getMonth()]}`;
+    }
+
+    atualizar();
+    setInterval(atualizar, 1000);
 }
 
 function fazerLogout() {

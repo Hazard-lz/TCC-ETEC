@@ -1,30 +1,111 @@
 <?php
 
 // =========================================================================
-// MIDDLEWARE — Camada de proteção que verifica permissões ANTES da rota executar
+// MIDDLEWARE — Camada ÚNICA de proteção que verifica permissões ANTES da rota executar.
+// Nenhum Controller deve repetir estas verificações de cargo/sessão.
 // =========================================================================
 class Middleware {
     
     /**
      * Verifica as permissões de acesso com base no prefixo da URI.
      * Chamado automaticamente pelo index.php antes do Router despachar a rota.
+     * 
+     * HIERARQUIA DE ACESSOS:
+     *   /admin/relatorios/*  → Exclusivo 'admin'
+     *   /admin/*             → 'admin' e 'subadmin'
+     *   /funcionario/*       → Qualquer membro da equipe (is_funcionario)
+     *   /cliente/*           → Equipe do salão (para gerenciar clientes)
+     *   /historico/cancelar  → Apenas clientes logados
+     *   /api/*               → Qualquer usuário logado
      */
     public static function verificar($uri) {
 
-        // --- BLOQUEIO DA PASTA ADMIN (SÓ ADMIN ENTRA) ---
+        $tipo = $_SESSION['usuario_tipo'] ?? '';
+        $logado = isset($_SESSION['usuario_id']);
+        $metodo = $_SERVER['REQUEST_METHOD'];
+
+        // ═══════════════════════════════════════════════════════════
+        // PROTEÇÃO CSRF: Toda requisição POST deve conter um token válido
+        // Exceção: Rotas de API que usam JSON (OneSignal, horários, etc)
+        // ═══════════════════════════════════════════════════════════
+        if ($metodo === 'POST') {
+            // Rotas isentas de CSRF (APIs internas que não usam formulários HTML)
+            $rotasIsentasCsrf = [
+                '/api/onesignal/registrar',
+                '/api/horarios-livres',
+            ];
+
+            $isento = false;
+            foreach ($rotasIsentasCsrf as $rotaIsenta) {
+                if ($uri === $rotaIsenta) {
+                    $isento = true;
+                    break;
+                }
+            }
+
+            if (!$isento && !CsrfGuard::validar()) {
+                error_log("CSRF bloqueado: $uri | IP: " . ($_SERVER['REMOTE_ADDR'] ?? 'desconhecido'));
+                $_SESSION['flash_erro'] = "Requisição inválida. Tente novamente.";
+                
+                // Redireciona para uma página segura baseada no contexto
+                $referer = $_SERVER['HTTP_REFERER'] ?? BASE_URL . '/';
+                header("Location: $referer");
+                exit;
+            }
+        }
+
+        // --- BLOQUEIO DE RELATÓRIOS (SÓ ADMIN PURO) ---
+        // Esta regra DEVE vir antes da regra genérica /admin
+        if (strpos($uri, '/admin/relatorios') === 0) {
+            if (!$logado || $tipo !== 'admin') {
+                $_SESSION['flash_erro'] = "Acesso restrito a administradores.";
+                header("Location: " . BASE_URL . "/funcionario/dashboard");
+                exit;
+            }
+        }
+
+        // --- BLOQUEIO DA ÁREA ADMIN (ADMIN + SUBADMIN) ---
         if (strpos($uri, '/admin') === 0) {
-            if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_tipo'] !== 'admin') {
-                $_SESSION['erro_login'] = "Acesso restrito a administradores.";
+            if (!$logado || !in_array($tipo, ['admin', 'subadmin'])) {
+                $_SESSION['erro_login'] = "Acesso restrito à gerência.";
                 header("Location: " . BASE_URL . "/login");
                 exit;
             }
         }
 
-        // --- BLOQUEIO DA PASTA FUNCIONÁRIO (EQUIPA TODA ENTRA) ---
+        // --- BLOQUEIO DA ÁREA FUNCIONÁRIO (EQUIPA TODA ENTRA) ---
         if (strpos($uri, '/funcionario') === 0) {
-            if (!isset($_SESSION['usuario_id']) || !isset($_SESSION['is_funcionario'])) {
+            if (!$logado || !isset($_SESSION['is_funcionario'])) {
                 $_SESSION['erro_login'] = "Acesso restrito à equipe do salão.";
                 header("Location: " . BASE_URL . "/login");
+                exit;
+            }
+        }
+
+        // --- BLOQUEIO DA GESTÃO DE CLIENTES (EQUIPA TODA ENTRA) ---
+        if (strpos($uri, '/cliente/salvar') === 0 || strpos($uri, '/cliente/alterar-status') === 0) {
+            if (!$logado || !isset($_SESSION['is_funcionario'])) {
+                $_SESSION['erro_login'] = "Acesso restrito à equipe do salão.";
+                header("Location: " . BASE_URL . "/login");
+                exit;
+            }
+        }
+
+        // --- BLOQUEIO DO CANCELAMENTO PELO CLIENTE (CLIENTES LOGADOS) ---
+        if ($uri === '/historico/cancelar') {
+            if (!$logado || $tipo !== 'comum') {
+                $_SESSION['flash_erro'] = "Acesso não autorizado.";
+                header("Location: " . BASE_URL . "/login");
+                exit;
+            }
+        }
+
+        // --- BLOQUEIO DE APIs (QUALQUER USUÁRIO LOGADO) ---
+        if (strpos($uri, '/api/') === 0) {
+            if (!$logado) {
+                header('Content-Type: application/json');
+                http_response_code(401);
+                echo json_encode(['sucesso' => false, 'mensagem' => 'Não autorizado.']);
                 exit;
             }
         }

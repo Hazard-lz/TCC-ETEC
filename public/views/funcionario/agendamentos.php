@@ -8,6 +8,7 @@ if (session_status() === PHP_SESSION_NONE) {
 <html lang="pt-BR">
 
 <head>
+    <?= CsrfGuard::metaTag() ?>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Agendamentos - Belezou App</title>
@@ -366,16 +367,6 @@ if (session_status() === PHP_SESSION_NONE) {
                 });
             });
         });
-    </script>
-    <script>
-        // Auto-refresh: Atualiza a agenda a cada 30 segundos
-        // Só recarrega se nenhum modal estiver aberto (para não interromper ações)
-        setInterval(function () {
-            const modalAberto = document.querySelector('.modal-overlay.active');
-            if (!modalAberto) {
-                location.reload();
-            }
-        }, 30000);
     </script>
 </body>
 

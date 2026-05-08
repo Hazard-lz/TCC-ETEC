@@ -55,8 +55,8 @@ class ClienteController {
 
         $tipoAcesso = $_SESSION['usuario_tipo'] ?? 'comum'; 
         
-        if ($tipoAcesso !== 'admin') {
-            $_SESSION['flash_erro'] = "Acesso negado. Apenas administradores podem inativar clientes.";
+        if (!in_array($tipoAcesso, ['admin', 'subadmin'])) {
+            $_SESSION['flash_erro'] = "Acesso negado. Apenas gerência pode alterar status de clientes.";
             header('Location: ' . BASE_URL . '/funcionario/clientes');
             exit;
         }

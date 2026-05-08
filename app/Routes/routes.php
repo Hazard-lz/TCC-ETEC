@@ -120,6 +120,7 @@ $router->post('/admin/servicos/salvar', function () {
 });
 
 $router->post('/admin/servicos/status', 'ServicoController@alterarStatus');
+$router->post('/admin/servicos/excluir', 'ServicoController@excluir');
 
 $router->post('/admin/funcionarios/status', 'FuncionarioController@alterarStatus');
 $router->get('/admin/funcionarios/status', function () {

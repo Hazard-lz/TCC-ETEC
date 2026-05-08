@@ -1,7 +1,4 @@
 <?php
-// ARQUITETURA: Iniciamos a sessão apenas se ela ainda não existir, evitando erros de "headers already sent"
-if (session_status() === PHP_SESSION_NONE) { session_start(); }
-
 require_once __DIR__ . '/../../../app/Models/Disponibilidade.php';
 require_once __DIR__ . '/../../../app/Models/Funcionario.php';
 
@@ -83,6 +80,7 @@ $mostrarBotaoEditar = (!$isNovaGrade && !empty($idDisponibilidade)) ? 'block' : 
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+    <?= CsrfGuard::metaTag() ?>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Minha Disponibilidade - Belezou App</title>
@@ -107,25 +105,25 @@ $mostrarBotaoEditar = (!$isNovaGrade && !empty($idDisponibilidade)) ? 'block' : 
         </div>
     </div>
 
-    <div style="background: var(--bg-secondary); border: 2px solid <?= $nomeGradePrincipal !== 'Nenhuma' ? '#28a745' : '#dc3545' ?>; padding: 15px 20px; border-radius: 8px; margin-bottom: 25px; display: flex; align-items: center; gap: 15px;">
-        <span style="font-size: 2rem;">📅</span>
+    <div class="status-banner <?= $nomeGradePrincipal !== 'Nenhuma' ? 'status-ativo' : 'status-inativo' ?>">
+        <span class="status-icon">📅</span>
         <div>
-            <span style="display: block; font-size: 0.85rem; font-weight: bold; color: var(--text-muted); text-transform: uppercase;">Status da Grade no App</span>
+            <span class="status-label">Status da Grade no App</span>
             <?php if($nomeGradePrincipal !== 'Nenhuma'): ?>
-                <span style="font-size: 1.1rem; color: var(--text-main);">Os seus clientes estão marcando horários baseados na grade: <strong style="color: #28a745;"><?= htmlspecialchars($nomeGradePrincipal) ?></strong></span>
+                <span class="status-text">Os seus clientes estão marcando horários baseados na grade: <strong><?= htmlspecialchars($nomeGradePrincipal) ?></strong></span>
             <?php else: ?>
-                <span style="font-size: 1.1rem; color: #dc3545; font-weight: bold;">Nenhuma grade ativa. Sua agenda está fechada para novos clientes!</span>
+                <span class="status-alert">Nenhuma grade ativa. Sua agenda está fechada para novos clientes!</span>
             <?php endif; ?>
         </div>
     </div>
 
     <?php if (isset($_SESSION['msg_sucesso'])): ?>
-        <div class="alert alert-success" style="background: #d4edda; color: #155724; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+        <div class="alert alert-success">
             <?= $_SESSION['msg_sucesso']; unset($_SESSION['msg_sucesso']); ?>
         </div>
     <?php endif; ?>
     <?php if (isset($_SESSION['msg_erro'])): ?>
-        <div class="alert alert-danger" style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+        <div class="alert alert-danger">
             <?= $_SESSION['msg_erro']; unset($_SESSION['msg_erro']); ?>
         </div>
     <?php endif; ?>
@@ -137,7 +135,7 @@ $mostrarBotaoEditar = (!$isNovaGrade && !empty($idDisponibilidade)) ? 'block' : 
                 <label style="font-weight: bold; color: var(--text-main);">Grade Visualizada:</label>
                 
                 <form action="<?= BASE_URL ?>/funcionario/disponibilidade/selecionar" method="POST" style="margin: 0; display: flex; gap: 15px;">
-                    <select name="grade_selecionada" class="form-control" style="width: auto; min-width: 250px;" onchange="this.form.submit()">
+                    <select name="grade_selecionada" class="form-control form-select" style="width: auto; min-width: 250px;" onchange="this.form.submit()">
                         <?php if(empty($todasGrades)): ?>
                             <option value="">Nenhuma grade criada</option>
                         <?php else: ?>
@@ -152,24 +150,24 @@ $mostrarBotaoEditar = (!$isNovaGrade && !empty($idDisponibilidade)) ? 'block' : 
                 
                 <form action="<?= BASE_URL ?>/funcionario/disponibilidade/selecionar" method="POST" style="margin: 0;">
                     <input type="hidden" name="grade_selecionada" value="nova">
-                    <button type="submit" class="btn-secondary" style="padding: 8px 15px; border-radius: 5px; border: 1px solid var(--border-color); color: var(--text-main); background: transparent; cursor: pointer;">+ Nova Grade</button>
+                    <button type="submit" class="btn-secondary">+ Nova Grade</button>
                 </form>
             </div>
 
             <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                 <?php if(!empty($idDisponibilidade) && !$isNovaGrade): ?>
-                    <form action="<?= BASE_URL ?>/funcionario/disponibilidade/salvar_antecedencia" method="POST" style="margin: 0; display: flex; align-items: center; gap: 8px; background: var(--bg-secondary); padding: 5px 15px; border-radius: 8px; border: 1px solid var(--border-color);">
+                    <form action="<?= BASE_URL ?>/funcionario/disponibilidade/salvar_antecedencia" method="POST" class="antecedencia-form">
                         <input type="hidden" name="id_disponibilidade" value="<?= $idDisponibilidade ?>">
-                        <label style="font-weight: bold; color: var(--text-main); font-size: 0.9rem;">Antecedência <small>(Horas)</small>:</label>
-                        <input type="number" name="antecedencia_horas" value="<?= htmlspecialchars($antecedenciaHorasAtual) ?>" min="0" max="24" class="form-control" style="width: 70px; padding: 4px; height: 32px;" title="Bloqueia agendamentos de última hora nesta grade.">
-                        <button type="submit" class="btn-primary" style="padding: 4px 12px; height: 32px; background-color: #8b5cf6; color: #ffffff !important;">Salvar</button>
+                        <label>Antecedência <small>(Horas)</small>:</label>
+                        <input type="number" name="antecedencia_horas" value="<?= htmlspecialchars($antecedenciaHorasAtual) ?>" min="0" max="24" class="form-control" title="Bloqueia agendamentos de última hora nesta grade.">
+                        <button type="submit" class="btn-primary">Salvar</button>
                     </form>
                 <?php endif; ?>
                 
                 <?php if(!empty($idDisponibilidade) && !$isGradeAtiva): ?>
                     <form action="<?= BASE_URL ?>/funcionario/disponibilidade/ativar" method="POST" style="margin: 0;">
                         <input type="hidden" name="id_disponibilidade" value="<?= $idDisponibilidade ?>">
-                        <button type="submit" class="btn-primary" style="background: #28a745; border-color: #28a745; padding: 8px 15px; height: 42px;">Ativar Grade</button>
+                        <button type="submit" class="btn-ativar-grade">Ativar Grade</button>
                     </form>
                 <?php endif; ?>
             </div>
@@ -198,13 +196,13 @@ $mostrarBotaoEditar = (!$isNovaGrade && !empty($idDisponibilidade)) ? 'block' : 
             </div>
         <?php endif; ?>
 
-        <div id="box-botao-editar" style="display: <?= $mostrarBotaoEditar ?>; margin-bottom: 25px;">
-            <button type="button" class="btn-secondary" style="padding: 10px 20px; font-weight: bold; border: 2px solid var(--primary-color); color: var(--primary-color); background: transparent; border-radius: 8px; cursor: pointer;" data-modal-target="#modalEdicaoGrade">
+        <div id="box-botao-editar" class="grade-actions" style="display: <?= $mostrarBotaoEditar ?>;">
+            <button type="button" class="btn-editar-grade" data-modal-target="#modalEdicaoGrade">
                 ✏️ Editar Horários Desta Grade
             </button>
             
             <?php if (!empty($idDisponibilidade)): ?>
-                <button type="button" class="btn-danger" style="margin-left: 10px; background-color: #dc3545; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; padding: 12px 15px;" onclick="confirmarExclusaoGrade()">
+                <button type="button" class="btn-excluir-grade" onclick="confirmarExclusaoGrade()">
                     Excluir Grade
                 </button>
             <?php endif; ?>
@@ -281,11 +279,11 @@ $mostrarBotaoEditar = (!$isNovaGrade && !empty($idDisponibilidade)) ? 'block' : 
                             <?php endforeach; ?>
                         </div>
 
-                        <div style="display: flex; gap: 1rem; margin-top: 2rem; justify-content: flex-end;">
-                            <button type="button" class="btn-secondary" <?= $isNovaGrade ? 'onclick="cancelarNovaGrade()"' : 'data-close-modal' ?>>Cancelar</button>
-                            <button type="submit" class="btn-primary" style="min-width: 200px;">
+                        <div class="modal-actions">
+                            <button type="submit" class="btn-primary">
                                 <?= empty($idDisponibilidade) ? 'Salvar Nova Grade' : 'Salvar Alterações' ?>
                             </button>
+                            <button type="button" class="btn-secondary" <?= $isNovaGrade ? 'onclick="cancelarNovaGrade()"' : 'data-close-modal' ?>>Cancelar</button>
                         </div>
                     </form>
                 </div>

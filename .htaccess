@@ -9,3 +9,9 @@ RewriteCond %{REQUEST_FILENAME} !-d
 
 # Redireciona tudo que sobrou silenciosamente para o index.php
 RewriteRule ^(.*)$ index.php [QSA,L]
+
+# SEGURANÇA: Bloqueia acesso direto a arquivos sensíveis
+<FilesMatch "^\.env|schema\.sql|\.log$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>

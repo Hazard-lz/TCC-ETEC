@@ -234,8 +234,8 @@
         padding: 2.5rem;
     }
 
-    /* O botão de agendar e títulos ocupam as duas colunas inteiras */
-    .btn-agendar-agora, .section-title {
+    /* O botão de agendar, títulos e abas do histórico ocupam as duas colunas inteiras */
+    .btn-agendar-agora, .section-title, .tabs-container, .tab-content {
         grid-column: 1 / -1;
     }
 }

@@ -1,9 +1,6 @@
 <?php
-// Bloqueio de segurança e inicialização limpa
-if (session_status() === PHP_SESSION_NONE) { session_start(); }
-
-// Descobre se quem está logado é admin ou não
-$isAdmin = ($_SESSION['usuario_tipo'] === 'admin');
+// Descobre se quem está logado é gerência (admin ou subadmin)
+$isGerencia = in_array($_SESSION['usuario_tipo'] ?? '', ['admin', 'subadmin']);
 
 // Pega apenas o primeiro nome para uma saudação amigável
 $nomePrimeiro = explode(' ', $_SESSION['usuario_nome'] ?? 'Profissional')[0];
@@ -46,11 +43,11 @@ foreach ($proximosAgendamentos as $ag) {
 
     <div class="dashboard-header" style="margin-bottom: 2rem;">
         <h3>Olá, <?= htmlspecialchars($nomePrimeiro) ?>! 👋</h3>
-        <p><?= $isAdmin ? 'Acompanhe o desempenho geral do salão em tempo real.' : 'Aqui está o resumo do seu dia de trabalho.' ?></p>
+        <p><?= $isGerencia ? 'Acompanhe o desempenho geral do salão em tempo real.' : 'Aqui está o resumo do seu dia de trabalho.' ?></p>
     </div>
 
     <div class="summary-grid">
-        <?php if ($isAdmin): ?>
+        <?php if ($isGerencia): ?>
             <div class="summary-card">
                 <div class="card-icon" style="background-color: rgba(139, 92, 246, 0.1); color: var(--color-purple);">📅</div>
                 <div class="card-info">
@@ -93,9 +90,9 @@ foreach ($proximosAgendamentos as $ag) {
 
     <div class="base-card mt-4">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-            <h3 style="margin: 0; color: var(--text-main);"><?= $isAdmin ? 'Todos os Próximos Atendimentos' : 'Minha Agenda (Próximos)' ?></h3>
+            <h3 style="margin: 0; color: var(--text-main);"><?= $isGerencia ? 'Todos os Próximos Atendimentos' : 'Minha Agenda (Próximos)' ?></h3>
             
-            <?php if ($isAdmin): ?>
+            <?php if ($isGerencia): ?>
                 <button onclick="window.location.href='<?= BASE_URL ?>/funcionario/agenda'" class="btn-primary" style="width: auto; margin: 0; padding: 0.5rem 1rem;">Ver Agenda Completa</button>
             <?php endif; ?>
         </div>
@@ -108,7 +105,7 @@ foreach ($proximosAgendamentos as $ag) {
                         <th>Cliente</th>
                         <th>Serviço</th>
                         <th>Status</th>
-                        <?php if ($isAdmin): ?><th>Ações</th><?php endif; ?>
+                        <?php if ($isGerencia): ?><th>Ações</th><?php endif; ?>
                     </tr>
                 </thead>
                 <tbody>
@@ -127,7 +124,7 @@ foreach ($proximosAgendamentos as $ag) {
                             <td><?= htmlspecialchars($ag['nome_servico']) ?></td>
                             <td><span class="badge <?= $classeStatus ?>"><?= ucfirst($ag['status']) ?></span></td>
                             
-                            <?php if ($isAdmin): ?>
+                            <?php if ($isGerencia): ?>
                                 <td>
                                     <div class="action-buttons">
                                         <button onclick="window.location.href='<?= BASE_URL ?>/funcionario/agenda'" class="btn-action btn-edit" title="Ver na Agenda">📅</button>
@@ -138,7 +135,7 @@ foreach ($proximosAgendamentos as $ag) {
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="<?= $isAdmin ? '5' : '4' ?>" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                            <td colspan="<?= $isGerencia ? '5' : '4' ?>" style="text-align: center; padding: 2rem; color: var(--text-muted);">
                                 Nenhum agendamento futuro encontrado.
                             </td>
                         </tr>

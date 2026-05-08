@@ -18,12 +18,7 @@ class RelatorioController {
      * Gera o relatório de desempenho de um funcionário dentro de um período.
      */
     public function desempenhoFuncionario() {
-        // Segurança: só admin
-        if (!isset($_SESSION['usuario_tipo']) || $_SESSION['usuario_tipo'] !== 'admin') {
-            $_SESSION['flash_erro'] = "Acesso restrito a administradores.";
-            header("Location: " . BASE_URL . "/login");
-            exit;
-        }
+        // Segurança centralizada no Middleware — /admin/relatorios é exclusivo para 'admin'
 
         // Lista de funcionários para o <select> do filtro
         $listaFuncionarios = $this->funcionarioModel->listarTodos();

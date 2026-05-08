@@ -7,40 +7,44 @@ if (!isset($_SESSION['usuario_id'])) {
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
+    <?= CsrfGuard::metaTag() ?>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Histórico - Belezou App</title>
-    
+
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/root.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/app-cliente.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/historico.css">
     <?php require_once __DIR__ . '/../partials/onesignal.php'; ?>
 </head>
+
 <body>
 
     <div class="app-wrapper">
         <div class="mobile-container">
-            
+
             <header class="app-header" style="justify-content: center;">
                 <h2 style="color: var(--text-main); font-size: 1.2rem;">Meus Agendamentos</h2>
             </header>
 
             <main class="app-content">
-                
+
                 <div class="tabs-container">
                     <button class="tab-btn active" onclick="mudarAba('proximos', this)">Próximos</button>
                     <button class="tab-btn" onclick="mudarAba('anteriores', this)">Anteriores</button>
                 </div>
 
-                <?php 
+                <?php
                 // Função auxiliar para mapear o status do BD para as tuas classes de CSS
-                function getBadgeCss($status) {
+                function getBadgeCss($status)
+                {
                     $map = [
                         'pendente' => ['card' => 'status-pendente', 'badge' => 'badge-orange', 'label' => 'Pendente'],
-                        'marcado'  => ['card' => 'status-marcado', 'badge' => 'badge-purple', 'label' => 'Marcado'],
-                        'concluido'=> ['card' => 'status-concluido', 'badge' => 'badge-green', 'label' => 'Concluído'],
-                        'cancelado'=> ['card' => 'status-cancelado', 'badge' => 'badge-pink', 'label' => 'Cancelado']
+                        'marcado' => ['card' => 'status-marcado', 'badge' => 'badge-purple', 'label' => 'Marcado'],
+                        'concluido' => ['card' => 'status-concluido', 'badge' => 'badge-green', 'label' => 'Concluído'],
+                        'cancelado' => ['card' => 'status-cancelado', 'badge' => 'badge-pink', 'label' => 'Cancelado']
                     ];
                     return $map[$status] ?? ['card' => '', 'badge' => '', 'label' => ucfirst($status)];
                 }
@@ -48,7 +52,7 @@ if (!isset($_SESSION['usuario_id'])) {
 
                 <div id="aba-proximos" class="tab-content active history-grid">
                     <?php if (!empty($proximos)): ?>
-                        <?php foreach ($proximos as $ag): 
+                        <?php foreach ($proximos as $ag):
                             $estilo = getBadgeCss($ag['status']);
                             $podeCancelar = false;
                             $dataAgendamento = new DateTime($ag['data_agendamento']);
@@ -56,10 +60,11 @@ if (!isset($_SESSION['usuario_id'])) {
                             if ($dataAgendamento > $hoje && in_array($ag['status'], ['pendente', 'marcado'])) {
                                 $podeCancelar = true;
                             }
-                        ?>
+                            ?>
                             <div class="history-card <?= $estilo['card'] ?>">
                                 <div class="history-header">
-                                    <span class="history-date">📅 <?= $ag['data_formatada'] ?> às <?= $ag['hora_formatada'] ?></span>
+                                    <span class="history-date">📅 <?= $ag['data_formatada'] ?> às
+                                        <?= $ag['hora_formatada'] ?></span>
                                     <span class="history-badge <?= $estilo['badge'] ?>"><?= $estilo['label'] ?></span>
                                 </div>
                                 <div class="history-body">
@@ -70,28 +75,34 @@ if (!isset($_SESSION['usuario_id'])) {
                                     <div class="history-price">R$ <?= $ag['preco_formatado'] ?></div>
                                 </div>
                                 <?php if ($podeCancelar): ?>
-                                <div style="margin-top: 15px; border-top: 1px solid #ffebee; padding-top: 10px;">
-                                    <form action="<?= BASE_URL ?>/historico/cancelar" method="POST" onsubmit="return confirm('Tem certeza que deseja cancelar este agendamento?');">
-                                        <input type="hidden" name="id_agendamento" value="<?= $ag['id_agendamento'] ?>">
-                                        <button type="submit" style="width: 100%; padding: 8px; border-radius: 8px; background-color: var(--color-pink); color: white; border: none; cursor: pointer; font-weight: 600; font-size: 0.9rem;">Cancelar Agendamento</button>
-                                    </form>
-                                </div>
+                                    <div style="margin-top: 15px; border-top: 1px solid #ffebee; padding-top: 10px;">
+                                        <form action="<?= BASE_URL ?>/historico/cancelar" method="POST"
+                                            onsubmit="return confirm('Tem certeza que deseja cancelar este agendamento?');">
+                                            <?= CsrfGuard::campoHidden() ?>
+                                            <input type="hidden" name="id_agendamento" value="<?= $ag['id_agendamento'] ?>">
+                                            <button type="submit"
+                                                style="width: 100%; padding: 8px; border-radius: 8px; background-color: var(--color-pink); color: white; border: none; cursor: pointer; font-weight: 600; font-size: 0.9rem;">Cancelar
+                                                Agendamento</button>
+                                        </form>
+                                    </div>
                                 <?php endif; ?>
                             </div>
                         <?php endforeach; ?>
                     <?php else: ?>
-                        <p style="text-align: center; color: var(--text-muted); margin-top: 2rem;">Não tens agendamentos futuros.</p>
+                        <p style="text-align: center; color: var(--text-muted); margin-top: 2rem;">Não tem agendamentos
+                            futuros.</p>
                     <?php endif; ?>
-                </div> 
-                
+                </div>
+
                 <div id="aba-anteriores" class="tab-content history-grid">
                     <?php if (!empty($anteriores)): ?>
-                        <?php foreach ($anteriores as $ag): 
+                        <?php foreach ($anteriores as $ag):
                             $estilo = getBadgeCss($ag['status']);
-                        ?>
+                            ?>
                             <div class="history-card <?= $estilo['card'] ?>">
                                 <div class="history-header">
-                                    <span class="history-date">📅 <?= $ag['data_formatada'] ?> às <?= $ag['hora_formatada'] ?></span>
+                                    <span class="history-date">📅 <?= $ag['data_formatada'] ?> às
+                                        <?= $ag['hora_formatada'] ?></span>
                                     <span class="history-badge <?= $estilo['badge'] ?>"><?= $estilo['label'] ?></span>
                                 </div>
                                 <div class="history-body">
@@ -104,9 +115,10 @@ if (!isset($_SESSION['usuario_id'])) {
                             </div>
                         <?php endforeach; ?>
                     <?php else: ?>
-                        <p style="text-align: center; color: var(--text-muted); margin-top: 2rem;">Ainda não tens histórico de visitas.</p>
+                        <p style="text-align: center; color: var(--text-muted); margin-top: 2rem;">Ainda não tens histórico
+                            de visitas.</p>
                     <?php endif; ?>
-                </div> 
+                </div>
             </main>
 
             <nav class="bottom-nav">
@@ -131,4 +143,5 @@ if (!isset($_SESSION['usuario_id'])) {
     <script src="<?= BASE_URL ?>/public/resources/js/historico.js"></script>
     <script src="<?= BASE_URL ?>/public/resources/js/app-cliente.js"></script>
 </body>
+
 </html>

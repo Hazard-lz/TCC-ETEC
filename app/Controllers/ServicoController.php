@@ -114,4 +114,16 @@ class ServicoController {
         
         echo json_encode($resultado);
     }
+
+    public function excluir() {
+        header('Content-Type: application/json');
+        $dados = json_decode(file_get_contents("php://input"), true) ?? $_POST;
+
+        $id = $dados['id_servico'] ?? '';
+
+        $resultado = $this->servicoService->excluirServico($id);
+
+        echo json_encode($resultado);
+        exit;
+    }
 }

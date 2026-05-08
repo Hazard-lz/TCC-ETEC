@@ -5,11 +5,12 @@ CREATE TABLE usuarios (
     telefone VARCHAR(20) UNIQUE DEFAULT NULL,
     email VARCHAR(100) UNIQUE DEFAULT NULL,
     senha VARCHAR(255) DEFAULT NULL,
-    tipo ENUM('admin', 'comum') NOT NULL DEFAULT 'comum',
+    tipo ENUM('admin', 'subadmin', 'comum') NOT NULL DEFAULT 'comum',
     status ENUM('ativo', 'inativo') NOT NULL DEFAULT 'ativo',
     codigo_verificacao VARCHAR(6) DEFAULT NULL,
     email_verificado TINYINT(1) NOT NULL DEFAULT 0,
     expiracao_codigo DATETIME DEFAULT NULL,
+    onesignal_sub_id VARCHAR(255) DEFAULT NULL,
     data_criacao TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -95,7 +96,7 @@ CREATE TABLE agendamentos (
 CREATE TABLE itens_agendamento (
     id_item INT AUTO_INCREMENT PRIMARY KEY,
     cod_agendamento INT NOT NULL,
-    cod_sv_func INT NOT NULL,
+    cod_sv_func INT DEFAULT NULL,
     nome_servico_registrado VARCHAR(100) NOT NULL,
     hora_inicio TIME NOT NULL,
     hora_fim TIME NOT NULL,
@@ -103,6 +104,6 @@ CREATE TABLE itens_agendamento (
     duracao_registrada INT NOT NULL,
     -- CASCADE no agendamento (se a reserva inteira for cancelada/excluída, os itens vão junto)
     FOREIGN KEY (cod_agendamento) REFERENCES agendamentos(id_agendamento) ON DELETE CASCADE,
-    -- RESTRICT: Ninguém pode apagar o serviço prestado se ele já foi marcado.
-    FOREIGN KEY (cod_sv_func) REFERENCES funcionario_servicos(id_sv_funcionario) ON DELETE RESTRICT
+    -- SET NULL: Se o serviço for excluído permanentemente, o histórico mantém os dados financeiros mas o ID do serviço fica nulo
+    FOREIGN KEY (cod_sv_func) REFERENCES funcionario_servicos(id_sv_funcionario) ON DELETE SET NULL
 );

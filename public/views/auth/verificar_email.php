@@ -9,6 +9,7 @@ if (!isset($_SESSION['email_verificacao'])) {
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+    <?= CsrfGuard::metaTag() ?>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Verificar E-mail - Belezou App</title>

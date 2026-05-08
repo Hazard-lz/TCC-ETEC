@@ -142,20 +142,37 @@ class AgendamentoService extends BaseService
                 if ($agendamentoAtualizado) {
                     $oneSignal = new OneSignalService();
                     
+                    // Monta a URL base dinamicamente (para funcionar tanto local quanto na Hostinger)
+                    $protocolo = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? "https" : "http";
+                    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+                    $urlBase = "$protocolo://$host" . BASE_URL;
+
                     if ($origem === 'cliente' && $novoStatus === 'cancelado') {
                         // O cliente cancelou, avisa o funcionário
                         if (!empty($agendamentoAtualizado['funcionario_cod_usuario'])) {
-                            $msg = "O cliente {$agendamentoAtualizado['cliente_nome']} cancelou o agendamento de {$agendamentoAtualizado['nome_servico']}.";
-                            $oneSignal->enviarNotificacao($agendamentoAtualizado['funcionario_cod_usuario'], $msg, 'http://localhost/TCC-ETEC/funcionario/agenda');
+                            $dataPt = date('d/m', strtotime($agendamentoAtualizado['data_agendamento']));
+                            $msg = "⚠️ Cancelamento: {$agendamentoAtualizado['cliente_nome']} cancelou o agendamento de {$agendamentoAtualizado['nome_servico']} para o dia $dataPt às {$agendamentoAtualizado['hora_inicio']}.";
+                            
+                            $oneSignal->enviarNotificacao(
+                                $agendamentoAtualizado['funcionario_cod_usuario'], 
+                                $msg, 
+                                $urlBase . '/funcionario/agenda',
+                                "Agenda Atualizada"
+                            );
                         }
                     } else {
                         // O funcionário/admin alterou, avisa o cliente
                         if (($novoStatus === 'marcado' || $novoStatus === 'cancelado') && !empty($agendamentoAtualizado['cliente_cod_usuario'])) {
                             $msg = ($novoStatus === 'marcado') 
-                                ? "Seu agendamento foi marcado!" 
-                                : "Seu agendamento foi cancelado, tente marcar novamente em outro horário.";
+                                ? "✅ Seu agendamento de {$agendamentoAtualizado['nome_servico']} foi confirmado!" 
+                                : "❌ Infelizmente seu agendamento de {$agendamentoAtualizado['nome_servico']} foi cancelado. Verifique os motivos no app.";
                             
-                            $oneSignal->enviarNotificacao($agendamentoAtualizado['cliente_cod_usuario'], $msg, 'http://localhost/TCC-ETEC/historico');
+                            $oneSignal->enviarNotificacao(
+                                $agendamentoAtualizado['cliente_cod_usuario'], 
+                                $msg, 
+                                $urlBase . '/historico',
+                                "Status do Agendamento"
+                            );
                         }
                     }
                 }

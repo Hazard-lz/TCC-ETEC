@@ -116,4 +116,28 @@ class ServicoService extends BaseService {
             return $this->erro('Ocorreu um erro ao tentar mudar o status do serviço.');
         }
     }
+
+    public function excluirServico($id_servico) {
+        if (empty($id_servico)) {
+            return $this->erro('ID do serviço ausente.');
+        }
+
+        $servico = $this->servicoModel->buscarPorId($id_servico);
+
+        if (!$servico) {
+            return $this->erro('Serviço não encontrado.');
+        }
+
+        if ($servico['status'] !== 'inativo') {
+            return $this->erro('Apenas serviços inativos podem ser excluídos.');
+        }
+
+        $excluiu = $this->servicoModel->excluir($id_servico);
+
+        if ($excluiu) {
+            return $this->sucesso('Serviço excluído permanentemente.');
+        } else {
+            return $this->erro('Erro ao excluir o serviço. Verifique se há agendamentos vinculados.');
+        }
+    }
 }

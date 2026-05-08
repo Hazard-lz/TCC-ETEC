@@ -80,3 +80,32 @@
 .modal-body {
   padding: 2rem;
 }
+
+/* Select dentro de modais — respeita o tema */
+.form-select {
+  appearance: auto;
+  cursor: pointer;
+  background-color: var(--surface-color);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+}
+
+.form-select option {
+  background-color: var(--surface-color);
+  color: var(--text-main);
+}
+
+/* Área de botões do modal */
+.modal-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.modal-actions .btn-primary,
+.modal-actions .btn-secondary {
+  flex: 1;
+  text-align: center;
+  padding: 0.7rem 1.2rem;
+  margin-top: 0;
+}

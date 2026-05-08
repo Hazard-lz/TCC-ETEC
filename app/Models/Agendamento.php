@@ -66,9 +66,9 @@ class Agendamento extends BaseModel {
                 INNER JOIN clientes c ON a.cod_cliente = c.id_cliente
                 INNER JOIN usuarios u_cli ON c.cod_usuario = u_cli.id_usuario
                 INNER JOIN itens_agendamento ia ON a.id_agendamento = ia.cod_agendamento
-                INNER JOIN funcionario_servicos fs ON ia.cod_sv_func = fs.id_sv_funcionario
-                INNER JOIN funcionarios f ON fs.cod_funcionario = f.id_funcionario
-                INNER JOIN usuarios u_func ON f.cod_usuario = u_func.id_usuario
+                LEFT JOIN funcionario_servicos fs ON ia.cod_sv_func = fs.id_sv_funcionario
+                LEFT JOIN funcionarios f ON fs.cod_funcionario = f.id_funcionario
+                LEFT JOIN usuarios u_func ON f.cod_usuario = u_func.id_usuario
                 WHERE a.id_agendamento = :id_agendamento";
                 
         return $this->executarQuery($sql, [':id_agendamento' => $id_agendamento], 'unico');
@@ -83,11 +83,11 @@ class Agendamento extends BaseModel {
                        u_func.nome AS funcionario_nome
                 FROM agendamentos a
                 INNER JOIN itens_agendamento ia ON a.id_agendamento = ia.cod_agendamento
-                INNER JOIN funcionario_servicos fs ON ia.cod_sv_func = fs.id_sv_funcionario
-                INNER JOIN funcionarios f ON fs.cod_funcionario = f.id_funcionario
-                INNER JOIN usuarios u_func ON f.cod_usuario = u_func.id_usuario
+                LEFT JOIN funcionario_servicos fs ON ia.cod_sv_func = fs.id_sv_funcionario
+                LEFT JOIN funcionarios f ON fs.cod_funcionario = f.id_funcionario
+                LEFT JOIN usuarios u_func ON f.cod_usuario = u_func.id_usuario
                 WHERE a.cod_cliente = :cod_cliente
-                ORDER BY a.data_agendamento DESC, ia.hora_inicio DESC";
+                ORDER BY FIELD(a.status, 'pendente', 'marcado', 'concluido', 'cancelado'), a.data_agendamento DESC, ia.hora_inicio DESC";
                 
         return $this->executarQuery($sql, [':cod_cliente' => $id_cliente], 'todos');    
     }
@@ -102,9 +102,9 @@ class Agendamento extends BaseModel {
                        u_func.nome AS funcionario_nome
                 FROM agendamentos a
                 INNER JOIN itens_agendamento ia ON a.id_agendamento = ia.cod_agendamento
-                INNER JOIN funcionario_servicos fs ON ia.cod_sv_func = fs.id_sv_funcionario
-                INNER JOIN funcionarios f ON fs.cod_funcionario = f.id_funcionario
-                INNER JOIN usuarios u_func ON f.cod_usuario = u_func.id_usuario
+                LEFT JOIN funcionario_servicos fs ON ia.cod_sv_func = fs.id_sv_funcionario
+                LEFT JOIN funcionarios f ON fs.cod_funcionario = f.id_funcionario
+                LEFT JOIN usuarios u_func ON f.cod_usuario = u_func.id_usuario
                 INNER JOIN clientes c ON a.cod_cliente = c.id_cliente
                 INNER JOIN usuarios u_cli ON c.cod_usuario = u_cli.id_usuario";
         
@@ -114,7 +114,7 @@ class Agendamento extends BaseModel {
             $params[':cod_funcionario'] = $id_funcionario;
         }
 
-        $sql .= " ORDER BY a.data_agendamento DESC, ia.hora_inicio DESC";
+        $sql .= " ORDER BY FIELD(a.status, 'pendente', 'marcado', 'concluido', 'cancelado'), a.data_agendamento DESC, ia.hora_inicio DESC";
                 
         return $this->executarQuery($sql, $params, 'todos');
     }
@@ -132,9 +132,9 @@ class Agendamento extends BaseModel {
                 INNER JOIN clientes c ON a.cod_cliente = c.id_cliente
                 INNER JOIN usuarios u_cli ON c.cod_usuario = u_cli.id_usuario
                 INNER JOIN itens_agendamento ia ON a.id_agendamento = ia.cod_agendamento
-                INNER JOIN funcionario_servicos fs ON ia.cod_sv_func = fs.id_sv_funcionario
-                INNER JOIN funcionarios f ON fs.cod_funcionario = f.id_funcionario
-                INNER JOIN usuarios u_func ON f.cod_usuario = u_func.id_usuario
+                LEFT JOIN funcionario_servicos fs ON ia.cod_sv_func = fs.id_sv_funcionario
+                LEFT JOIN funcionarios f ON fs.cod_funcionario = f.id_funcionario
+                LEFT JOIN usuarios u_func ON f.cod_usuario = u_func.id_usuario
                 WHERE (fs.cod_funcionario = :cod_funcionario OR a.cod_funcionario_criador = :cod_funcionario_criador)
                   AND a.data_agendamento = :data
                   AND a.status != 'cancelado'
@@ -161,9 +161,9 @@ class Agendamento extends BaseModel {
                 INNER JOIN clientes c ON a.cod_cliente = c.id_cliente
                 INNER JOIN usuarios u_cli ON c.cod_usuario = u_cli.id_usuario
                 INNER JOIN itens_agendamento ia ON a.id_agendamento = ia.cod_agendamento
-                INNER JOIN funcionario_servicos fs ON ia.cod_sv_func = fs.id_sv_funcionario
-                INNER JOIN funcionarios f ON fs.cod_funcionario = f.id_funcionario
-                INNER JOIN usuarios u_func ON f.cod_usuario = u_func.id_usuario
+                LEFT JOIN funcionario_servicos fs ON ia.cod_sv_func = fs.id_sv_funcionario
+                LEFT JOIN funcionarios f ON fs.cod_funcionario = f.id_funcionario
+                LEFT JOIN usuarios u_func ON f.cod_usuario = u_func.id_usuario
                 WHERE (fs.cod_funcionario = :cod_funcionario OR a.cod_funcionario_criador = :cod_funcionario_criador)
                   AND a.data_agendamento BETWEEN :data_inicio AND :data_fim
                   AND a.status != 'cancelado'
@@ -188,9 +188,9 @@ class Agendamento extends BaseModel {
                        u_func.nome AS funcionario_nome
                 FROM agendamentos a
                 INNER JOIN itens_agendamento ia ON a.id_agendamento = ia.cod_agendamento
-                INNER JOIN funcionario_servicos fs ON ia.cod_sv_func = fs.id_sv_funcionario
-                INNER JOIN funcionarios f ON fs.cod_funcionario = f.id_funcionario
-                INNER JOIN usuarios u_func ON f.cod_usuario = u_func.id_usuario
+                LEFT JOIN funcionario_servicos fs ON ia.cod_sv_func = fs.id_sv_funcionario
+                LEFT JOIN funcionarios f ON fs.cod_funcionario = f.id_funcionario
+                LEFT JOIN usuarios u_func ON f.cod_usuario = u_func.id_usuario
                 WHERE a.cod_cliente = :cod_cliente
                   AND a.status IN ('pendente', 'marcado')
                   AND a.data_agendamento >= CURDATE() -- Filtra apenas datas de hoje em diante

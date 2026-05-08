@@ -57,4 +57,29 @@ class Servico extends BaseModel {
             return false;
         }
     }
+
+    public function excluir($id_servico) {
+        try {
+            $this->conn->beginTransaction();
+
+            // 1. Remove vínculos do serviço com funcionários
+            // (Com a nova FK SET NULL, o MySQL desvincula automaticamente os itens_agendamento)
+            $sql1 = "DELETE FROM funcionario_servicos WHERE cod_servico = :id";
+            $stmt1 = $this->conn->prepare($sql1);
+            $stmt1->execute([':id' => $id_servico]);
+
+            // 2. Remove o serviço
+            $sql2 = "DELETE FROM servicos WHERE id_servico = :id";
+            $stmt2 = $this->conn->prepare($sql2);
+            $stmt2->execute([':id' => $id_servico]);
+
+            $this->conn->commit();
+            return true;
+
+        } catch (PDOException $e) {
+            $this->conn->rollBack();
+            error_log("Erro ao excluir serviço: " . $e->getMessage());
+            return false;
+        }
+    }
 }

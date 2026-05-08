@@ -9,14 +9,20 @@ class OneSignalService
 
     public function __construct()
     {
-        if (!isset($_ENV['ONESIGNAL_APP_ID'])) {
+        // Garante que as variáveis do .env foram carregadas
+        if (empty($_ENV['ONESIGNAL_APP_ID']) && empty(getenv('ONESIGNAL_APP_ID'))) {
             try {
-                Conexao::getConexao(); 
-            } catch(Exception $e) {}
+                Conexao::getConexao();
+            } catch (Exception $e) {
+            }
         }
-        
-        $this->appId = $_ENV['ONESIGNAL_APP_ID'] ?? '4af62891-b85a-4ecd-a224-a5fe4df9a5d5';
-        $this->restApiKey = $_ENV['ONESIGNAL_REST_API_KEY'] ?? '';
+
+        $this->appId = $_ENV['ONESIGNAL_APP_ID'] ?? getenv('ONESIGNAL_APP_ID');
+        $this->restApiKey = $_ENV['ONESIGNAL_REST_API_KEY'] ?? getenv('ONESIGNAL_REST_API_KEY') ?? '';
+
+        if (empty($this->appId) || empty($this->restApiKey)) {
+            error_log("OneSignalService: ALERTA - Chaves de API não encontradas.");
+        }
     }
 
     /**
@@ -77,8 +83,6 @@ class OneSignalService
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
-
-        error_log("OneSignal push response HTTP $httpCode: $response");
 
         return [
             'response' => $response,

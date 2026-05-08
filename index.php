@@ -17,16 +17,24 @@ if ($tipoLogado === 'func') {
     $cookieLifetime = 0;                   // Visitante: morre ao fechar o navegador
 }
 
+// Detecta automaticamente se está rodando em HTTPS (Hostinger, Vercel, etc)
+$isHttps = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on')
+        || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
+
 session_set_cookie_params([
     'lifetime' => $cookieLifetime,
     'path' => '/',
     'domain' => '',
-    'secure' => false,           // Mude para 'true' quando tiver HTTPS em produção
+    'secure' => $isHttps,        // Ativado automaticamente em HTTPS
     'httponly' => true,
     'samesite' => 'Strict'
 ]);
 
 session_start();
+
+// Gera o token CSRF logo na inicialização da sessão
+require_once __DIR__ . '/app/Helpers/CsrfGuard.php';
+CsrfGuard::gerarToken();
 
 require_once __DIR__ . '/vendor/autoload.php';
 

@@ -6,6 +6,7 @@
 // <script>window.isAdmin = <?= $isAdmin ? 'true' : 'false' ?>;</script>
 
 const isAdmin = window.isAdmin ?? false;
+const isGerencia = window.isGerencia ?? false;
 
 // Chamado pelo botão de lixeira na tabela
 function confirmarExclusaoCliente(id) {
@@ -42,19 +43,15 @@ function preencherModalEdicaoCliente(id_cliente, id_usuario, nome, telefone, ema
     }
 
     if (modalTitle) {
-        modalTitle.innerText = isAdmin ? "Editar Cliente" : "Observações do Cliente";
+        modalTitle.innerText = isGerencia ? "Editar Cliente" : "Observações do Cliente";
     }
 
     if (containerNascimento) containerNascimento.style.display = "block";
     if (containerObservacoes) containerObservacoes.style.display = "block";
 
-    if (!isAdmin) {
-        if (campoNome) campoNome.readOnly = true;
-        if (campoTelefone) campoTelefone.readOnly = true;
-    } else {
-        if (campoNome) campoNome.readOnly = false;
-        if (campoTelefone) campoTelefone.readOnly = false;
-    }
+    // Gerência (admin + subadmin) edita nome; somente admin edita telefone
+    if (campoNome) campoNome.readOnly = !isGerencia;
+    if (campoTelefone) campoTelefone.readOnly = !isAdmin;
 }
 
 // Limpa modal

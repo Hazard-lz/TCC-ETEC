@@ -2,13 +2,19 @@
    SERVICO.JS - INTEGRAÇÃO COM A API
    ========================================= */
 
+// Obtém o token CSRF da meta tag para proteger requisições AJAX
+function getCsrfToken() {
+    const meta = document.querySelector('meta[name="csrf-token"]');
+    return meta ? meta.getAttribute('content') : '';
+}
+
 // Função para ativar/inativar
 function alterarStatusServico(id, status) {
     const acao = status === 'inativo' ? 'inativar' : 'ativar';
     if (confirm(`Deseja realmente ${acao} o serviço #${id}?`)) {
         fetch(`${BASE_URL}/admin/servicos/status`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': getCsrfToken() },
             body: JSON.stringify({ id_servico: id, status: status })
         })
         .then(res => res.json())
@@ -17,6 +23,27 @@ function alterarStatusServico(id, status) {
             if(data.sucesso === true || data.status === 'sucesso') {
                 alert(data.mensagem);
                 window.location.reload(); // Recarrega a página automaticamente
+            } else {
+                alert('Erro: ' + data.mensagem);
+            }
+        })
+        .catch(err => console.error("Erro na comunicação:", err));
+    }
+}
+
+// Função para excluir permanentemente
+function excluirServico(id) {
+    if (confirm(`ATENÇÃO: Deseja realmente excluir permanentemente o serviço #${id}?\n\nEsta ação não pode ser desfeita e removerá os vínculos deste serviço com todos os funcionários.`)) {
+        fetch(`${BASE_URL}/admin/servicos/excluir`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': getCsrfToken() },
+            body: JSON.stringify({ id_servico: id })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if(data.sucesso === true || data.status === 'sucesso') {
+                alert(data.mensagem);
+                window.location.reload(); 
             } else {
                 alert('Erro: ' + data.mensagem);
             }
@@ -88,7 +115,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             fetch(`${BASE_URL}/admin/servicos/salvar`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': getCsrfToken() },
                 body: JSON.stringify(payload)
             })
             .then(response => response.json())
