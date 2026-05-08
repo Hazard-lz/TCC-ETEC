@@ -17,7 +17,7 @@
 
         <div class="base-card login-card" style="max-width: 500px;">
 
-            <img src="<?= BASE_URL ?>/public/resources/images/Belezou.png" alt="Belezou App Logo" class="login-logo" style="margin-bottom: 1rem;">
+            <img src="<?= BASE_URL ?>/public/resources/images/belezou_color.png" alt="Belezou App Logo" class="login-logo" style="margin-bottom: 1rem;">
             <h2 style="color: var(--color-purple); margin-bottom: 0.5rem; font-size: 1.3rem;">Crie sua conta</h2>
 
             <?php 
