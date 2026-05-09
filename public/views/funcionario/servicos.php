@@ -47,12 +47,12 @@ if ($dadosFunc) {
     </div>
 
     <?php if (isset($_SESSION['flash_sucesso'])): ?>
-        <div style="background-color: #dcfce7; color: #166534; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+        <div class="alert alert-success">
             <?= $_SESSION['flash_sucesso']; unset($_SESSION['flash_sucesso']); ?>
         </div>
     <?php endif; ?>
     <?php if (isset($_SESSION['flash_erro'])): ?>
-        <div style="background-color: #fee2e2; color: #991b1b; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+        <div class="alert alert-danger">
             <?= $_SESSION['flash_erro']; unset($_SESSION['flash_erro']); ?>
         </div>
     <?php endif; ?>

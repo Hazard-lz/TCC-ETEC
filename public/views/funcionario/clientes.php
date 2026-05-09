@@ -143,7 +143,7 @@ $isGerencia = in_array($tipoUsuario, ['admin', 'subadmin']);
                         <div class="form-group">
                             <label for="telefone">Telefone / WhatsApp</label>
                             <input placeholder="Ex: (11) 98765-4321" type="tel" id="telefone" name="telefone"
-                                class="form-control" required <?= !$isAdmin ? 'readonly' : '' ?>>
+                                class="form-control" <?= !$isAdmin ? 'readonly' : '' ?>>
                         </div>
                     </div>
 

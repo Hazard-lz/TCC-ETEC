@@ -19,7 +19,7 @@
             <?php 
                 // FEEDBACK LOOP: Mensagem genérica de sucesso
                 if (isset($_SESSION['msg_sucesso'])) {
-                    echo '<div style="color: #15803d; background-color: #dcfce7; padding: 10px; border-radius: 8px; text-align: center; margin-bottom: 1rem; font-weight: bold;">';
+                    echo '<div class="alert alert-success">';
                     echo htmlspecialchars($_SESSION['msg_sucesso']);
                     echo '</div>';
                     unset($_SESSION['msg_sucesso']);
@@ -27,7 +27,7 @@
 
                 // ARQUITETURA UX: Correção do feedback de Redefinição de Senha e Logout
                 if (isset($_SESSION['sucesso_login'])) {
-                    echo '<div style="color: #15803d; background-color: #dcfce7; padding: 10px; border-radius: 8px; text-align: center; margin-bottom: 1rem; font-weight: bold;">';
+                    echo '<div class="alert alert-success">';
                     echo htmlspecialchars($_SESSION['sucesso_login']);
                     echo '</div>';
                     unset($_SESSION['sucesso_login']);
@@ -35,14 +35,14 @@
                 
                 // Erros com Link HTML (ex: Verificação de E-mail pendente)
                 if (isset($_SESSION['erro_login_html'])) {
-                    echo '<div class="error-message" style="display: block; text-align: center; margin-bottom: 1rem; color: #dc2626; background-color: #fee2e2; padding: 10px; border-radius: 8px;">';
+                    echo '<div class="alert alert-danger">';
                     echo $_SESSION['erro_login_html']; 
                     echo '</div>';
                     unset($_SESSION['erro_login_html']);
                 }
                 // Erros normais de texto (Senha incorreta, etc)
                 elseif (isset($_SESSION['erro_login'])) {
-                    echo '<div class="error-message" style="display: block; text-align: center; margin-bottom: 1rem; color: #dc2626; background-color: #fee2e2; padding: 10px; border-radius: 8px;">';
+                    echo '<div class="alert alert-danger">';
                     echo htmlspecialchars($_SESSION['erro_login']);
                     echo '</div>';
                     unset($_SESSION['erro_login']);

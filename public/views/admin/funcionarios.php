@@ -43,18 +43,19 @@ $totalAdmins = $usuarioModel->contarAdminsAtivos();
             <h2>Gerenciar Funcionários</h2>
             <p>Controle os dados da equipe e os níveis de acesso ao sistema.</p>
         </div>
-        <button data-modal-target="#modalFuncionario" class="btn-primary btn-new" onclick="limparModalFuncionario()">+ Novo Funcionário</button>
+        <button data-modal-target="#modalFuncionario" class="btn-primary btn-new" onclick="limparModalFuncionario()">+
+            Novo Funcionário</button>
     </div>
 
     <?php if (isset($_SESSION['flash_sucesso'])): ?>
-        <div style="background-color: #dcfce7; color: #166534; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; border: 1px solid #bbf7d0;">
+        <div class="alert alert-success">
             <strong>Sucesso!</strong> <?= $_SESSION['flash_sucesso'] ?>
         </div>
         <?php unset($_SESSION['flash_sucesso']); ?>
     <?php endif; ?>
 
     <?php if (isset($_SESSION['flash_erro'])): ?>
-        <div style="background-color: #fee2e2; color: #991b1b; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; border: 1px solid #fecaca;">
+        <div class="alert alert-danger">
             <strong>Erro:</strong> <?= htmlspecialchars($_SESSION['flash_erro']) ?>
         </div>
         <?php unset($_SESSION['flash_erro']); ?>
@@ -78,100 +79,104 @@ $totalAdmins = $usuarioModel->contarAdminsAtivos();
                 </thead>
                 <tbody>
                     <?php if (!empty($listaFuncionarios)): ?>
-                                    <?php foreach ($listaFuncionarios as $func): ?>
-                                        <?php $isLogado = ($func['cod_usuario'] == $idLogado); ?>
-                                        
-                                        <tr class="<?= $func['status'] === 'inativo' ? 'row-inactive' : '' ?>" style="<?= $isLogado ? 'border-left: 4px solid #8b5cf6;' : '' ?>">
-                                            
-                                            <td style="font-weight: 500;">
-                                                <?= htmlspecialchars($func['nome']) ?>
-                                                <?php if ($isLogado): ?>
-                                                    <span style="color: #8b5cf6; font-size: 0.8rem; margin-left: 8px; font-weight: bold;">(Você)</span>
-                                                <?php endif; ?>
-                                            </td>
-                                            
-                                            <td><?= htmlspecialchars($func['especialidade']) ?></td>
-                                            <td>
-                                                <?= !empty($func['telefone']) ? preg_replace('/(\d{2})(\d{5})(\d{4})/', '($1) $2-$3', $func['telefone']) : 'Não informado' ?>
-                                            </td>
+                        <?php foreach ($listaFuncionarios as $func): ?>
+                            <?php $isLogado = ($func['cod_usuario'] == $idLogado); ?>
 
-                                            <td>
+                            <tr class="<?= $func['status'] === 'inativo' ? 'row-inactive' : '' ?>"
+                                style="<?= $isLogado ? 'border-left: 4px solid #8b5cf6;' : '' ?>">
+
+                                <td style="font-weight: 500;">
+                                    <?= htmlspecialchars($func['nome']) ?>
+                                    <?php if ($isLogado): ?>
+                                        <span
+                                            style="color: #8b5cf6; font-size: 0.8rem; margin-left: 8px; font-weight: bold;">(Você)</span>
+                                    <?php endif; ?>
+                                </td>
+
+                                <td><?= htmlspecialchars($func['especialidade']) ?></td>
+                                <td>
+                                    <?= !empty($func['telefone']) ? preg_replace('/(\d{2})(\d{5})(\d{4})/', '($1) $2-$3', $func['telefone']) : 'Não informado' ?>
+                                </td>
+
+                                <td>
+                                    <?php if ($func['status'] === 'ativo'): ?>
+                                        <span class="badge badge-ativo">Ativo</span>
+                                    <?php else: ?>
+                                        <span class="badge badge-inativo">Inativo</span>
+                                    <?php endif; ?>
+                                </td>
+
+                                <td>
+                                    <?php if (isset($func['tipo']) && $func['tipo'] === 'admin'): ?>
+                                        <span class="badge badge-admin">Admin</span>
+                                    <?php elseif (isset($func['tipo']) && $func['tipo'] === 'subadmin'): ?>
+                                        <span class="badge badge-subadmin">Subadmin</span>
+                                    <?php else: ?>
+                                        <span class="badge badge-inativo">Comum</span>
+                                    <?php endif; ?>
+                                </td>
+
+                                <td>
+                                    <div class="action-buttons" style="display: flex; gap: 8px; align-items: center;">
+
+                                        <button data-modal-target="#modalFuncionario" class="btn-action btn-edit" title="Editar"
+                                            data-funcionario='<?= htmlspecialchars(json_encode($func), ENT_QUOTES, 'UTF-8') ?>'
+                                            data-is-logado="<?= $isLogado ? 'true' : 'false' ?>"
+                                            data-total-admins="<?= $totalAdmins ?>" onclick="abrirEdicaoFuncionario(this)"
+                                            style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">
+                                            ✏️
+                                        </button>
+
+                                        <?php if (isset($func['email_verificado']) && $func['email_verificado'] == 0): ?>
+                                            <form action="<?= BASE_URL ?? '' ?>/admin/funcionarios/reenviar-email" method="POST"
+                                                style="margin: 0;">
+                                                <?= CsrfGuard::campoHidden() ?>
+                                                <input type="hidden" name="cod_usuario" value="<?= $func['cod_usuario'] ?>">
+                                                <button type="submit" class="btn-action" title="Reenviar E-mail de Configuração"
+                                                    onclick="return confirm('Deseja reenviar o link de criação de senha para este funcionário?');"
+                                                    style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">
+                                                    📧
+                                                </button>
+                                            </form>
+                                        <?php endif; ?>
+
+                                        <?php
+                                        $tipoLogado = $_SESSION['usuario_tipo'] ?? '';
+                                        $alvoEhAdmin = (isset($func['tipo']) && $func['tipo'] === 'admin');
+                                        $bloqueadoPorHierarquia = ($tipoLogado === 'subadmin' && $alvoEhAdmin);
+                                        ?>
+                                        <?php if ($isLogado || $bloqueadoPorHierarquia): ?>
+                                            <button type="button" class="btn-action"
+                                                title="<?= $isLogado ? 'Você não pode inativar a si mesmo.' : 'Sem permissão para alterar um administrador.' ?>"
+                                                style="background: none; border: none; font-size: 1.2rem; opacity: 0.3; cursor: not-allowed;">
+                                                🚫
+                                            </button>
+                                        <?php else: ?>
+                                            <form action="<?= BASE_URL ?? '' ?>/admin/funcionarios/status" method="POST"
+                                                style="margin: 0;">
+                                                <?= CsrfGuard::campoHidden() ?>
+                                                <input type="hidden" name="cod_usuario" value="<?= $func['cod_usuario'] ?>">
+                                                <input type="hidden" name="status_atual" value="<?= $func['status'] ?>">
+
                                                 <?php if ($func['status'] === 'ativo'): ?>
-                                                    <span class="badge badge-ativo">Ativo</span>
-                                                <?php else: ?>
-                                                    <span class="badge badge-inativo">Inativo</span>
-                                                <?php endif; ?>
-                                            </td>
-
-                                            <td>
-                                                <?php if (isset($func['tipo']) && $func['tipo'] === 'admin'): ?>
-                                                    <span class="badge badge-admin">Admin</span>
-                                                <?php elseif (isset($func['tipo']) && $func['tipo'] === 'subadmin'): ?>
-                                                    <span class="badge badge-subadmin">Subadmin</span>
-                                                <?php else: ?>
-                                                    <span class="badge badge-inativo">Comum</span>
-                                                <?php endif; ?>
-                                            </td>
-                                            
-                                            <td>
-                                                <div class="action-buttons" style="display: flex; gap: 8px; align-items: center;">
-                                                    
-                                                    <button data-modal-target="#modalFuncionario" class="btn-action btn-edit" title="Editar"
-                                                        data-funcionario='<?= htmlspecialchars(json_encode($func), ENT_QUOTES, 'UTF-8') ?>'
-                                                        data-is-logado="<?= $isLogado ? 'true' : 'false' ?>"
-                                                        data-total-admins="<?= $totalAdmins ?>"
-                                                        onclick="abrirEdicaoFuncionario(this)"
+                                                    <button type="submit" class="btn-action" title="Inativar Acesso"
+                                                        onclick="return confirm('Deseja realmente INATIVAR este funcionário? Ele não poderá mais acessar o sistema ou receber novos agendamentos.');"
                                                         style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">
-                                                        ✏️
+                                                        🚫
                                                     </button>
-
-                                                    <?php if (isset($func['email_verificado']) && $func['email_verificado'] == 0): ?>
-                                                        <form action="<?= BASE_URL ?? '' ?>/admin/funcionarios/reenviar-email" method="POST" style="margin: 0;">
-                                        <?= CsrfGuard::campoHidden() ?>
-                                                            <input type="hidden" name="cod_usuario" value="<?= $func['cod_usuario'] ?>">
-                                                            <button type="submit" class="btn-action" title="Reenviar E-mail de Configuração"
-                                                                onclick="return confirm('Deseja reenviar o link de criação de senha para este funcionário?');"
-                                                                style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">
-                                                                📧
-                                                            </button>
-                                                        </form>
-                                                    <?php endif; ?>
-
-                                                    <?php 
-                                                        $tipoLogado = $_SESSION['usuario_tipo'] ?? '';
-                                                        $alvoEhAdmin = (isset($func['tipo']) && $func['tipo'] === 'admin');
-                                                        $bloqueadoPorHierarquia = ($tipoLogado === 'subadmin' && $alvoEhAdmin);
-                                                    ?>
-                                                    <?php if ($isLogado || $bloqueadoPorHierarquia): ?>
-                                                        <button type="button" class="btn-action" title="<?= $isLogado ? 'Você não pode inativar a si mesmo.' : 'Sem permissão para alterar um administrador.' ?>" 
-                                                                style="background: none; border: none; font-size: 1.2rem; opacity: 0.3; cursor: not-allowed;">
-                                                            🚫
-                                                        </button>
-                                                    <?php else: ?>
-                                                        <form action="<?= BASE_URL ?? '' ?>/admin/funcionarios/status" method="POST" style="margin: 0;">
-                                        <?= CsrfGuard::campoHidden() ?>
-                                                            <input type="hidden" name="cod_usuario" value="<?= $func['cod_usuario'] ?>">
-                                                            <input type="hidden" name="status_atual" value="<?= $func['status'] ?>">
-
-                                                            <?php if ($func['status'] === 'ativo'): ?>
-                                                                <button type="submit" class="btn-action" title="Inativar Acesso"
-                                                                    onclick="return confirm('Deseja realmente INATIVAR este funcionário? Ele não poderá mais acessar o sistema ou receber novos agendamentos.');"
-                                                                    style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">
-                                                                    🚫
-                                                                </button>
-                                                            <?php else: ?>
-                                                                <button type="submit" class="btn-action" title="Reativar Acesso"
-                                                                    onclick="return confirm('Deseja ATIVAR este funcionário novamente?');"
-                                                                    style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">
-                                                                    ✅
-                                                                </button>
-                                                            <?php endif; ?>
-                                                        </form>
-                                                    <?php endif; ?>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    <?php endforeach; ?>
+                                                <?php else: ?>
+                                                    <button type="submit" class="btn-action" title="Reativar Acesso"
+                                                        onclick="return confirm('Deseja ATIVAR este funcionário novamente?');"
+                                                        style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">
+                                                        ✅
+                                                    </button>
+                                                <?php endif; ?>
+                                            </form>
+                                        <?php endif; ?>
+                                    </div>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
                             <td colspan="6" style="text-align: center;">Nenhum funcionário cadastrado no sistema.</td>
@@ -191,7 +196,7 @@ $totalAdmins = $usuarioModel->contarAdminsAtivos();
 
             <div class="modal-body">
                 <form id="formFuncionario" action="<?= BASE_URL ?? '' ?>/admin/funcionarios/salvar" method="POST">
-                                        <?= CsrfGuard::campoHidden() ?>
+                    <?= CsrfGuard::campoHidden() ?>
                     <input type="hidden" id="id_funcionario" name="id_funcionario" value="">
 
                     <h3 class="section-title">Dados Pessoais e Acesso</h3>
@@ -221,7 +226,8 @@ $totalAdmins = $usuarioModel->contarAdminsAtivos();
                             <label for="salario">Salário Base</label>
                             <div class="input-group">
                                 <span class="input-group-text">R$</span>
-                                <input type="number" id="salario" name="salario" class="form-control input-money" step="0.01" min="0">
+                                <input type="number" id="salario" name="salario" class="form-control input-money"
+                                    min="0" value="0">
                             </div>
                         </div>
                     </div>
@@ -232,7 +238,7 @@ $totalAdmins = $usuarioModel->contarAdminsAtivos();
                             <option value="comum">Profissional Comum</option>
                             <option value="subadmin">Subadministrador (Gestão sem relatórios)</option>
                             <?php if ($_SESSION['usuario_tipo'] === 'admin'): ?>
-                                <option value="admin">Administrador (Acesso total)</option>
+                                <option value="admin" id="optionAdmin" style="display: none;">👑 Transferir Cargo de Administrador</option>
                             <?php endif; ?>
                         </select>
                     </div>
@@ -250,7 +256,7 @@ $totalAdmins = $usuarioModel->contarAdminsAtivos();
 
     </div>
 
-    
+
 
     <script src="<?= BASE_URL ?? '' ?>/public/resources/js/admin.js"></script>
     <script src="<?= BASE_URL ?? '' ?>/public/resources/js/modal.js"></script>

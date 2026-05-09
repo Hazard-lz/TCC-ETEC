@@ -22,7 +22,7 @@
 
             <?php 
                 if (isset($_SESSION['erro_cadastro'])) {
-                    echo '<div class="error-message" style="display: block; text-align: center; margin-bottom: 1rem; color: #dc2626; background-color: #fee2e2; padding: 10px; border-radius: 8px;">';
+                    echo '<div class="alert alert-danger">';
                     echo htmlspecialchars($_SESSION['erro_cadastro']);
                     echo '</div>';
                     unset($_SESSION['erro_cadastro']);

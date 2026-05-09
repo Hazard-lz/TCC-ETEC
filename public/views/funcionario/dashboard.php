@@ -101,6 +101,7 @@ foreach ($proximosAgendamentos as $ag) {
             <table class="data-table">
                 <thead>
                     <tr>
+                        <th>Data</th>
                         <th>Horário</th>
                         <th>Cliente</th>
                         <th>Serviço</th>
@@ -119,6 +120,7 @@ foreach ($proximosAgendamentos as $ag) {
                             if ($ag['status'] === 'pendente') $classeStatus = 'badge-pendente'; // (Podes criar esta classe no CSS com cor de laranja se quiseres)
                         ?>
                         <tr>
+                            <td style="color: var(--text-muted);"><?= date('d/m/Y', strtotime($ag['data_agendamento'])) ?></td>
                             <td style="font-weight: bold; color: var(--color-purple);"><?= $horaFormatada ?></td>
                             <td><?= htmlspecialchars($ag['cliente_nome']) ?></td>
                             <td><?= htmlspecialchars($ag['nome_servico']) ?></td>
@@ -135,7 +137,7 @@ foreach ($proximosAgendamentos as $ag) {
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="<?= $isGerencia ? '5' : '4' ?>" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                            <td colspan="<?= $isGerencia ? '6' : '5' ?>" style="text-align: center; padding: 2rem; color: var(--text-muted);">
                                 Nenhum agendamento futuro encontrado.
                             </td>
                         </tr>

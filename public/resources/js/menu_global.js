@@ -165,6 +165,10 @@ function iniciarEventosLayout() {
         mainWrapper.classList.add('expanded');
     }
 
+    // Remove o estilo de pré-carregamento (anti-FOUC) agora que as classes reais foram aplicadas
+    const preloadStyle = document.getElementById('sidebar-preload');
+    if (preloadStyle) preloadStyle.remove();
+
     if (menuToggle && sidebar && mainWrapper) {
         menuToggle.addEventListener('click', () => {
             if (window.innerWidth > 992) {

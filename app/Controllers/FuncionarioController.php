@@ -39,11 +39,26 @@ class FuncionarioController
         $tipo = $_POST['tipo'] ?? 'comum';
 
         $tipoLogado = $_SESSION['usuario_tipo'] ?? '';
+        $idLogado = $_SESSION['usuario_id'] ?? '';
 
-        // ═══ ANTI-ESCALONAMENTO ═══
-        // Subadmin nunca pode atribuir o cargo 'admin'
+        // ═══ REGRA: ADMIN ÚNICO — Bloqueio de escalonamento ═══
+        // Subadmin NUNCA pode atribuir o cargo 'admin'
         if ($tipoLogado === 'subadmin' && $tipo === 'admin') {
             $_SESSION['flash_erro'] = "Você não tem permissão para atribuir o cargo de administrador.";
+            header('Location: ' . BASE_URL . '/admin/funcionarios');
+            exit;
+        }
+
+        // Funcionário comum NUNCA pode atribuir 'admin'
+        if ($tipoLogado === 'comum' && $tipo === 'admin') {
+            $_SESSION['flash_erro'] = "Você não tem permissão para esta operação.";
+            header('Location: ' . BASE_URL . '/admin/funcionarios');
+            exit;
+        }
+
+        // ═══ REGRA: Não é possível criar um NOVO funcionário como admin ═══
+        if (empty($id_funcionario) && $tipo === 'admin') {
+            $_SESSION['flash_erro'] = "Não é possível cadastrar um novo funcionário como Administrador. Use a transferência de cargo.";
             header('Location: ' . BASE_URL . '/admin/funcionarios');
             exit;
         }
@@ -87,7 +102,20 @@ class FuncionarioController
             );
 
             if ($resultado['sucesso']) {
-                $this->usuarioModel->atualizarTipo($id_usuario, $tipo);
+                // ═══ REGRA: TRANSFERÊNCIA DE ADMIN (ADMIN ÚNICO) ═══
+                if ($tipo === 'admin' && $tipoLogado === 'admin') {
+                    // Promove o alvo para admin
+                    $this->usuarioModel->atualizarTipo($id_usuario, 'admin');
+                    // Rebaixa o admin logado para subadmin
+                    $this->usuarioModel->atualizarTipo($idLogado, 'subadmin');
+                    // Atualiza a sessão do admin logado
+                    $_SESSION['usuario_tipo'] = 'subadmin';
+
+                    $resultado['mensagem'] = "Transferência realizada! " . htmlspecialchars($nome) . " agora é o Administrador. Você foi reclassificado como Subadministrador.";
+                } else {
+                    // Atualização normal de tipo (sem envolver admin)
+                    $this->usuarioModel->atualizarTipo($id_usuario, $tipo);
+                }
             }
         }
 

@@ -29,7 +29,7 @@ if (!isset($_SESSION['email_verificacao'])) {
             <?php 
                 // Exibe alertas de sucesso (Ex: Novo código enviado)
                 if (isset($_SESSION['sucesso_verificacao'])) {
-                    echo '<div style="color: #15803d; background-color: #dcfce7; padding: 10px; border-radius: 8px; margin-bottom: 1rem; font-size: 0.9rem; text-align: center;">';
+                    echo '<div class="alert alert-success">';
                     echo htmlspecialchars($_SESSION['sucesso_verificacao']);
                     echo '</div>';
                     unset($_SESSION['sucesso_verificacao']);
@@ -37,7 +37,7 @@ if (!isset($_SESSION['email_verificacao'])) {
 
                 // Exibe alertas de erro (Ex: Código inválido)
                 if (isset($_SESSION['erro_verificacao'])) {
-                    echo '<div style="color: #dc2626; background-color: #fee2e2; padding: 10px; border-radius: 8px; margin-bottom: 1rem; font-size: 0.9rem; text-align: center;">';
+                    echo '<div class="alert alert-danger">';
                     echo htmlspecialchars($_SESSION['erro_verificacao']);
                     echo '</div>';
                     unset($_SESSION['erro_verificacao']);

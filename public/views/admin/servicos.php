@@ -64,9 +64,9 @@ $servicos = array_merge($ativos, $inativos);
                         <td><?= $servico['duracao'] ?> min</td>
                         <td>
                             <?php if ($servico['status'] === 'ativo'): ?>
-                                <span class="badge" style="background-color: #dcfce7; color: #166534; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem;">Ativo</span>
+                                <span class="badge badge-ativo">Ativo</span>
                             <?php else: ?>
-                                <span class="badge" style="background-color: #fee2e2; color: #991b1b; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem;">Inativo</span>
+                                <span class="badge badge-inativo">Inativo</span>
                             <?php endif; ?>
                         </td>
                         <td>

@@ -16,6 +16,14 @@
     --gradient-brand: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
     
     --transition-default: 0.3s ease;
+    
+    /* Alertas */
+    --alert-success-bg: #dcfce7;
+    --alert-success-text: #166534;
+    --alert-success-border: #22c55e;
+    --alert-danger-bg: #fee2e2;
+    --alert-danger-text: #991b1b;
+    --alert-danger-border: #ef4444;
 }
 
 /* 2. MODO ESCURO (DARK MODE) */
@@ -25,6 +33,14 @@
     --text-main: #f1f5f9;       /* Texto principal claro */
     --text-muted: #94a3b8;      /* Texto secundário cinza azulado */
     --border-color: #334155;    /* Bordas mais discretas */
+
+    /* Alertas Dark Mode */
+    --alert-success-bg: rgba(34, 197, 94, 0.15);
+    --alert-success-text: #4ade80;
+    --alert-success-border: #22c55e;
+    --alert-danger-bg: rgba(239, 68, 68, 0.15);
+    --alert-danger-text: #f87171;
+    --alert-danger-border: #ef4444;
 }
 
 /* 3. TIPOGRAFIA GERAL */
@@ -166,8 +182,10 @@ button, .btn {
 /* Ajuste para inputs desativados/somente leitura */
 .form-control[readonly], .form-control:disabled {
     background-color: var(--bg-color);
+    border-color: var(--border-color);
+    color: var(--text-muted);
     cursor: not-allowed;
-    opacity: 0.8;
+    opacity: 0.7;
 }
 
 .form-grid {
@@ -241,23 +259,4 @@ button, .btn {
     color: #d39e00;
 }
 
-/* 10. ALERTAS (MENSAGENS DE FLASH) */
-.alert {
-    padding: 1rem 1.25rem;
-    border-radius: 8px;
-    margin-bottom: 1.5rem;
-    font-weight: 500;
-    border-left: 4px solid transparent;
-}
-
-.alert-success {
-    background-color: #dcfce7;
-    color: #166534;
-    border-left-color: #22c55e;
-}
-
-.alert-danger {
-    background-color: #fee2e2;
-    color: #991b1b;
-    border-left-color: #ef4444;
-}
+/* 10. ALERTAS (MENSAGENS DE FLASH) - Removido: agora em root.css */

@@ -10,8 +10,8 @@
 
 /* Badges exclusivos de cargo */
 .badge-admin {
-  background-color: rgba(239, 68, 68, 0.15);
-  color: #ef4444;
+  background-color: rgba(139, 92, 246, 0.15);
+  color: #8b5cf6;
 }
 
 .badge-subadmin {

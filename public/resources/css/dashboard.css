@@ -71,10 +71,106 @@
   margin-top: 2rem;
 }
 
-/* RESPONSIVIDADE DASHBOARD (CELULAR) */
+/* =========================================
+   RESPONSIVIDADE DASHBOARD (CELULAR)
+   ========================================= */
 @media (max-width: 768px) {
   .summary-grid {
     grid-template-columns: 1fr;
     gap: 1rem;
+  }
+
+  /* Título + botão do card empilhados */
+  .base-card > div:first-child {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 0.8rem;
+  }
+
+  .base-card > div:first-child .btn-primary {
+    width: 100%;
+    text-align: center;
+  }
+
+  /* Transforma a tabela em cards empilhados */
+  .base-card .table-responsive {
+    overflow-x: visible;
+  }
+
+  .base-card .data-table thead {
+    display: none;
+  }
+
+  .base-card .data-table tbody tr {
+    display: grid;
+    grid-template-columns: auto auto 1fr;
+    grid-template-rows: auto auto auto;
+    align-items: center;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md, 8px);
+    background-color: var(--bg-color);
+    gap: 0.2rem;
+    transition: background-color 0.2s;
+  }
+
+  .base-card .data-table tbody tr:last-child {
+    margin-bottom: 0;
+  }
+
+  .base-card .data-table td {
+    border: none;
+    padding: 0;
+    font-size: 0.9rem;
+  }
+
+  /* Linha 1: Data | Hora | Status */
+  .base-card .data-table td:nth-child(1) {
+    grid-column: 1;
+    grid-row: 1;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    padding-right: 0.5rem;
+  }
+
+  .base-card .data-table td:nth-child(2) {
+    grid-column: 2;
+    grid-row: 1;
+    font-size: 0.8rem;
+    color: var(--color-purple);
+    font-weight: 600;
+  }
+
+  .base-card .data-table td:nth-child(5) {
+    grid-column: 3;
+    grid-row: 1;
+    justify-self: end;
+  }
+
+  /* Linha 2: Nome do cliente (destaque principal) */
+  .base-card .data-table td:nth-child(3) {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-main);
+    padding-top: 0.25rem;
+  }
+
+  /* Linha 3: Serviço (info secundária) */
+  .base-card .data-table td:nth-child(4) {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+
+  /* Ações (se existir a coluna) */
+  .base-card .data-table td:nth-child(6) {
+    grid-column: 3;
+    grid-row: 2 / 4;
+    justify-self: end;
+    align-self: center;
   }
 }

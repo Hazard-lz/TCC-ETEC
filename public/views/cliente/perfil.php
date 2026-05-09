@@ -68,14 +68,14 @@
                             <div id="aba-dados" class="tab-pane <?= $abaAtiva === 'dados' ? 'active' : '' ?>">
                                 <div class="profile-section">
                                     <?php if (isset($_SESSION['sucesso_perfil'])): ?>
-                                        <div style="color: #15803d; background-color: #dcfce7; padding: 10px; border-radius: 8px; margin-bottom: 1rem; font-size: 0.9rem; text-align: center;">
+                                        <div class="alert alert-success">
                                             <?= htmlspecialchars($_SESSION['sucesso_perfil']) ?>
                                         </div>
                                         <?php unset($_SESSION['sucesso_perfil']); ?>
                                     <?php endif; ?>
 
                                     <?php if (isset($_SESSION['erro_perfil'])): ?>
-                                        <div style="color: #dc2626; background-color: #fee2e2; padding: 10px; border-radius: 8px; margin-bottom: 1rem; font-size: 0.9rem; text-align: center;">
+                                        <div class="alert alert-danger">
                                             <?= htmlspecialchars($_SESSION['erro_perfil']) ?>
                                         </div>
                                         <?php unset($_SESSION['erro_perfil']); ?>
@@ -90,7 +90,7 @@
 
                                         <div class="form-group">
                                             <label for="telefone">Telefone / WhatsApp</label>
-                                            <input type="tel" id="telefone" name="telefone" class="form-control" value="<?= htmlspecialchars($clienteTelefone) ?>" required>
+                                            <input type="tel" id="telefone" name="telefone" class="form-control" value="<?= htmlspecialchars($clienteTelefone) ?>">
                                         </div>
 
                                         <div class="form-group">
@@ -106,14 +106,14 @@
                             <div id="aba-senha" class="tab-pane <?= $abaAtiva === 'senha' ? 'active' : '' ?>">
                                 <div class="profile-section">
                                     <?php if (isset($_SESSION['sucesso_senha'])): ?>
-                                        <div style="color: #15803d; background-color: #dcfce7; padding: 10px; border-radius: 8px; margin-bottom: 1rem; font-size: 0.9rem; text-align: center;">
+                                        <div class="alert alert-success">
                                             <?= htmlspecialchars($_SESSION['sucesso_senha']) ?>
                                         </div>
                                         <?php unset($_SESSION['sucesso_senha']); ?>
                                     <?php endif; ?>
 
                                     <?php if (isset($_SESSION['erro_senha'])): ?>
-                                        <div style="color: #dc2626; background-color: #fee2e2; padding: 10px; border-radius: 8px; margin-bottom: 1rem; font-size: 0.9rem; text-align: center;">
+                                        <div class="alert alert-danger">
                                             <?= htmlspecialchars($_SESSION['erro_senha']) ?>
                                         </div>
                                         <?php unset($_SESSION['erro_senha']); ?>

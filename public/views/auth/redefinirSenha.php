@@ -24,14 +24,14 @@
                 if (session_status() === PHP_SESSION_NONE) { session_start(); }
                 
                 if (isset($_SESSION['sucesso_recuperacao'])) {
-                    echo '<div style="color: #15803d; background-color: #dcfce7; padding: 10px; border-radius: 8px; text-align: center; margin-bottom: 1rem; font-weight: bold;">';
+                    echo '<div class="alert alert-success">';
                     echo htmlspecialchars($_SESSION['sucesso_recuperacao']);
                     echo '</div>';
                     unset($_SESSION['sucesso_recuperacao']);
                 }
                 
                 if (isset($_SESSION['erro_redefinicao'])) {
-                    echo '<div class="error-message" style="display: block; text-align: center; margin-bottom: 1rem; color: #dc2626; background-color: #fee2e2; padding: 10px; border-radius: 8px;">';
+                    echo '<div class="alert alert-danger">';
                     echo htmlspecialchars($_SESSION['erro_redefinicao']);
                     echo '</div>';
                     unset($_SESSION['erro_redefinicao']);
