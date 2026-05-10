@@ -94,6 +94,52 @@ class AgendamentoService extends BaseService
             // 8. Efetiva a gravação no banco de dados
             $this->conn->commit();
 
+            // ==========================================
+            // INTEGRAÇÃO ONESIGNAL (Novo Agendamento)
+            // ==========================================
+            try {
+                $agendamentoCompleto = $this->agendamentoModel->buscarPorId($idAgendamento);
+                if ($agendamentoCompleto) {
+                    $oneSignal = new OneSignalService();
+                    
+                    $protocolo = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? "https" : "http";
+                    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+                    $urlBase = "$protocolo://$host" . BASE_URL;
+
+                    if ($idFuncionarioCriador === null) {
+                        // Criado pelo CLIENTE -> Avisa o FUNCIONÁRIO
+                        if (!empty($agendamentoCompleto['funcionario_cod_usuario'])) {
+                            $dataPt = date('d/m', strtotime($agendamentoCompleto['data_agendamento']));
+                            $horaPt = substr($agendamentoCompleto['hora_inicio'], 0, 5);
+                            $msg = "📅 Novo Agendamento: {$agendamentoCompleto['cliente_nome']} solicitou {$agendamentoCompleto['nome_servico']} para o dia $dataPt às $horaPt.";
+                            
+                            $oneSignal->enviarNotificacao(
+                                $agendamentoCompleto['funcionario_cod_usuario'], 
+                                $msg, 
+                                $urlBase . '/funcionario/agenda',
+                                "Novo Agendamento"
+                            );
+                        }
+                    } else {
+                        // Criado pelo FUNCIONÁRIO -> Avisa o CLIENTE
+                        if (!empty($agendamentoCompleto['cliente_cod_usuario'])) {
+                            $dataPt = date('d/m', strtotime($agendamentoCompleto['data_agendamento']));
+                            $horaPt = substr($agendamentoCompleto['hora_inicio'], 0, 5);
+                            $msg = "✨ Agendamento Marcado: Um novo horário de {$agendamentoCompleto['nome_servico']} foi reservado para você no dia $dataPt às $horaPt.";
+                            
+                            $oneSignal->enviarNotificacao(
+                                $agendamentoCompleto['cliente_cod_usuario'], 
+                                $msg, 
+                                $urlBase . '/historico',
+                                "Novo Agendamento"
+                            );
+                        }
+                    }
+                }
+            } catch (Exception $e) {
+                error_log("Aviso: Falha ao enviar notificação de novo agendamento: " . $e->getMessage());
+            }
+
             return [
                 'sucesso' => true,
                 'mensagem' => 'Agendamento confirmado com sucesso!',
