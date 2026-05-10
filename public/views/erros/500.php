@@ -217,7 +217,7 @@
         <!-- Botão de retorno -->
         <?php
         // Tenta definir o caminho base se a constante não estiver disponível
-        $baseUrl = defined('BASE_URL') ? BASE_URL : '/TCC-ETEC';
+        $baseUrl = defined('BASE_URL') ? BASE_URL : '';
         ?>
         <a href="<?= $baseUrl ?>/" class="btn-back">
             ← Voltar para a página inicial

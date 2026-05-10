@@ -2,7 +2,7 @@
 // ARQUIVO: public/resources/js/menu_global.js
 // ==========================================
 
-const BASE_URL = '/TCC-ETEC'; // Altere se o caminho do seu servidor for diferente
+const BASE_URL = window.BASE_URL || ''; // Usa a base URL definida globalmente no PHP
 
 document.addEventListener("DOMContentLoaded", () => {
     const userString = localStorage.getItem('belezou_user');

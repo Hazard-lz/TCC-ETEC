@@ -49,6 +49,9 @@ $userData = json_encode([
     });
 </script>
 
+<script>
+    window.BASE_URL = '<?= BASE_URL ?>';
+</script>
 <script src="<?= BASE_URL ?>/public/resources/js/menu_global.js"></script>
 
 <div id="conteudo-temporario" style="display: none;">
