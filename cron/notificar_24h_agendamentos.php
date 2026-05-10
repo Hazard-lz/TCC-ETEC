@@ -5,6 +5,11 @@
  * Uso: Executar com PHP CLI, ex: `php c:\xampp\htdocs\TCC-ETEC\cron\notificar_24h_agendamentos.php`
  */
 
+// Habilita exibição de erros para depuração via Cron
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 require_once __DIR__ . '/../database/Conexao.php';
 require_once __DIR__ . '/../app/Models/Agendamento.php';
 require_once __DIR__ . '/../app/Services/OneSignalService.php';
