@@ -143,7 +143,7 @@
                                 </div>
                             </div>
 
-                        </div> </div> <button class="btn-logout" onclick="confirmarSaida()">
+                        </div> </div> <button class="btn-logout" onclick="confirmarSaida('<?= BASE_URL ?>/login/sair')">
                         <span>🚪</span> Sair da Conta
                     </button>
 

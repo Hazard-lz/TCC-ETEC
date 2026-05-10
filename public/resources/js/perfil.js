@@ -39,11 +39,10 @@ function abrirAba(nomeDaAba, botaoClicado) {
 }
 
 // Confirmação para sair da conta
-function confirmarSaida() {
+function confirmarSaida(urlSair) {
     if (confirm("Tem certeza que deseja sair do aplicativo?")) {
-        // Redireciona para a rota configurada no index.php
-        // Usa o caminho relativo a partir da raiz do projeto para evitar erros
-        window.location.href = window.location.origin + "/TCC-ETEC/login/sair"; 
+        // Redireciona para a URL fornecida (dinâmica)
+        window.location.href = urlSair; 
     }
 }
 
