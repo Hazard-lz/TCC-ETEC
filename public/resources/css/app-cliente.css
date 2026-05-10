@@ -6,6 +6,7 @@
 .app-wrapper {
     background-color: var(--bg-color);
     min-height: 100vh;
+    min-height: 100dvh;
     display: flex;
     justify-content: center;
     align-items: center; /* No PC, centra o ecrã na vertical */
@@ -21,8 +22,9 @@
     /* TRANSFORMA O CONTAINER NUMA CAIXA FLEXÍVEL */
     display: flex;
     flex-direction: column;
-    height: 100vh; /* Ocupa 100% do ecrã no telemóvel */
-    overflow: hidden; /* Impede que a página inteira role, prendendo tudo aqui dentro */
+    height: 100vh; /* Fallback */
+    height: 100dvh; /* Altura dinâmica para mobile (evita que a barra suma) */
+    overflow: hidden; 
     
     position: relative;
     box-shadow: 0 0 20px rgba(0,0,0,0.05);
@@ -75,8 +77,9 @@
 .app-content {
     padding: 1.5rem;
     
-    flex-grow: 1; /* Ocupa todo o espaço restante no meio */
-    overflow-y: auto; /* Adiciona barra de rolagem APENAS ao conteúdo */
+    flex-grow: 1; 
+    overflow-y: auto;
+    padding-bottom: 80px; /* Garante que o conteúdo não fique escondido atrás do menu */
 }
 
 /* ─── SCROLLBAR ESTILIZADA (GLOBAL PARA O APP) ─── */
@@ -189,8 +192,10 @@
     border-top: 1px solid var(--border-color);
     box-shadow: 0 -5px 20px rgba(0,0,0,0.02);
     
-    flex-shrink: 0; /* Impede que o menu seja esmagado */
+    flex-shrink: 0;
     z-index: 10;
+    position: sticky;
+    bottom: 0;
 }
 
 .nav-item {
