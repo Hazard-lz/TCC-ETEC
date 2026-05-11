@@ -25,6 +25,20 @@ class Middleware {
         $metodo = $_SERVER['REQUEST_METHOD'];
 
         // ═══════════════════════════════════════════════════════════
+        // REDIRECIONAMENTO DE USUÁRIOS LOGADOS
+        // Bloqueia acesso às páginas de login/cadastro se já houver sessão
+        // ═══════════════════════════════════════════════════════════
+        $rotasAutenticacao = ['/login', '/cadastro', '/recuperar-senha', '/redefinir-senha', '/verificar-email'];
+        if ($logado && in_array($uri, $rotasAutenticacao)) {
+            $destino = (isset($_SESSION['is_funcionario']) && $_SESSION['is_funcionario'] === true) 
+                ? "/funcionario/dashboard" 
+                : "/";
+            
+            header("Location: " . BASE_URL . $destino);
+            exit;
+        }
+
+        // ═══════════════════════════════════════════════════════════
         // PROTEÇÃO CSRF: Toda requisição POST deve conter um token válido
         // Exceção: Rotas de API que usam JSON (OneSignal, horários, etc)
         // ═══════════════════════════════════════════════════════════
