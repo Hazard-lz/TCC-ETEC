@@ -33,6 +33,7 @@
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
 
         <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/root.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
         <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/app-cliente.css">
         <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/perfil.css">
     </head>
@@ -165,6 +166,9 @@
                     </a>
                     <a href="<?= BASE_URL ?>/perfil" class="nav-item active">
                         <span class="nav-icon">👤</span><span>Perfil</span>
+                    </a>
+                    <a href="<?= BASE_URL ?>/cliente/ajuda" class="nav-item">
+                        <span class="nav-icon"><i class="bi bi-question-circle" style="font-size: 1.2rem;"></i></span><span>Ajuda</span>
                     </a>
                 </nav>
 

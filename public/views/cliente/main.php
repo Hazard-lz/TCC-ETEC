@@ -38,6 +38,7 @@ $servicosPopulares = $servicosPopulares ?? [];
     <title>Belezou App</title>
 
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/root.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/app-cliente.css">
     <?php require_once __DIR__ . '/../partials/onesignal.php'; ?>
 </head>
@@ -110,6 +111,9 @@ $servicosPopulares = $servicosPopulares ?? [];
                 </a>
                 <a href="<?= BASE_URL ?>/perfil" class="nav-item">
                     <span class="nav-icon">👤</span><span>Perfil</span>
+                </a>
+                <a href="<?= BASE_URL ?>/cliente/ajuda" class="nav-item">
+                    <span class="nav-icon"><i class="bi bi-question-circle" style="font-size: 1.2rem;"></i></span><span>Ajuda</span>
                 </a>
             </nav>
 

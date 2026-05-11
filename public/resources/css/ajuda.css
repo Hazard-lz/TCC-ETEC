@@ -1,0 +1,288 @@
+/* =======================================================
+   AJUDA.CSS — Estilos para as páginas de FAQ / Ajuda
+   Compatível com dark mode via variáveis do root.css
+   ======================================================= */
+
+/* ── Hero de topo com gradiente da marca ── */
+.ajuda-hero {
+    background: var(--gradient-brand);
+    border-radius: 18px;
+    padding: 2rem 2rem 1.5rem;
+    margin-bottom: 2rem;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    box-shadow: 0 8px 30px rgba(244, 91, 105, 0.3);
+}
+
+.ajuda-hero .ajuda-hero-icon {
+    font-size: 3rem;
+    flex-shrink: 0;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+}
+
+.ajuda-hero h1 {
+    font-size: 1.4rem;
+    font-weight: 800;
+    margin-bottom: 0.3rem;
+    line-height: 1.3;
+}
+
+.ajuda-hero p {
+    font-size: 0.92rem;
+    opacity: 0.9;
+    line-height: 1.5;
+}
+
+/* ── Badges de categoria ── */
+.ajuda-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    padding: 0.3rem 0.75rem;
+    border-radius: 50px;
+    margin-bottom: 1.2rem;
+    margin-top: 0.5rem;
+}
+
+.ajuda-badge.badge-pink {
+    background: rgba(244, 91, 105, 0.12);
+    color: var(--color-pink);
+    border: 1px solid rgba(244, 91, 105, 0.25);
+}
+
+.ajuda-badge.badge-purple {
+    background: rgba(139, 92, 246, 0.12);
+    color: var(--color-purple);
+    border: 1px solid rgba(139, 92, 246, 0.25);
+}
+
+.ajuda-badge.badge-blue {
+    background: rgba(59, 130, 246, 0.12);
+    color: #3b82f6;
+    border: 1px solid rgba(59, 130, 246, 0.25);
+}
+
+/* ── Container principal do Accordion ── */
+.ajuda-accordion {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+}
+
+/* ── Cada item do Accordion ── */
+.ajuda-item {
+    background-color: var(--surface-color);
+    border-radius: 15px;
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+    transition: box-shadow 0.3s ease, transform 0.2s ease;
+}
+
+.ajuda-item:hover {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
+}
+
+[data-theme="dark"] .ajuda-item {
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
+}
+
+/* ── Botão do Accordion (cabeçalho) ── */
+.ajuda-item .accordion-button {
+    background-color: var(--surface-color);
+    color: var(--text-main);
+    font-weight: 600;
+    font-size: 0.97rem;
+    padding: 1.1rem 1.4rem;
+    border: none;
+    border-radius: 15px !important;
+    box-shadow: none !important;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    gap: 0.75rem;
+}
+
+.ajuda-item .accordion-button::after {
+    filter: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%238b5cf6'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
+}
+
+/* ── Estado ATIVO do botão (expandido) ── */
+.ajuda-item .accordion-button:not(.collapsed) {
+    background: linear-gradient(135deg, rgba(244, 91, 105, 0.08), rgba(139, 92, 246, 0.12));
+    color: var(--color-purple);
+    border-radius: 15px 15px 0 0 !important;
+}
+
+.ajuda-item .accordion-button:not(.collapsed)::after {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23f45b69'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
+}
+
+.ajuda-item .accordion-button:focus {
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+/* ── Corpo do Accordion ── */
+.ajuda-item .accordion-collapse {
+    border-top: 1px solid var(--border-color);
+}
+
+.ajuda-item .accordion-body {
+    background-color: var(--surface-color);
+    color: var(--text-muted);
+    font-size: 0.93rem;
+    line-height: 1.75;
+    padding: 1.2rem 1.4rem;
+}
+
+/* Listas dentro do accordion */
+.ajuda-item .accordion-body ol,
+.ajuda-item .accordion-body ul {
+    padding-left: 1.5rem;
+    margin-top: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.ajuda-item .accordion-body li {
+    line-height: 1.6;
+}
+
+/* Destaques em negrito dentro do accordion */
+.ajuda-item .accordion-body strong {
+    color: var(--text-main);
+    font-weight: 600;
+}
+
+/* ── Badges de alerta dentro do accordion ── */
+.ajuda-tip {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    background: rgba(139, 92, 246, 0.08);
+    border-left: 3px solid var(--color-purple);
+    border-radius: 0 8px 8px 0;
+    padding: 0.7rem 1rem;
+    margin-top: 1rem;
+    font-size: 0.88rem;
+    color: var(--text-muted);
+}
+
+.ajuda-tip i {
+    color: var(--color-purple);
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+.ajuda-warning {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    background: rgba(244, 91, 105, 0.08);
+    border-left: 3px solid var(--color-pink);
+    border-radius: 0 8px 8px 0;
+    padding: 0.7rem 1rem;
+    margin-top: 1rem;
+    font-size: 0.88rem;
+    color: var(--text-muted);
+}
+
+.ajuda-warning i {
+    color: var(--color-pink);
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+/* ── Ícone numerado dentro do botão ── */
+.ajuda-item .accordion-button .ajuda-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--color-pink), var(--color-purple));
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-right: 0.2rem;
+}
+
+/* ── Status badges dentro do accordion ── */
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.2rem 0.65rem;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+.status-pill.pendente  { background: rgba(245, 158, 11, 0.1);  color: #d97706; }
+.status-pill.marcado   { background: rgba(139, 92, 246, 0.1);  color: var(--color-purple); }
+.status-pill.concluido { background: rgba(34, 197, 94, 0.1);   color: #16a34a; }
+.status-pill.cancelado { background: rgba(244, 91, 105, 0.1);  color: var(--color-pink); }
+
+/* ── Dark Mode: ajustes do accordion ── */
+[data-theme="dark"] .ajuda-item .accordion-button {
+    background-color: var(--surface-color);
+    color: var(--text-main);
+}
+
+[data-theme="dark"] .ajuda-item .accordion-button:not(.collapsed) {
+    background: linear-gradient(135deg, rgba(244, 91, 105, 0.12), rgba(139, 92, 246, 0.18));
+    color: #c4b5fd;
+}
+
+[data-theme="dark"] .ajuda-item .accordion-body {
+    background-color: var(--surface-color);
+}
+
+[data-theme="dark"] .ajuda-tip {
+    background: rgba(139, 92, 246, 0.12);
+}
+
+[data-theme="dark"] .ajuda-warning {
+    background: rgba(244, 91, 105, 0.12);
+}
+
+/* ── Link de contato no rodapé do FAQ ── */
+.ajuda-footer-card {
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 15px;
+    padding: 1.5rem;
+    text-align: center;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+}
+
+.ajuda-footer-card p {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.ajuda-footer-card strong {
+    color: var(--text-main);
+}
+
+/* ── Ajuste para a view cliente mobile ── */
+.mobile-ajuda-container {
+    padding: 1rem;
+    padding-bottom: 6rem; /* espaço para o bottom-nav */
+}
+
+/* ── Ajuste para as views desktop (funcionário/admin) ── */
+.desktop-ajuda-container {
+    max-width: 860px;
+}

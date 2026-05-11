@@ -39,6 +39,8 @@ $router->post('/agendar', 'AgendamentoController@salvar');
 $router->get('/historico', 'AgendamentoController@historicoCliente');
 $router->post('/historico/cancelar', 'AgendamentoController@cancelarPeloCliente');
 
+$router->get('/cliente/ajuda', 'AjudaController@indexCliente');
+
 
 // ===========================================================
 // ROTAS DE AUTENTICAÇÃO E REGISTO
@@ -136,6 +138,8 @@ $router->get('/admin/funcionarios/reenviar-email', function () {
 
 $router->get('/admin/relatorios/desempenho', 'RelatorioController@desempenhoFuncionario');
 
+$router->get('/admin/ajuda', 'AjudaController@indexAdmin');
+
 
 // ===========================================================
 // ROTAS DA EQUIPE (FUNCIONÁRIOS E ADMIN)
@@ -168,6 +172,8 @@ $router->get('/funcionario/perfil', 'FuncionarioController@editarPerfil');
 $router->post('/funcionario/perfil/salvar', 'FuncionarioController@salvarPerfil');
 
 $router->view('/funcionario/servicos', 'funcionario/servicos');
+
+$router->get('/funcionario/ajuda', 'AjudaController@indexFuncionario');
 
 
 // ===========================================================

@@ -34,6 +34,7 @@ function renderizarLayoutGlobal(usuario) {
         <li class="nav-item"><a href="${BASE_URL}/funcionario/servicos" class="nav-link ${pathAtual.includes('servicos') && !pathAtual.includes('admin') ? 'active' : ''}" title="Meus Serviços"><i class="bi bi-scissors me-2"></i> <span>Meus Serviços</span></a></li>
         <li class="nav-item"><a href="${BASE_URL}/funcionario/clientes" class="nav-link ${pathAtual.includes('clientes') ? 'active' : ''}" title="Clientes"><i class="bi bi-people me-2"></i> <span>Clientes</span></a></li>
         <li class="nav-item"><a href="${BASE_URL}/funcionario/disponibilidade" class="nav-link ${pathAtual.includes('disponibilidade') ? 'active' : ''}" title="Disponibilidade"><i class="bi bi-clock me-2"></i> <span>Disponibilidade</span></a></li>
+        <li class="nav-item"><a href="${BASE_URL}/funcionario/ajuda" class="nav-link ${pathAtual.includes('/funcionario/ajuda') ? 'active' : ''}" title="Ajuda / FAQ"><i class="bi bi-question-circle me-2"></i> <span>Ajuda / FAQ</span></a></li>
     `;
 
     if (isGerencia) {
@@ -46,6 +47,7 @@ function renderizarLayoutGlobal(usuario) {
         // Relatórios: exclusivo do admin (subadmin NÃO vê)
         if (isAdmin) {
             navLinks += `<li class="nav-item"><a href="${BASE_URL}/admin/relatorios/desempenho" class="nav-link ${pathAtual.includes('relatorios') ? 'active' : ''}" title="Relatórios"><i class="bi bi-graph-up me-2"></i> <span>Relatórios</span></a></li>`;
+            navLinks += `<li class="nav-item"><a href="${BASE_URL}/admin/ajuda" class="nav-link ${pathAtual.includes('/admin/ajuda') ? 'active' : ''}" title="Ajuda Administrativa"><i class="bi bi-question-circle me-2"></i> <span>Ajuda Admin</span></a></li>`;
         }
     }
 
