@@ -16,6 +16,11 @@
       "src": "./public/resources/images/favicon.png",
       "sizes": "512x512",
       "type": "image/png"
+    },
+    {
+      "src": "./public/resources/images/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
     }
   ]
 }
