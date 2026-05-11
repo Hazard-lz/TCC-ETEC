@@ -75,6 +75,11 @@ class Usuario extends BaseModel {
         return $this->executarQuery($sql, [':status' => $status, ':id' => $id_usuario]);
     }
 
+    public function removerOneSignalId($id_usuario) {
+        $sql = "UPDATE usuarios SET onesignal_sub_id = NULL WHERE id_usuario = :id";
+        return $this->executarQuery($sql, [':id' => $id_usuario]);
+    }
+
     // ==============================================================
     // 2. MÉTODOS DE SEGURANÇA
     // ==============================================================

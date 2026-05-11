@@ -43,11 +43,17 @@ class AuthController
 
                 // Cookie auxiliar para o index.php saber o tipo ANTES do session_start
                 setcookie('belezou_tipo', 'func', [
-                    'expires' => $expira, 'path' => '/', 'httponly' => true, 'samesite' => 'Strict'
+                    'expires' => $expira,
+                    'path' => '/',
+                    'httponly' => true,
+                    'samesite' => 'Strict'
                 ]);
                 // Força o cookie de sessão com a validade correta (7 dias)
                 setcookie(session_name(), session_id(), [
-                    'expires' => $expira, 'path' => '/', 'httponly' => true, 'samesite' => 'Strict'
+                    'expires' => $expira,
+                    'path' => '/',
+                    'httponly' => true,
+                    'samesite' => 'Strict'
                 ]);
 
                 header("Location: " . BASE_URL . "/funcionario/dashboard");
@@ -55,10 +61,16 @@ class AuthController
                 $expira = time() + (60 * 60 * 24 * 30); // 30 dias
 
                 setcookie('belezou_tipo', 'cli', [
-                    'expires' => $expira, 'path' => '/', 'httponly' => true, 'samesite' => 'Strict'
+                    'expires' => $expira,
+                    'path' => '/',
+                    'httponly' => true,
+                    'samesite' => 'Strict'
                 ]);
                 setcookie(session_name(), session_id(), [
-                    'expires' => $expira, 'path' => '/', 'httponly' => true, 'samesite' => 'Strict'
+                    'expires' => $expira,
+                    'path' => '/',
+                    'httponly' => true,
+                    'samesite' => 'Strict'
                 ]);
 
                 header("Location: " . BASE_URL . "/");
@@ -114,6 +126,11 @@ class AuthController
 
         // Limpa o cookie auxiliar de tipo de utilizador
         setcookie('belezou_tipo', '', ['expires' => time() - 42000, 'path' => '/']);
+
+        // LIMPEZA ONESIGNAL: Remove o ID do dispositivo do banco ao sair usando o Service (Arquitetura Limpa)
+        if (isset($_SESSION['usuario_id'])) {
+            $this->usuarioService->removerDispositivoOneSignal($_SESSION['usuario_id']);
+        }
 
         session_destroy();
 

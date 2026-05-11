@@ -402,4 +402,15 @@ class UsuarioService extends BaseService
 
         return $this->erro('Falha técnica ao tentar enviar o e-mail.');
     }
+
+    public function removerDispositivoOneSignal($id_usuario)
+    {
+        try {
+            $this->usuarioModel->removerOneSignalId($id_usuario);
+            return $this->sucesso('Dispositivo removido das notificações.');
+        } catch (Exception $e) {
+            error_log("Erro no UsuarioService ao remover OneSignal: " . $e->getMessage());
+            return $this->erro('Erro interno ao tentar remover o dispositivo.');
+        }
+    }
 }
