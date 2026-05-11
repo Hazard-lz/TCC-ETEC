@@ -24,9 +24,24 @@
   width: auto;
   padding: 0.7rem 1.5rem;
   margin-top: 0;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   text-decoration: none;
   text-align: center;
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .btn-new {
+    width: 100%;
+    order: 2;
+  }
+  
+  .page-title {
+    order: 1;
+    width: 100%;
+  }
 }
 
 /* Input de pesquisa da tabela */
@@ -41,4 +56,105 @@
 
 .row-inactive td:last-child {
   opacity: 1;
+}
+
+/* Texto de status inativo adaptativo */
+.status-inativo-text {
+  color: #dc3545; /* Vermelho padrão */
+}
+
+[data-theme="dark"] .status-inativo-text {
+  color: #ff6b6b; /* Vermelho mais suave para modo escuro */
+}
+
+/* =========================================
+   RESPONSIVIDADE: TABELA PARA CARDS (MOBILE)
+   ========================================= */
+@media (max-width: 768px) {
+  /* Remove o card base para não ter padding duplo no mobile */
+  .base-card {
+    padding: 1rem;
+    border: none;
+    box-shadow: none;
+    background-color: transparent;
+  }
+
+  /* Esconde o cabeçalho original da tabela */
+  .data-table thead {
+    display: none;
+  }
+
+  .data-table, .data-table tbody, .data-table tr, .data-table td {
+    display: block;
+    width: 100%;
+  }
+
+  /* Cada linha vira um cartão */
+  .data-table tr {
+    background-color: var(--surface-color);
+    border-radius: 12px;
+    margin-bottom: 1.2rem;
+    padding: 1rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--border-color);
+  }
+
+  .data-table td {
+    text-align: right;
+    padding: 0.8rem 0.5rem;
+    border-bottom: 1px solid var(--border-color);
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.95rem;
+  }
+
+  .data-table td:last-child {
+    border-bottom: none;
+    justify-content: center;
+    padding-top: 1rem;
+  }
+
+  /* Insere a etiqueta usando o atributo data-label */
+  .data-table td::before {
+    content: attr(data-label);
+    font-weight: 700;
+    color: var(--color-purple);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    margin-right: 1rem;
+    opacity: 0.8;
+  }
+
+  .data-table td[data-label="Serviço"],
+  .data-table td[data-label="Funcionário"],
+  .data-table td[data-label="Cliente"] {
+    background-color: rgba(139, 92, 246, 0.05);
+    border-bottom: 2px solid var(--border-color);
+    text-align: center;
+    font-size: 1.1rem;
+    font-weight: 600;
+    justify-content: center;
+    color: var(--color-purple);
+  }
+
+  .data-table td[data-label="Serviço"]::before,
+  .data-table td[data-label="Funcionário"]::before,
+  .data-table td[data-label="Cliente"]::before {
+    display: none;
+  }
+
+  /* Ajuste para botões de ação no mobile */
+  .action-buttons {
+    width: 100%;
+    justify-content: center;
+    gap: 15px;
+  }
+
+  .btn-action {
+    width: 45px;
+    height: 45px;
+    font-size: 1.2rem;
+  }
 }

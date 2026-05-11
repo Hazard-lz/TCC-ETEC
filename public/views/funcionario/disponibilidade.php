@@ -128,15 +128,15 @@ $mostrarBotaoEditar = (!$isNovaGrade && !empty($idDisponibilidade)) ? 'block' : 
         </div>
     <?php endif; ?>
 
-    <div class="base-card" style="max-width: 1000px; padding: 2rem;">
+    <div class="base-card card-disponibilidade">
         
         <div class="grade-header">
-            <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap; flex-grow: 1;">
+            <div class="header-main-actions">
                 <label style="font-weight: bold; color: var(--text-main);">Grade Visualizada:</label>
                 
                 <form action="<?= BASE_URL ?>/funcionario/disponibilidade/selecionar" method="POST" style="margin: 0; display: flex; gap: 15px;">
                                         <?= CsrfGuard::campoHidden() ?>
-                    <select name="grade_selecionada" class="form-control form-select" style="width: auto; min-width: 250px;" onchange="this.form.submit()">
+                    <select name="grade_selecionada" class="form-control form-select grade-select" onchange="this.form.submit()">
                         <?php if(empty($todasGrades)): ?>
                             <option value="">Nenhuma grade criada</option>
                         <?php else: ?>
@@ -156,7 +156,7 @@ $mostrarBotaoEditar = (!$isNovaGrade && !empty($idDisponibilidade)) ? 'block' : 
                 </form>
             </div>
 
-            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            <div class="header-secondary-actions">
                 <?php if(!empty($idDisponibilidade) && !$isNovaGrade): ?>
                     <form action="<?= BASE_URL ?>/funcionario/disponibilidade/salvar_antecedencia" method="POST" class="antecedencia-form">
                                         <?= CsrfGuard::campoHidden() ?>
@@ -253,7 +253,7 @@ $mostrarBotaoEditar = (!$isNovaGrade && !empty($idDisponibilidade)) ? 'block' : 
                                 $d = $existe ? $dadosDias[$sigla] : ['inicio'=>'08:00', 'fim'=>'18:00', 'int_inicio'=>'12:00', 'int_fim'=>'13:00', 'status'=>'disponivel'];
                                 $ativo = $existe ? ($d['status'] === 'disponivel') : false;
                             ?>
-                                <div class="day-row" id="row_<?= $sigla ?>" style="<?= !$ativo ? 'opacity: 0.5; filter: grayscale(100%); border-color: transparent;' : 'border-left: 4px solid #28a745;' ?>">
+                                <div class="day-row <?= !$ativo ? 'is-off' : '' ?>" id="row_<?= $sigla ?>">
                                     
                                     <label class="toggle-container" style="min-width: 160px; display: flex; align-items: center; gap: 12px; cursor: pointer;">
                                         
@@ -339,13 +339,9 @@ $mostrarBotaoEditar = (!$isNovaGrade && !empty($idDisponibilidade)) ? 'block' : 
             const row = document.getElementById('row_' + sigla);
             
             if (checkbox.checked) {
-                row.style.opacity = '1';
-                row.style.filter = 'none';
-                row.style.borderLeft = '4px solid #28a745';
+                row.classList.remove('is-off');
             } else {
-                row.style.opacity = '0.5';
-                row.style.filter = 'grayscale(100%)';
-                row.style.borderLeft = '1px solid var(--border-color)';
+                row.classList.add('is-off');
             }
         }
 

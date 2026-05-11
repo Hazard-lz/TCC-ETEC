@@ -60,40 +60,41 @@ if ($dadosFunc) {
     <style>
         .servicos-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1rem;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.25rem;
             margin-bottom: 2rem;
         }
 
         .servico-card-item {
             display: flex;
-            align-items: flex-start;
-            gap: 1rem;
-            padding: 1.2rem;
+            align-items: center;
+            gap: 1.2rem;
+            padding: 1.25rem;
             border: 2px solid var(--border-color);
             border-radius: 12px;
             cursor: pointer;
-            transition: all 0.2s ease;
-            background: var(--bg-card);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            background: var(--surface-color);
         }
 
         .servico-card-item:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            border-color: #a78bfa;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(139, 92, 246, 0.1);
+            border-color: var(--color-purple);
         }
 
         .servico-card-item:has(input:checked) {
             border-color: var(--color-purple);
             background-color: rgba(139, 92, 246, 0.05);
+            box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.1);
         }
 
         .servico-card-item input[type="checkbox"] {
-            width: 22px;
-            height: 22px;
-            margin-top: 2px;
+            width: 24px;
+            height: 24px;
             accent-color: var(--color-purple);
             cursor: pointer;
+            flex-shrink: 0;
         }
 
         .servico-info {
@@ -103,27 +104,71 @@ if ($dadosFunc) {
         .servico-info strong {
             display: block;
             color: var(--text-main);
-            font-size: 1.05rem;
-            margin-bottom: 0.4rem;
+            font-size: 1.1rem;
+            margin-bottom: 0.3rem;
+            font-weight: 600;
         }
 
         .servico-badges {
             display: flex;
             flex-wrap: wrap;
             gap: 0.5rem;
-            margin-top: 0.5rem;
         }
 
         .s-badge {
             font-size: 0.8rem;
             color: var(--text-muted);
             background: var(--bg-body);
-            padding: 2px 8px;
-            border-radius: 12px;
+            padding: 4px 10px;
+            border-radius: 20px;
             border: 1px solid var(--border-color);
             display: inline-flex;
             align-items: center;
             gap: 4px;
+            font-weight: 500;
+        }
+
+        .services-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 2rem;
+        }
+
+        .card-servicos {
+            max-width: 900px;
+            padding: 2.5rem;
+        }
+
+        /* Responsividade */
+        @media (max-width: 768px) {
+            .card-servicos {
+                padding: 1.5rem !important;
+            }
+
+            .servicos-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 1rem;
+            }
+
+            .services-actions {
+                justify-content: stretch;
+            }
+
+            .services-actions .btn-primary {
+                width: 100%;
+                margin: 0;
+                padding: 1rem;
+            }
+        }
+
+        @media (max-width: 500px) {
+            .servicos-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .servico-card-item {
+                padding: 1rem;
+            }
         }
     </style>
 

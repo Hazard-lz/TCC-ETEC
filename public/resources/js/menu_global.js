@@ -53,20 +53,22 @@ function renderizarLayoutGlobal(usuario) {
     const layoutHTML = `
         <div class="sidebar" id="sidebar-global">
             <div class="sidebar-header">
-                <img src="${BASE_URL}/public/resources/images/Belezou.png" alt="Belezou App Logo" class="sidebar-logo" onerror="this.style.display='none'">    
+                <a href="${BASE_URL}/funcionario/dashboard">
+                    <img src="${BASE_URL}/public/resources/images/Belezou.png" alt="Belezou App Logo" class="sidebar-logo" onerror="this.style.display='none'">
+                </a>
             </div>
             
             <ul class="sidebar-nav">
                 ${navLinks}
             </ul>
 
-            <div class="sidebar-footer">
+            <a href="${BASE_URL}/funcionario/perfil" class="sidebar-footer" title="Meu Perfil" style="text-decoration: none;">
                 <div class="user-avatar">${inicialNome}</div>
                 <div class="user-info">
                     <h6>${primeiroNome}</h6>
                     <small>${usuario.tipo.toUpperCase()}</small>
                 </div>
-            </div>
+            </a>
             <div class="sidebar-clock" id="sidebarClock">
                 <span class="clock-time" id="clockTime"></span>
                 <span class="clock-date" id="clockDate"></span>
@@ -180,13 +182,26 @@ function iniciarEventosLayout() {
                 // Mobile: Menu por cima (Overlay)
                 sidebar.classList.add('mobile-open');
                 overlay.classList.add('open');
+                document.documentElement.classList.add('sidebar-open-body');
+                document.body.classList.add('sidebar-open-body');
             }
         });
 
-        overlay.addEventListener('click', () => {
+        const fecharMenuMobile = () => {
             sidebar.classList.remove('mobile-open');
             overlay.classList.remove('open');
-        });
+            document.documentElement.classList.remove('sidebar-open-body');
+            document.body.classList.remove('sidebar-open-body');
+        };
+
+        overlay.addEventListener('click', fecharMenuMobile);
+
+        // Bloqueia o arrasto/scroll se o utilizador tentar scrollar no overlay escuro
+        overlay.addEventListener('touchmove', (e) => {
+            if (overlay.classList.contains('open')) {
+                e.preventDefault();
+            }
+        }, { passive: false });
     }
 
     // 2. Submenu do Perfil
@@ -244,8 +259,15 @@ function iniciarRelogio() {
     setInterval(atualizar, 1000);
 }
 
-function fazerLogout() {
-    if(confirm("Deseja realmente sair do sistema?")) {
+async function fazerLogout() {
+    if (confirm("Deseja realmente sair do sistema?")) {
+        // Limpeza OneSignal no Cliente: desvincula este dispositivo do usuário
+        if (window.OneSignalDeferred) {
+            OneSignalDeferred.push(async function(OneSignal) {
+                await OneSignal.logout();
+            });
+        }
+        
         localStorage.removeItem('belezou_user');
         window.location.href = BASE_URL + "/login/sair";
     }

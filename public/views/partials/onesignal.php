@@ -2,7 +2,7 @@
 if (isset($_SESSION['usuario_id'])):
     // Garante que o Conexao.php está carregado
     require_once __DIR__ . '/../../../database/Conexao.php';
-    
+
     // Tenta buscar o ID de todas as fontes possíveis
     $appId = $_ENV['ONESIGNAL_APP_ID'] ?? getenv('ONESIGNAL_APP_ID') ?? '';
 
@@ -11,7 +11,8 @@ if (isset($_SESSION['usuario_id'])):
         try {
             Conexao::getConexao();
             $appId = $_ENV['ONESIGNAL_APP_ID'] ?? getenv('ONESIGNAL_APP_ID') ?? '';
-        } catch (Exception $e) {}
+        } catch (Exception $e) {
+        }
     }
     ?>
     <!-- OneSignal SDK -->
@@ -38,7 +39,7 @@ if (isset($_SESSION['usuario_id'])):
                         'circle.background': '#8b5cf6',
                         'badge.background': '#8b5cf6',
                     },
-                    displayPredicate: function() {
+                    displayPredicate: function () {
                         // Não mostra o sino em páginas de login/cadastro
                         return !window.location.pathname.includes('login') && !window.location.pathname.includes('cadastro');
                     }
@@ -51,28 +52,30 @@ if (isset($_SESSION['usuario_id'])):
                 await OneSignal.login(userId);
             }
 
-            // Função para registrar o ID de inscrição no servidor
+            // Função limpa para registrar no servidor
             const registrarNoServidor = async () => {
                 const subId = OneSignal.User.PushSubscription.id;
-                if (subId) {
-                    try {
-                        const res = await fetch("<?= BASE_URL ?>/api/onesignal/registrar", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ subscription_id: subId })
-                        });
-                        const data = await res.json();
-                        if (data.sucesso) console.log("OneSignal: Subscription ID registrado com sucesso.");
-                    } catch (err) {
-                        console.error("OneSignal: Erro ao registrar no servidor", err);
-                    }
-                }
+                if (!subId) return;
+
+                try {
+                    await fetch("<?= BASE_URL ?>/api/onesignal/registrar", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRF-TOKEN": "<?= $_SESSION['csrf_token'] ?? '' ?>"
+                        },
+                        credentials: "same-origin",
+                        body: JSON.stringify({ subscription_id: subId })
+                    });
+                } catch (e) { }
             };
 
-            // Tenta registrar o ID inicial
-            registrarNoServidor();
+            // Se o ID já estiver pronto na memória do SDK, envia imediatamente.
+            if (OneSignal.User.PushSubscription.id) {
+                registrarNoServidor();
+            }
 
-            // Escuta mudanças (ex: quando o usuário aceita a notificação pela primeira vez)
+            // Escuta ativamente se o ID for gerado (ex: o usuário acabou de aceitar o prompt)
             OneSignal.User.PushSubscription.addEventListener('change', registrarNoServidor);
 
             // Se o usuário ainda não decidiu (está em "default"), mostra o prompt amigável

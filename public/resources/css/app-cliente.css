@@ -24,8 +24,9 @@
     flex-direction: column;
     height: 100vh; /* Fallback */
     height: 100dvh; /* Altura dinâmica para mobile (evita que a barra suma) */
-    overflow: hidden; 
     
+    /* Trava o scroll no container principal para não dar "salto" */
+    overflow: hidden; 
     position: relative;
     box-shadow: 0 0 20px rgba(0,0,0,0.05);
     transition: background-color var(--transition-default), box-shadow var(--transition-default);
@@ -43,7 +44,9 @@
     align-items: center;
     
     flex-shrink: 0; /* Impede o cabeçalho de ser esmagado */
-    z-index: 10;
+    z-index: 100;
+    position: sticky;
+    top: 0;
 }
 
 .greeting h2 {
@@ -79,7 +82,8 @@
     
     flex-grow: 1; 
     overflow-y: auto;
-    padding-bottom: 80px; /* Garante que o conteúdo não fique escondido atrás do menu */
+    /* Suporte para scroll suave no iOS */
+    -webkit-overflow-scrolling: touch;
 }
 
 /* ─── SCROLLBAR ESTILIZADA (GLOBAL PARA O APP) ─── */
@@ -189,11 +193,13 @@
     display: flex;
     justify-content: space-around;
     padding: 0.8rem 0;
+    /* Suporte para "Safe Area" (barrinha do iPhone) */
+    padding-bottom: calc(0.8rem + env(safe-area-inset-bottom, 0px));
     border-top: 1px solid var(--border-color);
     box-shadow: 0 -5px 20px rgba(0,0,0,0.02);
     
     flex-shrink: 0;
-    z-index: 10;
+    z-index: 100;
     position: sticky;
     bottom: 0;
 }

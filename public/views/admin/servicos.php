@@ -59,27 +59,26 @@ $servicos = array_merge($ativos, $inativos);
 
                     <?php foreach ($servicos as $servico): ?>
                     <tr class="<?= $servico['status'] === 'inativo' ? 'row-inactive' : '' ?>">
-                        <td style="font-weight: 500;"><?= htmlspecialchars($servico['nome_servico']) ?></td>
-                        <td>R$ <?= number_format($servico['preco'], 2, ',', '.') ?></td>
-                        <td><?= $servico['duracao'] ?> min</td>
-                        <td>
+                        <td data-label="Serviço" style="font-weight: 500;"><?= htmlspecialchars($servico['nome_servico']) ?></td>
+                        <td data-label="Preço">R$ <?= number_format($servico['preco'], 2, ',', '.') ?></td>
+                        <td data-label="Duração"><?= $servico['duracao'] ?> min</td>
+                        <td data-label="Status">
                             <?php if ($servico['status'] === 'ativo'): ?>
                                 <span class="badge badge-ativo">Ativo</span>
                             <?php else: ?>
                                 <span class="badge badge-inativo">Inativo</span>
                             <?php endif; ?>
                         </td>
-                        <td>
-                            <div class="action-buttons" style="display: flex; gap: 8px; align-items: center;">
+                        <td data-label="Ações">
+                            <div class="action-buttons">
                                 <button data-modal-target="#modalServico" class="btn-action btn-edit" title="Editar" 
-                                    onclick="preencherModalEdicao(<?= $servico['id_servico'] ?>, '<?= htmlspecialchars(addslashes($servico['nome_servico'])) ?>', '<?= htmlspecialchars(addslashes($servico['descricao'])) ?>', <?= $servico['preco'] ?>, <?= $servico['duracao'] ?>, '<?= $servico['status'] ?>')"
-                                    style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">✏️</button>
+                                    onclick="preencherModalEdicao(<?= $servico['id_servico'] ?>, '<?= htmlspecialchars(addslashes($servico['nome_servico'])) ?>', '<?= htmlspecialchars(addslashes($servico['descricao'])) ?>', <?= $servico['preco'] ?>, <?= $servico['duracao'] ?>, '<?= $servico['status'] ?>')">✏️</button>
                                 
                                 <?php if($servico['status'] === 'ativo'): ?>
-                                    <button class="btn-action btn-delete" title="Inativar" onclick="alterarStatusServico(<?= $servico['id_servico'] ?>, 'inativo')" style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">🚫</button>
+                                    <button class="btn-action btn-delete" title="Inativar" onclick="alterarStatusServico(<?= $servico['id_servico'] ?>, 'inativo')">🚫</button>
                                 <?php else: ?>
-                                    <button class="btn-action btn-edit" title="Ativar" onclick="alterarStatusServico(<?= $servico['id_servico'] ?>, 'ativo')" style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">✅</button>
-                                    <button class="btn-action btn-delete" title="Excluir Permanentemente" onclick="excluirServico(<?= $servico['id_servico'] ?>)" style="background: none; border: none; cursor: pointer; font-size: 1.2rem; color: var(--color-pink);">🗑️</button>
+                                    <button class="btn-action btn-edit" title="Ativar" onclick="alterarStatusServico(<?= $servico['id_servico'] ?>, 'ativo')">✅</button>
+                                    <button class="btn-action btn-delete" title="Excluir Permanentemente" onclick="excluirServico(<?= $servico['id_servico'] ?>)" style="color: var(--color-pink);">🗑️</button>
                                 <?php endif; ?>
                             </div>
                         </td>
@@ -114,13 +113,13 @@ $servicos = array_merge($ativos, $inativos);
                         <textarea id="descricao" name="descricao" class="form-control" required></textarea>
                     </div>
                     
-                    <div class="form-row" style="display: flex; gap: 15px;">
-                        <div class="form-group" style="flex: 1;">
+                    <div class="form-row">
+                        <div class="form-group">
                             <label for="preco">Preço (R$)</label>
                             <input type="number" id="preco" name="preco" class="form-control" step="0.01" min="0" required>
                         </div>
                         
-                        <div class="form-group" style="flex: 1;">
+                        <div class="form-group">
                             <label for="duracao">Duração (Minutos)</label>
                             <input type="number" id="duracao" name="duracao" class="form-control" min="5" step="5" required>
                         </div>

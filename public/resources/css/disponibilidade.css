@@ -143,6 +143,31 @@ input[type="time"].form-control {
     gap: 1rem;
 }
 
+.card-disponibilidade {
+    max-width: 1000px;
+    padding: 2rem;
+}
+
+.header-main-actions {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    flex-wrap: wrap;
+    flex-grow: 1;
+}
+
+.header-secondary-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.grade-select {
+    width: auto;
+    min-width: 250px;
+}
+
 .grade-header .btn-secondary {
     height: 38px;
     display: inline-flex;
@@ -172,8 +197,12 @@ input[type="time"].form-control {
 .btn-excluir-grade {
     background-color: transparent;
     color: #ef4444;
-    border: 1px solid #ef4444;
-    padding: 0.5rem 1rem;
+    border: 2px solid #ef4444;
+    height: 48px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 1.5rem;
     border-radius: 8px;
     font-weight: 600;
     cursor: pointer;
@@ -185,7 +214,11 @@ input[type="time"].form-control {
 }
 
 .btn-editar-grade {
-    padding: 0.6rem 1.2rem;
+    height: 48px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 1.5rem;
     font-weight: 600;
     border: 2px solid var(--color-purple);
     color: var(--color-purple);
@@ -193,6 +226,7 @@ input[type="time"].form-control {
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.2s ease;
+    gap: 8px;
 }
 
 .btn-editar-grade:hover {
@@ -239,12 +273,27 @@ input[type="time"].form-control {
     padding: 1rem;
     border-radius: 8px;
     border: 1px solid var(--border-color);
+    border-left: 4px solid #22c55e;
     margin-bottom: 1rem;
     display: flex;
     flex-wrap: wrap;
     gap: 1rem;
     align-items: center;
     transition: all 0.3s ease;
+}
+
+.day-row.is-off {
+    opacity: 0.9; /* Mantemos o card mais visível para o slider brilhar */
+    background-color: var(--bg-disabled);
+    border-style: dashed;
+    border-left-color: var(--border-color);
+}
+
+/* Deixamos apenas o conteúdo interno (textos e inputs) mais apagados, mas não o slider */
+.day-row.is-off .time-input-group,
+.day-row.is-off .divider {
+    opacity: 0.5;
+    filter: grayscale(1);
 }
 
 .day-row:hover {
@@ -303,10 +352,11 @@ input[type="time"].form-control {
 /* Área de botões (editar + excluir) */
 .grade-actions {
     display: flex;
+    flex-direction: row; /* Lado a lado no desktop */
     align-items: center;
     justify-content: center;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
+    gap: 1.5rem;
+    margin: 2.5rem 0 1.5rem 0;
     flex-wrap: wrap;
 }
 
@@ -334,9 +384,14 @@ input[type="time"].form-control {
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: var(--border-color);
+    background-color: #ef4444 !important; /* Vermelho Sólido (Vivo) */
     transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     border-radius: 24px;
+}
+
+[data-theme="dark"] .toggle-slider {
+    background-color: #991b1b !important; /* Vermelho Sangue no Dark Mode */
+    border: 1px solid #ef4444;
 }
 
 .toggle-slider:before {
@@ -346,49 +401,189 @@ input[type="time"].form-control {
     width: 18px;
     left: 3px;
     bottom: 3px;
-    background-color: var(--text-main);
+    background-color: #ffffff; /* Bolinha Branca sempre para contraste */
     transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     border-radius: 50%;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .toggle-switch input:checked + .toggle-slider {
-    background-color: #22c55e;
+    background-color: #22c55e !important; /* Verde Sólido */
+    border: none;
 }
 
 .toggle-switch input:checked + .toggle-slider:before {
     transform: translateX(22px);
-    background-color: #ffffff;
+    background-color: #ffffff; /* Círculo Branco quando ON */
 }
 
 /* =========================================
    RESPONSIVIDADE (CELULARES)
    ========================================= */
 @media (max-width: 768px) {
+    .base-card.card-disponibilidade {
+        padding: 1.25rem !important;
+    }
+
+    /* Modal no Mobile */
+    .modal-content {
+        width: 100% !important;
+        height: 100% !important;
+        max-height: 100vh !important;
+        border-radius: 0 !important;
+    }
+
+    .modal-body {
+        padding: 1.25rem !important;
+    }
+
+    .modal-actions {
+        flex-direction: column;
+        gap: 0.8rem;
+    }
+
+    .modal-actions button {
+        width: 100%;
+        margin: 0;
+    }
+
+    /* Linhas de Dias */
+    .day-row {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 1.25rem;
+        gap: 1.2rem;
+        position: relative;
+    }
+
+    .toggle-container {
+        width: 100%;
+        justify-content: space-between;
+        padding-bottom: 0.8rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .time-input-group {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .time-input-group span {
+        font-size: 0.75rem;
+        flex-shrink: 0;
+    }
+
+    .time-input-group input[type="time"] {
+        width: 100% !important;
+        flex: 1;
+        min-width: 0;
+    }
+
     .divider {
         border-left: none;
         padding-left: 0;
         margin-left: 0;
         border-top: 1px dashed var(--border-color);
-        padding-top: 0.6rem;
+        padding-top: 1.2rem;
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .divider span:first-child {
+        width: 100%;
+        margin-bottom: 0.2rem;
+    }
+
+    .btn-limpar-pausa {
+        margin-left: auto;
+        padding: 0.5rem 0;
+        font-size: 0.9rem;
+    }
+
+    /* Cabeçalho da Grade */
+    .grade-header {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 1rem;
+        gap: 1.2rem;
+    }
+
+    .header-main-actions, .header-secondary-actions {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.8rem;
+    }
+
+    .header-main-actions form, .header-secondary-actions form {
         width: 100%;
     }
 
-    .day-row {
-        flex-direction: column;
-        align-items: flex-start;
+    .grade-select {
+        width: 100% !important;
+        min-width: unset !important;
     }
 
-    .grade-header {
-        flex-direction: column;
-        align-items: flex-start;
+    .header-main-actions .btn-secondary, 
+    .header-secondary-actions .btn-primary, 
+    .header-secondary-actions .btn-ativar-grade {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .antecedencia-form {
+        flex-wrap: wrap;
+        justify-content: space-between;
+    }
+
+    .antecedencia-form label {
+        width: 100%;
+        margin-bottom: 0.5rem;
     }
 
     .grade-actions {
         flex-direction: column;
+        width: 100%;
+        gap: 1.25rem; /* Aumentando um pouco o gap */
+        margin-top: 2rem;
+    }
+
+    .grade-actions > * + * {
+        margin-top: 0.25rem; /* Margem extra de segurança */
+    }
+
+    .btn-editar-grade, .btn-excluir-grade {
+        width: 100% !important;
+        height: 52px; /* Um pouco maior no mobile para facilitar o toque */
+        display: flex;
+        justify-content: center;
+        padding: 0;
+        border-radius: 8px;
+        margin-bottom: 0.5rem; /* Forçando espaço inferior */
     }
 
     .grade-preview-container {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    }
+}
+
+@media (max-width: 480px) {
+    .grade-preview-container {
+        grid-template-columns: 1fr;
+    }
+
+    .status-banner {
+        flex-direction: column;
+        text-align: center;
+        gap: 0.5rem;
+    }
+
+    .status-banner .status-icon {
+        font-size: 1.5rem;
     }
 }

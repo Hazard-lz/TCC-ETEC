@@ -2,6 +2,13 @@
    MODAL.CSS - JANELAS FLUTUANTES
    ========================================= */
 
+body.modal-open {
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+}
+
 /* Sombra escura de fundo (Overlay) */
 .modal-overlay {
   position: fixed;

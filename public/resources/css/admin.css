@@ -148,6 +148,25 @@ button, .btn {
     transform: scale(1.05);
 }
 
+.action-buttons {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.btn-disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    filter: grayscale(1);
+}
+
+.user-self-label {
+    color: var(--color-purple);
+    font-size: 0.8rem;
+    margin-left: 8px;
+    font-weight: bold;
+}
+
 /* 7. FORMULÁRIOS E INPUTS */
 .form-group {
     margin-bottom: 1.2rem;
