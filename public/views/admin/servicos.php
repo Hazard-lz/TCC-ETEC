@@ -76,10 +76,10 @@ $servicos = array_merge($ativos, $inativos);
                                     style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">✏️</button>
                                 
                                 <?php if($servico['status'] === 'ativo'): ?>
-                                    <button class="btn-action btn-delete" title="Inativar" onclick="alterarStatusServico(<?= $servico['id_servico'] ?>, 'inativo')" style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">🚫</button>
+                                    <button class="btn-action btn-delete" title="Inativar" onclick="alterarStatusServico(<?= $servico['id_servico'] ?>, '<?= htmlspecialchars(addslashes($servico['nome_servico'])) ?>', 'inativo')" style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">🚫</button>
                                 <?php else: ?>
-                                    <button class="btn-action btn-edit" title="Ativar" onclick="alterarStatusServico(<?= $servico['id_servico'] ?>, 'ativo')" style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">✅</button>
-                                    <button class="btn-action btn-delete" title="Excluir Permanentemente" onclick="excluirServico(<?= $servico['id_servico'] ?>)" style="background: none; border: none; cursor: pointer; font-size: 1.2rem; color: var(--color-pink);">🗑️</button>
+                                    <button class="btn-action btn-edit" title="Ativar" onclick="alterarStatusServico(<?= $servico['id_servico'] ?>, '<?= htmlspecialchars(addslashes($servico['nome_servico'])) ?>', 'ativo')" style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">✅</button>
+                                    <button class="btn-action btn-delete" title="Excluir Permanentemente" onclick="excluirServico(<?= $servico['id_servico'] ?>, '<?= htmlspecialchars(addslashes($servico['nome_servico'])) ?>')" style="background: none; border: none; cursor: pointer; font-size: 1.2rem; color: var(--color-pink);">🗑️</button>
                                 <?php endif; ?>
                             </div>
                         </td>

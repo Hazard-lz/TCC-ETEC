@@ -133,7 +133,7 @@ $totalAdmins = $usuarioModel->contarAdminsAtivos();
                                                 <?= CsrfGuard::campoHidden() ?>
                                                 <input type="hidden" name="cod_usuario" value="<?= $func['cod_usuario'] ?>">
                                                 <button type="submit" class="btn-action" title="Reenviar E-mail de Configuração"
-                                                    onclick="return confirm('Deseja reenviar o link de criação de senha para este funcionário?');"
+                                                    onclick="event.preventDefault(); Swal.fire({title: 'Atenção', text: 'Deseja reenviar o link de criação de senha para o funcionário <?= htmlspecialchars(addslashes($func['nome'])) ?>?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc3545', cancelButtonColor: '#6c757d', confirmButtonText: 'Confirmar', cancelButtonText: 'Cancelar'}).then((result) => { if (result.isConfirmed) { this.closest('form').submit(); } });"
                                                     style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">
                                                     📧
                                                 </button>
@@ -160,13 +160,13 @@ $totalAdmins = $usuarioModel->contarAdminsAtivos();
 
                                                 <?php if ($func['status'] === 'ativo'): ?>
                                                     <button type="submit" class="btn-action" title="Inativar Acesso"
-                                                        onclick="return confirm('Deseja realmente INATIVAR este funcionário? Ele não poderá mais acessar o sistema ou receber novos agendamentos.');"
+                                                        onclick="event.preventDefault(); Swal.fire({title: 'Atenção', text: 'Deseja realmente INATIVAR o funcionário <?= htmlspecialchars(addslashes($func['nome'])) ?>? Ele não poderá mais acessar o sistema ou receber novos agendamentos.', icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc3545', cancelButtonColor: '#6c757d', confirmButtonText: 'Confirmar', cancelButtonText: 'Cancelar'}).then((result) => { if (result.isConfirmed) { this.closest('form').submit(); } });"
                                                         style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">
                                                         🚫
                                                     </button>
                                                 <?php else: ?>
                                                     <button type="submit" class="btn-action" title="Reativar Acesso"
-                                                        onclick="return confirm('Deseja ATIVAR este funcionário novamente?');"
+                                                        onclick="event.preventDefault(); Swal.fire({title: 'Atenção', text: 'Deseja ATIVAR o funcionário <?= htmlspecialchars(addslashes($func['nome'])) ?> novamente?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc3545', cancelButtonColor: '#6c757d', confirmButtonText: 'Confirmar', cancelButtonText: 'Cancelar'}).then((result) => { if (result.isConfirmed) { this.closest('form').submit(); } });"
                                                         style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">
                                                         ✅
                                                     </button>

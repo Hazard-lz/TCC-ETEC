@@ -2,10 +2,21 @@
    FUNCIONARIO.JS - REGRAS DE FUNCIONÁRIOS (Admin Único)
 */
 
-function confirmarExclusaoFuncionario(id) {
-    if (confirm("Deseja realmente remover o acesso deste funcionário (#" + id + ")?")) {
-        alert("Funcionário " + id + " seria removido no banco de dados.");
-    }
+function confirmarExclusaoFuncionario(id, nome) {
+    Swal.fire({
+        title: 'Atenção',
+        text: `Deseja realmente remover o acesso do funcionário "${nome}"?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Confirmar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            alert("Funcionário " + id + " seria removido no banco de dados.");
+        }
+    });
 }
 
 function abrirEdicaoFuncionario(button) {
@@ -129,16 +140,23 @@ document.addEventListener("DOMContentLoaded", () => {
             // ═══ CONFIRMAÇÃO DE TRANSFERÊNCIA DE ADMIN ═══
             const selectTipo = document.getElementById("tipo");
             if (selectTipo && selectTipo.value === "admin") {
+                event.preventDefault(); // Pausa o envio
                 const nomeFuncionario = document.getElementById("nome").value;
-                const confirmou = confirm(
-                    "⚠️ ATENÇÃO: TRANSFERÊNCIA DE CARGO\n\n" +
-                    "Ao promover \"" + nomeFuncionario + "\" a Administrador, você PERDERÁ seu cargo de Admin e se tornará Subadministrador.\n\n" +
-                    "Essa ação é imediata. Deseja continuar?"
-                );
-                if (!confirmou) {
-                    event.preventDefault();
-                    return;
-                }
+                Swal.fire({
+                    title: 'Atenção',
+                    text: "⚠️ ATENÇÃO: TRANSFERÊNCIA DE CARGO\n\nAo promover \"" + nomeFuncionario + "\" a Administrador, você PERDERÁ seu cargo de Admin e se tornará Subadministrador.\n\nEssa ação é imediata. Deseja continuar?",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc3545',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Confirmar',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        HTMLFormElement.prototype.submit.call(formFuncionario);
+                    }
+                });
+                return;
             }
 
             errorMsg.style.display = "none";

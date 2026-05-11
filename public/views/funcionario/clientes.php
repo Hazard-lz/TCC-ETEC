@@ -102,7 +102,7 @@ $isGerencia = in_array($tipoUsuario, ['admin', 'subadmin']);
                                                 <button type="submit"
                                                     class="btn-action <?= $cli['status'] === 'ativo' ? 'btn-delete' : 'btn-success' ?>"
                                                     title="<?= $cli['status'] === 'ativo' ? 'Inativar' : 'Ativar' ?>"
-                                                    onclick="return confirm('Tem certeza que deseja <?= $cli['status'] === 'ativo' ? 'inativar' : 'ativar' ?> este cliente?')">
+                                                    onclick="event.preventDefault(); Swal.fire({title: 'Atenção', text: 'Tem certeza que deseja <?= $cli['status'] === 'ativo' ? 'inativar' : 'ativar' ?> o cliente <?= htmlspecialchars(addslashes($cli['nome'])) ?>?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc3545', cancelButtonColor: '#6c757d', confirmButtonText: 'Confirmar', cancelButtonText: 'Cancelar'}).then((result) => { if (result.isConfirmed) { this.closest('form').submit(); } });">
                                                     <?= $cli['status'] === 'ativo' ? '🚫' : '✅' ?>
                                                 </button>
                                             </form>

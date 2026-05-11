@@ -520,7 +520,7 @@ if (session_status() === PHP_SESSION_NONE) {
                             <?= CsrfGuard::campoHidden() ?>
                             <input type="hidden" name="id_agendamento" class="inputIdAgendamento">
                             <input type="hidden" name="novo_status" value="cancelado">
-                            <button type="submit" class="btn-secondary" style="width:100%; color:#ef4444; border-color:#ef4444;" onclick="return confirm('Deseja realmente cancelar este agendamento?');">✕ Cancelar Agendamento</button>
+                            <button type="button" class="btn-secondary" style="width:100%; color:#ef4444; border-color:#ef4444;" onclick="event.preventDefault(); Swal.fire({title: 'Atenção', text: 'Deseja realmente cancelar este agendamento?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc3545', cancelButtonColor: '#6c757d', confirmButtonText: 'Confirmar', cancelButtonText: 'Cancelar'}).then((result) => { if (result.isConfirmed) { this.closest('form').submit(); } });">✕ Cancelar Agendamento</button>
                         </form>
                     </div>
                 </div>
