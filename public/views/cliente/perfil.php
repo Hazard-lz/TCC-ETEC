@@ -28,6 +28,10 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
         <title>Meu Perfil - Belezou App</title>
 
+        <!-- SweetAlert2 — necessário para o botão "Sair da Conta" -->
+        <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css" rel="stylesheet">
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
+
         <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/root.css">
         <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/app-cliente.css">
         <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/perfil.css">

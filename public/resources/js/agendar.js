@@ -214,7 +214,22 @@ async function buscarProfissionais(idServico) {
       });
     } else {
       container.innerHTML = '<p style="color: #ef4444; text-align: center;">Não há profissionais para este serviço.</p>';
-      alert('Nenhum profissional está configurado para realizar este serviço no momento. Por favor, escolha outro.');
+      Swal.fire({
+        title:             'Sem Profissionais',
+        text:              'Nenhum profissional está configurado para realizar este serviço no momento. Por favor, escolha outro.',
+        icon:              'info',
+        confirmButtonText: 'Entendi',
+        customClass: {
+          popup:         'swal-belezou-popup',
+          title:         'swal-belezou-title',
+          htmlContainer: 'swal-belezou-text',
+          confirmButton: 'swal-belezou-btn-confirm',
+          icon:          'swal-belezou-icon'
+        },
+        buttonsStyling: false,
+        showClass: { popup: 'swal-belezou-show' },
+        hideClass: { popup: 'swal-belezou-hide' }
+      });
 
       document.querySelectorAll('#step-1 .selectable-card').forEach(c => c.classList.remove('selected'));
       document.getElementById('servico_id').value = '';
@@ -229,7 +244,22 @@ async function buscarProfissionais(idServico) {
   } catch (error) {
     console.error('Erro na API:', error);
     container.innerHTML = '<p style="color: #ef4444; text-align: center;">Erro ao carregar profissionais.</p>';
-    alert('Falha ao contactar o servidor. Tente novamente.');
+    Swal.fire({
+      title:             'Erro de Conexão',
+      text:              'Falha ao contactar o servidor. Verifique a sua ligação e tente novamente.',
+      icon:              'error',
+      confirmButtonText: 'Entendi',
+      customClass: {
+        popup:         'swal-belezou-popup',
+        title:         'swal-belezou-title',
+        htmlContainer: 'swal-belezou-text',
+        confirmButton: 'swal-belezou-btn-confirm',
+        icon:          'swal-belezou-icon'
+      },
+      buttonsStyling: false,
+      showClass: { popup: 'swal-belezou-show' },
+      hideClass: { popup: 'swal-belezou-hide' }
+    });
     setBotoesPasso(1, false);
   }
 }

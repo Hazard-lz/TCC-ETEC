@@ -38,12 +38,30 @@ function abrirAba(nomeDaAba, botaoClicado) {
     }
 }
 
-// Confirmação para sair da conta
+// Confirmação para sair da conta (SweetAlert2 — Tema Belezou)
 function confirmarSaida(urlSair) {
-    if (confirm("Tem certeza que deseja sair do aplicativo?")) {
-        // Redireciona para a URL fornecida (dinâmica)
-        window.location.href = urlSair; 
-    }
+    Swal.fire({
+        text:              'Tem certeza que deseja sair do aplicativo?',
+        icon:              'question',
+        showCancelButton:  true,
+        confirmButtonText: 'Sim, sair',
+        cancelButtonText:  'Cancelar',
+        customClass: {
+            popup:         'swal-belezou-popup',
+            title:         'swal-belezou-title',
+            htmlContainer: 'swal-belezou-text',
+            confirmButton: 'swal-belezou-btn-confirm',
+            cancelButton:  'swal-belezou-btn-cancel',
+            icon:          'swal-belezou-icon'
+        },
+        buttonsStyling: false,
+        showClass: { popup: 'swal-belezou-show' },
+        hideClass: { popup: 'swal-belezou-hide' }
+    }).then(result => {
+        if (result.isConfirmed) {
+            window.location.href = urlSair;
+        }
+    });
 }
 
 // Inicializações ao carregar a página

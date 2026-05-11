@@ -245,8 +245,18 @@ function iniciarRelogio() {
 }
 
 function fazerLogout() {
-    if(confirm("Deseja realmente sair do sistema?")) {
-        localStorage.removeItem('belezou_user');
-        window.location.href = BASE_URL + "/login/sair";
-    }
+    Swal.fire({
+        text: 'Deseja realmente sair do sistema?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Sim, sair',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#28a745',
+        cancelButtonColor: '#dc3545'
+    }).then(result => {
+        if (result.isConfirmed) {
+            localStorage.removeItem('belezou_user');
+            window.location.href = BASE_URL + "/login/sair";
+        }
+    });
 }

@@ -14,6 +14,10 @@ if (!isset($_SESSION['usuario_id'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Histórico - Belezou App</title>
 
+    <!-- SweetAlert2 — confirmações de cancelamento -->
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
+
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/root.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/app-cliente.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/historico.css">
@@ -76,11 +80,11 @@ if (!isset($_SESSION['usuario_id'])) {
                                 </div>
                                 <?php if ($podeCancelar): ?>
                                     <div style="margin-top: 15px; border-top: 1px solid #ffebee; padding-top: 10px;">
-                                        <form action="<?= BASE_URL ?>/historico/cancelar" method="POST"
-                                            onsubmit="return confirm('Tem certeza que deseja cancelar este agendamento?');">
+                                        <form id="form-cancelar-<?= $ag['id_agendamento'] ?>" action="<?= BASE_URL ?>/historico/cancelar" method="POST">
                                             <?= CsrfGuard::campoHidden() ?>
                                             <input type="hidden" name="id_agendamento" value="<?= $ag['id_agendamento'] ?>">
-                                            <button type="submit"
+                                            <button type="button"
+                                                onclick="cancelarAgendamento(<?= $ag['id_agendamento'] ?>)"
                                                 style="width: 100%; padding: 8px; border-radius: 8px; background-color: var(--color-pink); color: white; border: none; cursor: pointer; font-weight: 600; font-size: 0.9rem;">Cancelar
                                                 Agendamento</button>
                                         </form>
