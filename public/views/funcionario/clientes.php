@@ -76,15 +76,15 @@ $isGerencia = in_array($tipoUsuario, ['admin', 'subadmin']);
                     <?php if (!empty($clientes)): ?>
                         <?php foreach ($clientes as $cli): ?>
                             <tr class="<?= $cli['status'] === 'inativo' ? 'row-inactive' : '' ?>">
-                                <td style="font-weight: 500;">
+                                <td data-label="Cliente" style="font-weight: 500;">
                                     <?= htmlspecialchars($cli['nome']) ?>
-                                    <?= $cli['status'] === 'inativo' ? '<small style="color:red; margin-left: 5px;">(Inativo)</small>' : '' ?>
+                                    <?= $cli['status'] === 'inativo' ? '<small class="status-inativo-text" style="margin-left: 5px;">(Inativo)</small>' : '' ?>
                                 </td>
-                                <td><?= preg_replace('/(\d{2})(\d{5})(\d{4})/', '($1) $2-$3', $cli['telefone']) ?></td>
-                                <td><?= htmlspecialchars($cli['email'] ?? 'Sem e-mail') ?></td>
-                                <td><?= !empty($cli['data_nascimento']) ? date('d/m/Y', strtotime($cli['data_nascimento'])) : 'N/A' ?>
+                                <td data-label="Telefone"><?= preg_replace('/(\d{2})(\d{5})(\d{4})/', '($1) $2-$3', $cli['telefone']) ?></td>
+                                <td data-label="E-mail"><?= htmlspecialchars($cli['email'] ?? 'Sem e-mail') ?></td>
+                                <td data-label="Nascimento"><?= !empty($cli['data_nascimento']) ? date('d/m/Y', strtotime($cli['data_nascimento'])) : 'N/A' ?>
                                 </td>
-                                <td>
+                                <td data-label="Ações">
                                     <div class="action-buttons">
                                         <button type="button" data-modal-target="#modalCliente" class="btn-action btn-edit"
                                             title="<?= $isGerencia ? 'Editar' : 'Adicionar Observações' ?>"
@@ -122,7 +122,7 @@ $isGerencia = in_array($tipoUsuario, ['admin', 'subadmin']);
     </div>
 
     <div id="modalCliente" class="modal-overlay">
-        <div class="modal-content cliente-card" style="box-shadow: none; margin: 0; padding: 0;">
+        <div class="modal-content cliente-card">
             <div class="modal-header">
                 <h3 id="modalTitleCliente">Cadastro Rápido</h3>
                 <button data-close-modal class="btn-close">&times;</button>

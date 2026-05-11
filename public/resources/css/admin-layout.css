@@ -3,43 +3,63 @@
    ========================================= */
 
 /* 1. RESET GLOBAL - A SOLUÇÃO DEFINITIVA PARA O VÃO */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
     box-sizing: border-box;
 }
 
-body, html {
+body,
+html {
     margin: 0;
     padding: 0;
     /* Corta imediatamente qualquer conteúdo de dentro que tente vazar para a direita */
-    overflow-x: hidden; 
+    overflow-x: hidden;
     background-color: var(--bg-color, #f8f9fa);
+}
+
+/* Trava o scroll do fundo quando o menu mobile está aberto (Reforçado) */
+html.sidebar-open-body,
+body.sidebar-open-body {
+    overflow: hidden !important;
+    height: 100% !important;
+    position: relative;
+    /* Evita saltos em alguns navegadores */
 }
 
 /* --- SIDEBAR (BARRA LATERAL) --- */
 .sidebar {
     width: 260px;
-    height: 100vh;
     position: fixed;
     left: 0;
     top: 0;
+    bottom: 0; /* Âncora no fundo da tela, mais confiável que 100vh */
     background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
     border-right: none;
     display: flex;
     flex-direction: column;
     z-index: 1000;
     transition: width 0.3s ease, transform 0.3s ease;
-    overflow-x: hidden; 
-    box-shadow: 2px 0 15px rgba(0,0,0,0.15);
+    overflow-x: hidden;
+    overflow-y: auto; /* Permite rolar todo o conteúdo da barra */
+    -webkit-overflow-scrolling: touch;
+    box-shadow: 2px 0 15px rgba(0, 0, 0, 0.15);
+    padding-bottom: 2rem; /* Espaço extra para garantir que o footer apareça */
 }
 
 .sidebar-header {
-    padding: 1.5rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 1.2rem 1.5rem 0.5rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 80px;
+    min-height: 50px;
     white-space: nowrap;
+}
+
+.sidebar-header a {
+    display: flex;
+    justify-content: center;
+    text-decoration: none;
 }
 
 .sidebar-logo {
@@ -49,15 +69,19 @@ body, html {
 
 .sidebar-nav {
     flex-grow: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
-    padding: 1.5rem 0;
+    padding: 0.5rem 0;
     list-style: none;
     margin: 0;
 }
 
-.sidebar-nav::-webkit-scrollbar { width: 4px; }
-.sidebar-nav::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.3); border-radius: 10px; }
+.sidebar-nav::-webkit-scrollbar {
+    width: 4px;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+}
 
 .nav-item {
     margin-bottom: 5px;
@@ -67,7 +91,7 @@ body, html {
     display: flex;
     align-items: center;
     padding: 0.85rem 1.5rem;
-    color: rgba(255, 255, 255, 0.85); 
+    color: rgba(255, 255, 255, 0.85);
     text-decoration: none;
     font-weight: 500;
     font-size: 0.95rem;
@@ -82,34 +106,47 @@ body, html {
     text-align: center;
 }
 
-.nav-link:hover, .nav-link.active {
+.nav-link:hover,
+.nav-link.active {
     color: #ffffff;
     background-color: rgba(255, 255, 255, 0.15);
     border-right-color: #ffffff;
 }
 
 .sidebar-footer {
-    padding: 1rem 1.5rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 0.8rem 1.2rem;
+    margin: 0.3rem 0.8rem;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     white-space: nowrap;
     overflow: hidden;
     flex-shrink: 0;
+    transition: all 0.3s ease;
+}
+
+.sidebar-footer:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
 }
 
 .user-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background-color: rgba(255,255,255,0.2);
-    color: white;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: white;
+    color: var(--color-purple);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: bold;
+    font-weight: 800;
+    font-size: 1.1rem;
     flex-shrink: 0;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 .user-info {
@@ -119,13 +156,15 @@ body, html {
 
 .user-info h6 {
     margin: 0;
-    font-size: 0.95rem;
-    font-weight: bold;
+    font-size: 0.9rem;
+    font-weight: 800;
+    color: #ffffff !important;
+    /* Força branco no gradiente */
 }
 
 .user-info small {
     font-size: 0.75rem;
-    opacity: 0.8;
+    color: rgba(255, 255, 255, 0.8) !important;
 }
 
 /* Relógio na Sidebar */
@@ -133,22 +172,29 @@ body, html {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 0.6rem 1rem 1rem;
+    padding: 0.6rem 0.8rem;
+    margin: 0 0.8rem 1rem;
     color: white;
     flex-shrink: 0;
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .sidebar-clock .clock-time {
-    font-size: 1.4rem;
-    font-weight: 700;
-    letter-spacing: 1px;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    font-size: 1.2rem;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    font-family: 'Monaco', 'Consolas', monospace;
 }
 
 .sidebar-clock .clock-date {
     font-size: 0.75rem;
-    opacity: 0.8;
+    font-weight: 500;
+    opacity: 0.9;
     margin-top: 0.1rem;
+    text-transform: capitalize;
 }
 
 /* ====================================
@@ -167,6 +213,11 @@ body, html {
     display: none;
 }
 
+.sidebar.collapsed .sidebar-header {
+    padding: 0.8rem 0.5rem;
+    min-height: 60px;
+}
+
 .sidebar.collapsed .nav-link {
     justify-content: center;
     padding: 0.85rem 0;
@@ -178,14 +229,17 @@ body, html {
 
 .sidebar.collapsed .sidebar-footer {
     justify-content: center;
-    padding: 1rem 0;
+    padding: 0.5rem;
+    margin: 0.5rem auto;
+    width: fit-content;
+    border-radius: 10px;
 }
 
 /* --- MAIN WRAPPER E TOPBAR (CABEÇALHO) --- */
 .main-wrapper {
     /* Usamos APENAS margin-left. Retiramos o width: 100%. 
        Assim a div preenche naturalmente o espaço restante sem forçar a tela */
-    margin-left: 260px; 
+    margin-left: 260px;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -194,7 +248,7 @@ body, html {
 }
 
 .main-wrapper.expanded {
-    margin-left: 75px; 
+    margin-left: 75px;
 }
 
 .topbar {
@@ -206,12 +260,12 @@ body, html {
     border-bottom: 1px solid var(--border-color, #e2e8f0);
     position: sticky;
     top: 0;
-    z-index: 900; 
+    z-index: 900;
     transition: background-color 0.3s ease;
 }
 
 .btn-toggle-menu {
-    display: block; 
+    display: block;
     background: transparent;
     border: none;
     font-size: 1.6rem;
@@ -233,7 +287,7 @@ body, html {
 
 /* --- SUBMENU DO PERFIL --- */
 .profile-menu {
-    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
 }
 
 .profile-dropdown-item {
@@ -264,7 +318,10 @@ body, html {
 .sidebar-overlay {
     display: none;
     position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     background: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(2px);
     z-index: 999;
@@ -281,34 +338,42 @@ body, html {
 @media (max-width: 992px) {
     .sidebar {
         transform: translateX(-100%);
-        width: 260px !important; 
+        width: 230px !important;
     }
-    
+
     .sidebar.mobile-open {
         transform: translateX(0);
     }
-    
-    .main-wrapper, .main-wrapper.expanded {
-        margin-left: 0; /* No telemóvel não há menu fixo a ocupar espaço */
-        width: 100%;    /* Aqui o 100% é seguro porque a margem é 0 */
+
+    .main-wrapper,
+    .main-wrapper.expanded {
+        margin-left: 0;
+        /* No telemóvel não há menu fixo a ocupar espaço */
+        width: 100%;
+        /* Aqui o 100% é seguro porque a margem é 0 */
     }
-    
+
     .topbar {
         padding: 1rem;
     }
-    
+
     .content-area {
         padding: 1.5rem 1rem;
     }
-    
+
     .nome-topo {
-        display: none; 
+        display: none;
     }
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 /* =========================================
@@ -321,14 +386,47 @@ body, html {
     height: 26px;
     margin-right: 10px;
 }
-.theme-switch input { opacity: 0; width: 0; height: 0; }
+
+.theme-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
 .slider {
-    position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
-    background-color: #cbd5e1; transition: .4s; border-radius: 34px;
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #cbd5e1;
+    transition: .4s;
+    border-radius: 34px;
 }
+
 .slider:before {
-    position: absolute; content: "☀️"; font-size: 14px; display: flex; align-items: center; justify-content: center;
-    height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%;
+    position: absolute;
+    content: "☀️";
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 20px;
+    width: 20px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
 }
-.theme-switch input:checked + .slider { background-color: var(--color-purple, #8b5cf6); }
-.theme-switch input:checked + .slider:before { transform: translateX(24px); content: "🌙"; background-color: #1a202c; }
+
+.theme-switch input:checked+.slider {
+    background-color: var(--color-purple, #8b5cf6);
+}
+
+.theme-switch input:checked+.slider:before {
+    transform: translateX(24px);
+    content: "🌙";
+    background-color: #1a202c;
+}

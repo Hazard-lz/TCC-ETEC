@@ -85,20 +85,19 @@ $totalAdmins = $usuarioModel->contarAdminsAtivos();
                             <tr class="<?= $func['status'] === 'inativo' ? 'row-inactive' : '' ?>"
                                 style="<?= $isLogado ? 'border-left: 4px solid #8b5cf6;' : '' ?>">
 
-                                <td style="font-weight: 500;">
+                                <td data-label="Funcionário" style="font-weight: 500;">
                                     <?= htmlspecialchars($func['nome']) ?>
                                     <?php if ($isLogado): ?>
-                                        <span
-                                            style="color: #8b5cf6; font-size: 0.8rem; margin-left: 8px; font-weight: bold;">(Você)</span>
+                                        <span class="user-self-label">(Você)</span>
                                     <?php endif; ?>
                                 </td>
 
-                                <td><?= htmlspecialchars($func['especialidade']) ?></td>
-                                <td>
+                                <td data-label="Especialidade"><?= htmlspecialchars($func['especialidade']) ?></td>
+                                <td data-label="Telefone">
                                     <?= !empty($func['telefone']) ? preg_replace('/(\d{2})(\d{5})(\d{4})/', '($1) $2-$3', $func['telefone']) : 'Não informado' ?>
                                 </td>
 
-                                <td>
+                                <td data-label="Status">
                                     <?php if ($func['status'] === 'ativo'): ?>
                                         <span class="badge badge-ativo">Ativo</span>
                                     <?php else: ?>
@@ -106,7 +105,7 @@ $totalAdmins = $usuarioModel->contarAdminsAtivos();
                                     <?php endif; ?>
                                 </td>
 
-                                <td>
+                                <td data-label="Acesso">
                                     <?php if (isset($func['tipo']) && $func['tipo'] === 'admin'): ?>
                                         <span class="badge badge-admin">Admin</span>
                                     <?php elseif (isset($func['tipo']) && $func['tipo'] === 'subadmin'): ?>
@@ -116,14 +115,12 @@ $totalAdmins = $usuarioModel->contarAdminsAtivos();
                                     <?php endif; ?>
                                 </td>
 
-                                <td>
-                                    <div class="action-buttons" style="display: flex; gap: 8px; align-items: center;">
-
+                                <td data-label="Ações">
+                                    <div class="action-buttons">
                                         <button data-modal-target="#modalFuncionario" class="btn-action btn-edit" title="Editar"
                                             data-funcionario='<?= htmlspecialchars(json_encode($func), ENT_QUOTES, 'UTF-8') ?>'
                                             data-is-logado="<?= $isLogado ? 'true' : 'false' ?>"
-                                            data-total-admins="<?= $totalAdmins ?>" onclick="abrirEdicaoFuncionario(this)"
-                                            style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">
+                                            data-total-admins="<?= $totalAdmins ?>" onclick="abrirEdicaoFuncionario(this)">
                                             ✏️
                                         </button>
 
@@ -133,8 +130,12 @@ $totalAdmins = $usuarioModel->contarAdminsAtivos();
                                                 <?= CsrfGuard::campoHidden() ?>
                                                 <input type="hidden" name="cod_usuario" value="<?= $func['cod_usuario'] ?>">
                                                 <button type="submit" class="btn-action" title="Reenviar E-mail de Configuração"
+<<<<<<< HEAD
                                                     onclick="event.preventDefault(); Swal.fire({title: 'Atenção', text: 'Deseja reenviar o link de criação de senha para o funcionário <?= htmlspecialchars(addslashes($func['nome'])) ?>?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc3545', cancelButtonColor: '#6c757d', confirmButtonText: 'Confirmar', cancelButtonText: 'Cancelar'}).then((result) => { if (result.isConfirmed) { this.closest('form').submit(); } });"
                                                     style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">
+=======
+                                                    onclick="return confirm('Deseja reenviar o link de criação de senha para este funcionário?');">
+>>>>>>> 92c59e34d6586f26424e7b14ac74e46afa92e71e
                                                     📧
                                                 </button>
                                             </form>
@@ -146,9 +147,8 @@ $totalAdmins = $usuarioModel->contarAdminsAtivos();
                                         $bloqueadoPorHierarquia = ($tipoLogado === 'subadmin' && $alvoEhAdmin);
                                         ?>
                                         <?php if ($isLogado || $bloqueadoPorHierarquia): ?>
-                                            <button type="button" class="btn-action"
-                                                title="<?= $isLogado ? 'Você não pode inativar a si mesmo.' : 'Sem permissão para alterar um administrador.' ?>"
-                                                style="background: none; border: none; font-size: 1.2rem; opacity: 0.3; cursor: not-allowed;">
+                                            <button type="button" class="btn-action btn-disabled"
+                                                title="<?= $isLogado ? 'Você não pode inativar a si mesmo.' : 'Sem permissão para alterar um administrador.' ?>">
                                                 🚫
                                             </button>
                                         <?php else: ?>
@@ -160,14 +160,22 @@ $totalAdmins = $usuarioModel->contarAdminsAtivos();
 
                                                 <?php if ($func['status'] === 'ativo'): ?>
                                                     <button type="submit" class="btn-action" title="Inativar Acesso"
+<<<<<<< HEAD
                                                         onclick="event.preventDefault(); Swal.fire({title: 'Atenção', text: 'Deseja realmente INATIVAR o funcionário <?= htmlspecialchars(addslashes($func['nome'])) ?>? Ele não poderá mais acessar o sistema ou receber novos agendamentos.', icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc3545', cancelButtonColor: '#6c757d', confirmButtonText: 'Confirmar', cancelButtonText: 'Cancelar'}).then((result) => { if (result.isConfirmed) { this.closest('form').submit(); } });"
                                                         style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">
+=======
+                                                        onclick="return confirm('Deseja realmente INATIVAR este funcionário? Ele não poderá mais acessar o sistema ou receber novos agendamentos.');">
+>>>>>>> 92c59e34d6586f26424e7b14ac74e46afa92e71e
                                                         🚫
                                                     </button>
                                                 <?php else: ?>
                                                     <button type="submit" class="btn-action" title="Reativar Acesso"
+<<<<<<< HEAD
                                                         onclick="event.preventDefault(); Swal.fire({title: 'Atenção', text: 'Deseja ATIVAR o funcionário <?= htmlspecialchars(addslashes($func['nome'])) ?> novamente?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc3545', cancelButtonColor: '#6c757d', confirmButtonText: 'Confirmar', cancelButtonText: 'Cancelar'}).then((result) => { if (result.isConfirmed) { this.closest('form').submit(); } });"
                                                         style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">
+=======
+                                                        onclick="return confirm('Deseja ATIVAR este funcionário novamente?');">
+>>>>>>> 92c59e34d6586f26424e7b14ac74e46afa92e71e
                                                         ✅
                                                     </button>
                                                 <?php endif; ?>
@@ -188,7 +196,7 @@ $totalAdmins = $usuarioModel->contarAdminsAtivos();
     </div>
 
     <div id="modalFuncionario" class="modal-overlay">
-        <div class="modal-content funcionario-card" style="box-shadow: none; margin: 0; padding: 0;">
+        <div class="modal-content funcionario-card">
             <div class="modal-header">
                 <h3 id="modalTitleFunc">Cadastrar Novo Funcionário</h3>
                 <button data-close-modal class="btn-close">&times;</button>

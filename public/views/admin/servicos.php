@@ -9,15 +9,16 @@ $servicos = array_merge($ativos, $inativos);
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <?= CsrfGuard::metaTag() ?>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gerenciar Serviços - Belezou App</title>
     <link rel="icon" type="image/png" href="<?= BASE_URL ?>/public/resources/images/favicon.png">
-    
+
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    
+
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/root.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/admin-layout.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/admin.css">
@@ -25,6 +26,7 @@ $servicos = array_merge($ativos, $inativos);
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/servico.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/modal.css">
 </head>
+
 <body>
 
     <?php require_once __DIR__ . '/../partials/sidebar.php'; ?>
@@ -34,7 +36,8 @@ $servicos = array_merge($ativos, $inativos);
             <h2>Gerenciar Serviços</h2>
             <p>Visualize, edite ou cadastre os serviços do salão.</p>
         </div>
-        <button data-modal-target="#modalServico" class="btn-primary btn-new" onclick="limparModalServico()">+ Novo Serviço</button>
+        <button data-modal-target="#modalServico" class="btn-primary btn-new" onclick="limparModalServico()">+ Novo
+            Serviço</button>
     </div>
 
     <div class="base-card">
@@ -53,37 +56,45 @@ $servicos = array_merge($ativos, $inativos);
                     </tr>
                 </thead>
                 <tbody>
-                    <?php if(empty($servicos)): ?>
-                        <tr><td colspan="5" style="text-align: center;">Nenhum serviço cadastrado ainda.</td></tr>
+                    <?php if (empty($servicos)): ?>
+                        <tr>
+                            <td colspan="5" style="text-align: center;">Nenhum serviço cadastrado ainda.</td>
+                        </tr>
                     <?php endif; ?>
 
                     <?php foreach ($servicos as $servico): ?>
-                    <tr class="<?= $servico['status'] === 'inativo' ? 'row-inactive' : '' ?>">
-                        <td style="font-weight: 500;"><?= htmlspecialchars($servico['nome_servico']) ?></td>
-                        <td>R$ <?= number_format($servico['preco'], 2, ',', '.') ?></td>
-                        <td><?= $servico['duracao'] ?> min</td>
-                        <td>
-                            <?php if ($servico['status'] === 'ativo'): ?>
-                                <span class="badge badge-ativo">Ativo</span>
-                            <?php else: ?>
-                                <span class="badge badge-inativo">Inativo</span>
-                            <?php endif; ?>
-                        </td>
-                        <td>
-                            <div class="action-buttons" style="display: flex; gap: 8px; align-items: center;">
-                                <button data-modal-target="#modalServico" class="btn-action btn-edit" title="Editar" 
-                                    onclick="preencherModalEdicao(<?= $servico['id_servico'] ?>, '<?= htmlspecialchars(addslashes($servico['nome_servico'])) ?>', '<?= htmlspecialchars(addslashes($servico['descricao'])) ?>', <?= $servico['preco'] ?>, <?= $servico['duracao'] ?>, '<?= $servico['status'] ?>')"
-                                    style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">✏️</button>
-                                
-                                <?php if($servico['status'] === 'ativo'): ?>
-                                    <button class="btn-action btn-delete" title="Inativar" onclick="alterarStatusServico(<?= $servico['id_servico'] ?>, '<?= htmlspecialchars(addslashes($servico['nome_servico'])) ?>', 'inativo')" style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">🚫</button>
+                        <tr class="<?= $servico['status'] === 'inativo' ? 'row-inactive' : '' ?>">
+                            <td data-label="Serviço" style="font-weight: 500;">
+                                <?= htmlspecialchars($servico['nome_servico']) ?></td>
+                            <td data-label="Preço">R$ <?= number_format($servico['preco'], 2, ',', '.') ?></td>
+                            <td data-label="Duração"><?= $servico['duracao'] ?> min</td>
+                            <td data-label="Status">
+                                <?php if ($servico['status'] === 'ativo'): ?>
+                                    <span class="badge badge-ativo">Ativo</span>
                                 <?php else: ?>
-                                    <button class="btn-action btn-edit" title="Ativar" onclick="alterarStatusServico(<?= $servico['id_servico'] ?>, '<?= htmlspecialchars(addslashes($servico['nome_servico'])) ?>', 'ativo')" style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">✅</button>
-                                    <button class="btn-action btn-delete" title="Excluir Permanentemente" onclick="excluirServico(<?= $servico['id_servico'] ?>, '<?= htmlspecialchars(addslashes($servico['nome_servico'])) ?>')" style="background: none; border: none; cursor: pointer; font-size: 1.2rem; color: var(--color-pink);">🗑️</button>
+                                    <span class="badge badge-inativo">Inativo</span>
                                 <?php endif; ?>
-                            </div>
-                        </td>
-                    </tr>
+                            </td>
+                            <td data-label="Ações">
+                                <div class="action-buttons">
+                                    <button data-modal-target="#modalServico" class="btn-action btn-edit" title="Editar"
+                                        onclick="preencherModalEdicao(<?= $servico['id_servico'] ?>, '<?= htmlspecialchars(addslashes($servico['nome_servico'])) ?>', '<?= htmlspecialchars(addslashes($servico['descricao'])) ?>', <?= $servico['preco'] ?>, <?= $servico['duracao'] ?>, '<?= $servico['status'] ?>')">✏️</button>
+
+                                    <?php if ($servico['status'] === 'ativo'): ?>
+                                        <button class="btn-action btn-delete" title="Inativar"
+                                            onclick="alterarStatusServico(<?= $servico['id_servico'] ?>, '<?= htmlspecialchars(addslashes($servico['nome_servico'])) ?>', 'inativo')"
+                                            style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">🚫</button>
+                                    <?php else: ?>
+                                        <button class="btn-action btn-edit" title="Ativar"
+                                            onclick="alterarStatusServico(<?= $servico['id_servico'] ?>, '<?= htmlspecialchars(addslashes($servico['nome_servico'])) ?>', 'ativo')"
+                                            style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">✅</button>
+                                        <button class="btn-action btn-delete" title="Excluir Permanentemente"
+                                            onclick="excluirServico(<?= $servico['id_servico'] ?>, '<?= htmlspecialchars(addslashes($servico['nome_servico'])) ?>')"
+                                            style="background: none; border: none; cursor: pointer; font-size: 1.2rem; color: var(--color-pink);">🗑️</button>
+                                    <?php endif; ?>
+                                </div>
+                            </td>
+                        </tr>
                     <?php endforeach; ?>
                 </tbody>
             </table>
@@ -92,15 +103,16 @@ $servicos = array_merge($ativos, $inativos);
 
     <div id="modalServico" class="modal-overlay">
         <div class="modal-content">
-            
+
             <div class="modal-header">
                 <h3 id="modalTitle">Cadastrar Novo Serviço</h3>
                 <button data-close-modal class="btn-close">&times;</button>
             </div>
-            
+
             <div class="modal-body">
                 <form id="formServico">
-                    <div id="servicoError" style="color: red; margin-bottom: 10px; display: none; font-weight: 500;"></div>
+                    <div id="servicoError" style="color: red; margin-bottom: 10px; display: none; font-weight: 500;">
+                    </div>
 
                     <input type="hidden" id="id_servico" name="id_servico" value="">
 
@@ -113,16 +125,18 @@ $servicos = array_merge($ativos, $inativos);
                         <label for="descricao">Descrição</label>
                         <textarea id="descricao" name="descricao" class="form-control" required></textarea>
                     </div>
-                    
-                    <div class="form-row" style="display: flex; gap: 15px;">
-                        <div class="form-group" style="flex: 1;">
+
+                    <div class="form-row">
+                        <div class="form-group">
                             <label for="preco">Preço (R$)</label>
-                            <input type="number" id="preco" name="preco" class="form-control" step="0.01" min="0" required>
+                            <input type="number" id="preco" name="preco" class="form-control" step="0.01" min="0"
+                                required>
                         </div>
-                        
-                        <div class="form-group" style="flex: 1;">
+
+                        <div class="form-group">
                             <label for="duracao">Duração (Minutos)</label>
-                            <input type="number" id="duracao" name="duracao" class="form-control" min="5" step="5" required>
+                            <input type="number" id="duracao" name="duracao" class="form-control" min="5" step="5"
+                                required>
                         </div>
                     </div>
 
@@ -133,7 +147,7 @@ $servicos = array_merge($ativos, $inativos);
                             <option value="inativo">Inativo</option>
                         </select>
                     </div>
-                    
+
                     <div class="modal-actions">
                         <button type="submit" class="btn-primary">Salvar Serviço</button>
                         <button type="button" data-close-modal class="btn-secondary">Cancelar</button>
@@ -149,6 +163,7 @@ $servicos = array_merge($ativos, $inativos);
     <script src="<?= BASE_URL ?>/public/resources/js/admin.js"></script>
     <script src="<?= BASE_URL ?>/public/resources/js/modal.js"></script>
     <script src="<?= BASE_URL ?>/public/resources/js/servico.js"></script>
-        
+
 </body>
-</html> 
+
+</html>

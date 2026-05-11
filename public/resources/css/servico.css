@@ -14,6 +14,10 @@
   gap: 1.5rem;
 }
 
+.form-row > .form-group {
+  flex: 1;
+}
+
 /* Configuração específica para o campo de texto grande (Descrição) */
 textarea.form-control {
   resize: vertical;
@@ -39,72 +43,4 @@ select.form-control {
   }
 }
 
-
-/* =========================================
-   TABELA RESPONSIVA EM DUAS LINHAS (CELULAR)
-   ========================================= */
-@media (max-width: 768px) {
-    /* Remove a barra de rolagem horizontal */
-    .table-responsive {
-        overflow-x: hidden !important;
-    }
-    
-    /* Quebra o limite mínimo de largura da tabela padrão */
-    .data-table {
-        min-width: 100% !important;
-        display: block;
-    }
-    
-    /* Esconde o cabeçalho original da tabela (Nome, Preço, etc) */
-    .data-table thead {
-        display: none;
-    }
-    
-    .data-table tbody {
-        display: block;
-        width: 100%;
-    }
-    
-    /* Transforma a linha da tabela em um flex container que aceita quebra de linha */
-    .data-table tr {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        padding: 1rem 0;
-        border-bottom: 1px solid var(--border-color);
-    }
-    
-    /* 1ª LINHA: Nome do Serviço (Força 100% da largura para empurrar o resto para baixo) */
-    .data-table td:nth-child(1) {
-        width: 100%;
-        border: none;
-        padding: 0 0 0.5rem 0;
-        font-size: 1.1rem;
-    }
-    
-    /* 2ª LINHA: Preço, Duração e Status (Ficam lado a lado) */
-    .data-table td:nth-child(2),
-    .data-table td:nth-child(3),
-    .data-table td:nth-child(4) {
-        width: auto;
-        border: none;
-        padding: 0;
-        font-size: 0.9rem;
-        color: var(--text-muted);
-        margin-right: 0.8rem;
-    }
-    
-    /* Adiciona um "•" (pontinho) entre o Preço e a Duração para ficar elegante */
-    .data-table td:nth-child(2)::after {
-        content: " • ";
-        margin-left: 0.8rem;
-    }
-    
-    /* 2ª LINHA: Botões de Editar/Excluir (Empurra eles para o canto direito) */
-    .data-table td:nth-child(5) {
-        width: auto;
-        border: none;
-        padding: 0;
-        margin-left: auto; /* Truque mágico que empurra os botões para a extrema direita */
-    }
-}
+

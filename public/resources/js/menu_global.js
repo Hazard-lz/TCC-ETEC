@@ -7,7 +7,7 @@ const BASE_URL = window.BASE_URL || ''; // Usa a base URL definida globalmente n
 document.addEventListener("DOMContentLoaded", () => {
     const userString = localStorage.getItem('belezou_user');
     const isPublicPage = window.location.pathname.includes('login') || window.location.pathname.includes('cadastro');
-    
+
     if (!userString && !isPublicPage) {
         window.location.href = BASE_URL + "/public/views/auth/login.php";
         return;
@@ -55,20 +55,22 @@ function renderizarLayoutGlobal(usuario) {
     const layoutHTML = `
         <div class="sidebar" id="sidebar-global">
             <div class="sidebar-header">
-                <img src="${BASE_URL}/public/resources/images/Belezou.png" alt="Belezou App Logo" class="sidebar-logo" onerror="this.style.display='none'">    
+                <a href="${BASE_URL}/funcionario/dashboard">
+                    <img src="${BASE_URL}/public/resources/images/Belezou.png" alt="Belezou App Logo" class="sidebar-logo" onerror="this.style.display='none'">
+                </a>
             </div>
             
             <ul class="sidebar-nav">
                 ${navLinks}
             </ul>
 
-            <div class="sidebar-footer">
+            <a href="${BASE_URL}/funcionario/perfil" class="sidebar-footer" title="Meu Perfil" style="text-decoration: none;">
                 <div class="user-avatar">${inicialNome}</div>
                 <div class="user-info">
                     <h6>${primeiroNome}</h6>
                     <small>${usuario.tipo.toUpperCase()}</small>
                 </div>
-            </div>
+            </a>
             <div class="sidebar-clock" id="sidebarClock">
                 <span class="clock-time" id="clockTime"></span>
                 <span class="clock-date" id="clockDate"></span>
@@ -134,13 +136,13 @@ function iniciarEventosLayout() {
     const mainWrapper = document.getElementById('main-wrapper-global');
     const overlay = document.getElementById('sidebar-overlay');
     const themeToggle = document.getElementById('themeToggle');
-    
+
     const btnProfile = document.getElementById('btnProfileDropdown');
     const profileMenu = document.getElementById('profileMenu');
 
     // 0. Relógio da Sidebar e Restauração de Scroll
     iniciarRelogio();
-    
+
     if (sidebar) {
         // Restaura a posição do scroll que estava antes de mudar de página
         const savedScroll = sessionStorage.getItem('belezou_sidebar_scroll');
@@ -156,7 +158,7 @@ function iniciarEventosLayout() {
             let scrollTop = sidebar.scrollTop;
             const nav = sidebar.querySelector('.sidebar-nav');
             if (nav && nav.scrollTop > 0) scrollTop = nav.scrollTop;
-            
+
             sessionStorage.setItem('belezou_sidebar_scroll', scrollTop);
         });
     }
@@ -182,13 +184,26 @@ function iniciarEventosLayout() {
                 // Mobile: Menu por cima (Overlay)
                 sidebar.classList.add('mobile-open');
                 overlay.classList.add('open');
+                document.documentElement.classList.add('sidebar-open-body');
+                document.body.classList.add('sidebar-open-body');
             }
         });
 
-        overlay.addEventListener('click', () => {
+        const fecharMenuMobile = () => {
             sidebar.classList.remove('mobile-open');
             overlay.classList.remove('open');
-        });
+            document.documentElement.classList.remove('sidebar-open-body');
+            document.body.classList.remove('sidebar-open-body');
+        };
+
+        overlay.addEventListener('click', fecharMenuMobile);
+
+        // Bloqueia o arrasto/scroll se o utilizador tentar scrollar no overlay escuro
+        overlay.addEventListener('touchmove', (e) => {
+            if (overlay.classList.contains('open')) {
+                e.preventDefault();
+            }
+        }, { passive: false });
     }
 
     // 2. Submenu do Perfil
@@ -247,18 +262,27 @@ function iniciarRelogio() {
 }
 
 function fazerLogout() {
-    Swal.fire({
-        text: 'Deseja realmente sair do sistema?',
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonText: 'Sim, sair',
-        cancelButtonText: 'Cancelar',
-        confirmButtonColor: '#28a745',
-        cancelButtonColor: '#dc3545'
-    }).then(result => {
-        if (result.isConfirmed) {
-            localStorage.removeItem('belezou_user');
-            window.location.href = BASE_URL + "/login/sair";
+    if (confirm("Deseja realmente sair do sistema?")) {
+        // Limpeza OneSignal no Cliente: desvincula este dispositivo do usuário
+        if (window.OneSignalDeferred) {
+            OneSignalDeferred.push(async function (OneSignal) {
+                await OneSignal.logout();
+            });
         }
-    });
+
+        Swal.fire({
+            text: 'Deseja realmente sair do sistema?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Sim, sair',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#28a745',
+            cancelButtonColor: '#dc3545'
+        }).then(result => {
+            if (result.isConfirmed) {
+                localStorage.removeItem('belezou_user');
+                window.location.href = BASE_URL + "/login/sair";
+            }
+        });
+    }
 }

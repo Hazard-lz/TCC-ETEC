@@ -8,6 +8,7 @@
     
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/root.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/login.css">
+    <link rel="manifest" href="<?= BASE_URL ?>/manifest.json">
 </head>
 <body>
 

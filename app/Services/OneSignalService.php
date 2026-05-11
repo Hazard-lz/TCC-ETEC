@@ -26,24 +26,18 @@ class OneSignalService
     }
 
     /**
-     * Envia notificação por Push para um usuário específico através do subscription_id salvo no banco.
+     * Envia notificação por Push para um usuário específico através do External ID (ID do usuário no banco).
+     * Isso permite que múltiplos dispositivos do mesmo usuário recebam a notificação simultaneamente.
      */
     public function enviarNotificacao($codUsuario, $mensagem, $url = null, $titulo = "Belezou App")
     {
-        // Busca o subscription_id do OneSignal no banco de dados
-        $conn = Conexao::getConexao();
-        $stmt = $conn->prepare("SELECT onesignal_sub_id FROM usuarios WHERE id_usuario = :id AND onesignal_sub_id IS NOT NULL");
-        $stmt->execute([':id' => $codUsuario]);
-        $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        if (!$usuario || empty($usuario['onesignal_sub_id'])) {
-            error_log("OneSignal: Nenhum subscription_id encontrado para o usuario $codUsuario");
-            return ['response' => '{"errors":["no subscription_id in database"]}', 'http_code' => 0];
-        }
-
+        // Nota: Não bloqueamos mais se o onesignal_sub_id no banco for NULL, 
+        // pois o usuário pode ter outros dispositivos ativos vinculados ao seu External ID.
+        
         $fields = [
             'app_id' => $this->appId,
-            'include_subscription_ids' => [$usuario['onesignal_sub_id']],
+            // Usamos o ID do usuário como External ID no OneSignal
+            'include_external_user_ids' => [(string)$codUsuario],
             'headings' => [
                 'en' => $titulo,
                 'pt' => $titulo
