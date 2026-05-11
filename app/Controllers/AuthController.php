@@ -109,6 +109,12 @@ class AuthController
             session_start();
         }
 
+        // LIMPEZA ONESIGNAL: Remove o ID do dispositivo do banco ao sair usando o Service (Arquitetura Limpa)
+        // DEVE SER FEITO ANTES de limpar a variável $_SESSION
+        if (isset($_SESSION['usuario_id'])) {
+            $this->usuarioService->removerDispositivoOneSignal($_SESSION['usuario_id']);
+        }
+
         $_SESSION = [];
 
         if (ini_get("session.use_cookies")) {
@@ -126,11 +132,6 @@ class AuthController
 
         // Limpa o cookie auxiliar de tipo de utilizador
         setcookie('belezou_tipo', '', ['expires' => time() - 42000, 'path' => '/']);
-
-        // LIMPEZA ONESIGNAL: Remove o ID do dispositivo do banco ao sair usando o Service (Arquitetura Limpa)
-        if (isset($_SESSION['usuario_id'])) {
-            $this->usuarioService->removerDispositivoOneSignal($_SESSION['usuario_id']);
-        }
 
         session_destroy();
 
