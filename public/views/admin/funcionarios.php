@@ -130,12 +130,8 @@ $totalAdmins = $usuarioModel->contarAdminsAtivos();
                                                 <?= CsrfGuard::campoHidden() ?>
                                                 <input type="hidden" name="cod_usuario" value="<?= $func['cod_usuario'] ?>">
                                                 <button type="submit" class="btn-action" title="Reenviar E-mail de Configuração"
-<<<<<<< HEAD
                                                     onclick="event.preventDefault(); Swal.fire({title: 'Atenção', text: 'Deseja reenviar o link de criação de senha para o funcionário <?= htmlspecialchars(addslashes($func['nome'])) ?>?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc3545', cancelButtonColor: '#6c757d', confirmButtonText: 'Confirmar', cancelButtonText: 'Cancelar'}).then((result) => { if (result.isConfirmed) { this.closest('form').submit(); } });"
                                                     style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">
-=======
-                                                    onclick="return confirm('Deseja reenviar o link de criação de senha para este funcionário?');">
->>>>>>> 92c59e34d6586f26424e7b14ac74e46afa92e71e
                                                     📧
                                                 </button>
                                             </form>
@@ -160,22 +156,14 @@ $totalAdmins = $usuarioModel->contarAdminsAtivos();
 
                                                 <?php if ($func['status'] === 'ativo'): ?>
                                                     <button type="submit" class="btn-action" title="Inativar Acesso"
-<<<<<<< HEAD
                                                         onclick="event.preventDefault(); Swal.fire({title: 'Atenção', text: 'Deseja realmente INATIVAR o funcionário <?= htmlspecialchars(addslashes($func['nome'])) ?>? Ele não poderá mais acessar o sistema ou receber novos agendamentos.', icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc3545', cancelButtonColor: '#6c757d', confirmButtonText: 'Confirmar', cancelButtonText: 'Cancelar'}).then((result) => { if (result.isConfirmed) { this.closest('form').submit(); } });"
                                                         style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">
-=======
-                                                        onclick="return confirm('Deseja realmente INATIVAR este funcionário? Ele não poderá mais acessar o sistema ou receber novos agendamentos.');">
->>>>>>> 92c59e34d6586f26424e7b14ac74e46afa92e71e
                                                         🚫
                                                     </button>
                                                 <?php else: ?>
                                                     <button type="submit" class="btn-action" title="Reativar Acesso"
-<<<<<<< HEAD
                                                         onclick="event.preventDefault(); Swal.fire({title: 'Atenção', text: 'Deseja ATIVAR o funcionário <?= htmlspecialchars(addslashes($func['nome'])) ?> novamente?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc3545', cancelButtonColor: '#6c757d', confirmButtonText: 'Confirmar', cancelButtonText: 'Cancelar'}).then((result) => { if (result.isConfirmed) { this.closest('form').submit(); } });"
                                                         style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">
-=======
-                                                        onclick="return confirm('Deseja ATIVAR este funcionário novamente?');">
->>>>>>> 92c59e34d6586f26424e7b14ac74e46afa92e71e
                                                         ✅
                                                     </button>
                                                 <?php endif; ?>
@@ -246,7 +234,8 @@ $totalAdmins = $usuarioModel->contarAdminsAtivos();
                             <option value="comum">Profissional Comum</option>
                             <option value="subadmin">Subadministrador (Gestão sem relatórios)</option>
                             <?php if ($_SESSION['usuario_tipo'] === 'admin'): ?>
-                                <option value="admin" id="optionAdmin" style="display: none;">👑 Transferir Cargo de Administrador</option>
+                                <option value="admin" id="optionAdmin" style="display: none;">👑 Transferir Cargo de
+                                    Administrador</option>
                             <?php endif; ?>
                         </select>
                     </div>
