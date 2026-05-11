@@ -30,11 +30,10 @@ body.sidebar-open-body {
 /* --- SIDEBAR (BARRA LATERAL) --- */
 .sidebar {
     width: 260px;
-    height: 100vh;
-    height: -webkit-fill-available; /* Suporte para barras de navegação mobile */
     position: fixed;
     left: 0;
     top: 0;
+    bottom: 0; /* Âncora no fundo da tela, mais confiável que 100vh */
     background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
     border-right: none;
     display: flex;
@@ -42,11 +41,10 @@ body.sidebar-open-body {
     z-index: 1000;
     transition: width 0.3s ease, transform 0.3s ease;
     overflow-x: hidden;
-    overflow-y: auto; /* Garante scroll se o conteúdo for maior que a tela */
-    -webkit-overflow-scrolling: touch; /* Scroll suave no iOS */
+    overflow-y: auto; /* Permite rolar todo o conteúdo da barra */
+    -webkit-overflow-scrolling: touch;
     box-shadow: 2px 0 15px rgba(0, 0, 0, 0.15);
-    /* Impede que o scroll chegue no fundo da página ao rolar o menu */
-    overscroll-behavior: contain;
+    padding-bottom: 2rem; /* Espaço extra para garantir que o footer apareça */
 }
 
 .sidebar-header {
