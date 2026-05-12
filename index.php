@@ -32,6 +32,9 @@ session_set_cookie_params([
 
 session_start();
 
+// Inicia o buffer de saída para permitir a injeção global de metatags e favicon no <head>
+ob_start();
+
 // Gera o token CSRF logo na inicialização da sessão
 require_once __DIR__ . '/app/Helpers/CsrfGuard.php';
 CsrfGuard::gerarToken();
@@ -103,3 +106,30 @@ Middleware::verificar($uri);
 $router = new Router();
 require_once __DIR__ . '/app/Routes/routes.php';
 $router->executar($uri);
+
+// =========================================================================
+// 5. INJEÇÃO GLOBAL DE ATIVOS (Favicon e Segurança)
+// Captura o HTML gerado e garante que tags essenciais estejam presentes no <head>
+// =========================================================================
+$html = ob_get_clean();
+
+if (strpos($html, '<head>') !== false) {
+    $tagsParaInjetar = "";
+
+    // Injeta o Favicon se não houver um definido na View
+    if (strpos($html, 'rel="icon"') === false) {
+        $tagsParaInjetar .= "\n    <link rel=\"icon\" type=\"image/png\" href=\"" . BASE_URL . "/public/resources/images/favicon.png\">";
+    }
+
+    // Injeta a Meta Tag de CSRF se não houver (essencial para segurança em requisições AJAX)
+    if (strpos($html, 'name="csrf-token"') === false) {
+        $tagsParaInjetar .= "\n    " . CsrfGuard::metaTag();
+    }
+
+    if (!empty($tagsParaInjetar)) {
+        // Insere logo após a abertura da tag <head>
+        $html = str_replace('<head>', '<head>' . $tagsParaInjetar, $html);
+    }
+}
+
+echo $html;

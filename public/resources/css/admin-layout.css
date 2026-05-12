@@ -43,6 +43,11 @@ body.sidebar-open-body {
     overflow-x: hidden;
     overflow-y: auto; /* Permite rolar todo o conteúdo da barra */
     -webkit-overflow-scrolling: touch;
+    
+    /* Esconde a barra de rolagem no Firefox */
+    scrollbar-width: none;
+    /* Esconde a barra de rolagem no IE e Edge antigo */
+    -ms-overflow-style: none;
     box-shadow: 2px 0 15px rgba(0, 0, 0, 0.15);
     padding-bottom: 2rem; /* Espaço extra para garantir que o footer apareça */
 }
@@ -81,6 +86,11 @@ body.sidebar-open-body {
 .sidebar-nav::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.3);
     border-radius: 10px;
+}
+
+/* Esconde a barra de rolagem no Chrome, Safari e Edge (Webkit) */
+.sidebar::-webkit-scrollbar {
+    display: none;
 }
 
 .nav-item {

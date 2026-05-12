@@ -21,7 +21,7 @@ body.modal-open {
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 2000; /* Fica acima de tudo, incluindo a sidebar */
+  z-index: 1050; /* Acima da sidebar (1000), mas abaixo de alertas do SweetAlert (1060) */
 
   /* Escondido por padrão */
   opacity: 0;

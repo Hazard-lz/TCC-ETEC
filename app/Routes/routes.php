@@ -39,7 +39,8 @@ $router->post('/agendar', 'AgendamentoController@salvar');
 $router->get('/historico', 'AgendamentoController@historicoCliente');
 $router->post('/historico/cancelar', 'AgendamentoController@cancelarPeloCliente');
 
-$router->get('/cliente/ajuda', 'AjudaController@indexCliente');
+// Rotas de Ajuda (FAQ)
+$router->view('/cliente/ajuda', 'cliente/ajuda');
 
 
 // ===========================================================
@@ -138,7 +139,7 @@ $router->get('/admin/funcionarios/reenviar-email', function () {
 
 $router->get('/admin/relatorios/desempenho', 'RelatorioController@desempenhoFuncionario');
 
-$router->get('/admin/ajuda', 'AjudaController@indexAdmin');
+$router->view('/admin/ajuda', 'admin/ajuda');
 
 
 // ===========================================================
@@ -173,7 +174,7 @@ $router->post('/funcionario/perfil/salvar', 'FuncionarioController@salvarPerfil'
 
 $router->view('/funcionario/servicos', 'funcionario/servicos');
 
-$router->get('/funcionario/ajuda', 'AjudaController@indexFuncionario');
+$router->view('/funcionario/ajuda', 'funcionario/ajuda');
 
 
 // ===========================================================

@@ -48,10 +48,15 @@ class FuncionarioService extends BaseService {
         }
     }
 
-    public function atualizarDadosFuncionario($id_usuario, $id_funcionario, $nome, $telefone, $especialidade, $salario) {
+    public function atualizarDadosFuncionario($id_usuario, $id_funcionario, $nome, $telefone, $especialidade, $salario, $tipo = null, $idLogado = null, $tipoLogado = null) {
         
         if (empty($id_usuario) || empty($id_funcionario)) {
             return $this->erro('Parâmetros de identificação do funcionário estão ausentes.');
+        }
+
+        // ═══ REGRA: ADMIN NÃO PODE REBAIXAR A SI MESMO DIRETAMENTE ═══
+        if ($id_usuario === $idLogado && $tipoLogado === 'admin' && $tipo !== null && $tipo !== 'admin') {
+            return $this->erro("Você não pode rebaixar seu próprio cargo. Para deixar de ser administrador, transfira o cargo para outro funcionário.");
         }
 
         try {
@@ -68,9 +73,24 @@ class FuncionarioService extends BaseService {
                 throw new Exception("Erro ao atualizar o contrato do funcionário.");
             }
 
+            // ═══ ATUALIZAÇÃO DE TIPO / ACESSO ═══
+            if ($tipo !== null) {
+                $usuarioModel = new Usuario();
+
+                // Caso especial: Transferência de Admin (Admin Único)
+                if ($tipo === 'admin' && $tipoLogado === 'admin' && $id_usuario !== $idLogado) {
+                    // Promove o alvo
+                    $usuarioModel->atualizarTipo($id_usuario, 'admin');
+                    // Rebaixa o atual
+                    $usuarioModel->atualizarTipo($idLogado, 'subadmin');
+                    // Nota: A sessão deve ser atualizada no Controller
+                } else {
+                    // Atualização normal
+                    $usuarioModel->atualizarTipo($id_usuario, $tipo);
+                }
+            }
 
             $this->conn->commit();
-
             return $this->sucesso('Dados do funcionário atualizados com sucesso!');
 
         } catch (Exception $e) {
@@ -97,9 +117,14 @@ class FuncionarioService extends BaseService {
      * ARQUITETURA: Lógica de negócio isolada no Service.
      * Altera o status de acesso do usuário vinculado ao funcionário.
      */
-    public function alterarStatusFuncionario($id_usuario, $novo_status) {
+    public function alterarStatusFuncionario($id_usuario, $novo_status, $idLogado = null) {
         if (empty($id_usuario) || !in_array($novo_status, ['ativo', 'inativo'])) {
             return $this->erro('Parâmetros inválidos fornecidos para a alteração.');
+        }
+
+        // ═══ REGRA: NÃO É POSSÍVEL ALTERAR O PRÓPRIO STATUS ═══
+        if ($id_usuario === $idLogado) {
+            return $this->erro("Você não pode alterar o status do seu próprio acesso.");
         }
 
         try {

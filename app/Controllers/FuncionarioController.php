@@ -42,29 +42,20 @@ class FuncionarioController
         $idLogado = $_SESSION['usuario_id'] ?? '';
 
         // ═══ REGRA: ADMIN ÚNICO — Bloqueio de escalonamento ═══
-        // Subadmin NUNCA pode atribuir o cargo 'admin'
         if ($tipoLogado === 'subadmin' && $tipo === 'admin') {
             $_SESSION['flash_erro'] = "Você não tem permissão para atribuir o cargo de administrador.";
             header('Location: ' . BASE_URL . '/admin/funcionarios');
             exit;
         }
 
-        // Funcionário comum NUNCA pode atribuir 'admin'
-        if ($tipoLogado === 'comum' && $tipo === 'admin') {
-            $_SESSION['flash_erro'] = "Você não tem permissão para esta operação.";
-            header('Location: ' . BASE_URL . '/admin/funcionarios');
-            exit;
-        }
-
-        // ═══ REGRA: Não é possível criar um NOVO funcionário como admin ═══
-        if (empty($id_funcionario) && $tipo === 'admin') {
-            $_SESSION['flash_erro'] = "Não é possível cadastrar um novo funcionário como Administrador. Use a transferência de cargo.";
-            header('Location: ' . BASE_URL . '/admin/funcionarios');
-            exit;
-        }
-
         if (empty($id_funcionario)) {
-            // CADASTRAR NOVO (Sem a senha)
+            // REGISTRO DE NOVO FUNCIONÁRIO
+            if ($tipo === 'admin') {
+                $_SESSION['flash_erro'] = "Não é possível cadastrar um novo funcionário como Administrador. Use a transferência de cargo.";
+                header('Location: ' . BASE_URL . '/admin/funcionarios');
+                exit;
+            }
+
             $resultado = $this->funcionarioService->registrarFuncionario(
                 $nome,
                 $email,
@@ -74,7 +65,7 @@ class FuncionarioController
                 $tipo
             );
         } else {
-            // EDITAR EXISTENTE
+            // EDIÇÃO DE FUNCIONÁRIO EXISTENTE
             $funcionarioAtual = $this->funcionarioModel->buscarPorId($id_funcionario);
             if (!$funcionarioAtual) {
                 $_SESSION['flash_erro'] = "Funcionário não encontrado.";
@@ -82,8 +73,7 @@ class FuncionarioController
                 exit;
             }
 
-            // ═══ PROTEÇÃO HIERÁRQUICA ═══
-            // Subadmin não pode editar um admin
+            // Proteção hierárquica básica (Subadmin -> Admin)
             $usuarioAlvo = $this->usuarioModel->buscarPorId($funcionarioAtual['cod_usuario']);
             if ($tipoLogado === 'subadmin' && $usuarioAlvo && $usuarioAlvo['tipo'] === 'admin') {
                 $_SESSION['flash_erro'] = "Você não tem permissão para editar um administrador.";
@@ -98,33 +88,22 @@ class FuncionarioController
                 $nome,
                 $telefone,
                 $especialidade,
-                $salario
+                $salario,
+                $tipo,
+                $idLogado,
+                $tipoLogado
             );
 
-            if ($resultado['sucesso']) {
-                // ═══ REGRA: TRANSFERÊNCIA DE ADMIN (ADMIN ÚNICO) ═══
-                if ($tipo === 'admin' && $tipoLogado === 'admin') {
-                    // Promove o alvo para admin
-                    $this->usuarioModel->atualizarTipo($id_usuario, 'admin');
-                    // Rebaixa o admin logado para subadmin
-                    $this->usuarioModel->atualizarTipo($idLogado, 'subadmin');
-                    // Atualiza a sessão do admin logado
-                    $_SESSION['usuario_tipo'] = 'subadmin';
-
-                    $resultado['mensagem'] = "Transferência realizada! " . htmlspecialchars($nome) . " agora é o Administrador. Você foi reclassificado como Subadministrador.";
-                } else {
-                    // Atualização normal de tipo (sem envolver admin)
-                    $this->usuarioModel->atualizarTipo($id_usuario, $tipo);
-                }
-            }
+            // A sincronização de cargo/sessão agora é feita AUTOMATICAMENTE pelo Middleware em cada clique.
+            // Não é necessário atualizar $_SESSION manualmente aqui.
         }
 
-        // REDIRECIONAMENTO LIMPO (Usa a sessão em vez de ?sucesso=1 na URL)
         if ($resultado['sucesso']) {
             $_SESSION['flash_sucesso'] = $resultado['mensagem'] ?? "Operação realizada com sucesso.";
         } else {
             $_SESSION['flash_erro'] = $resultado['mensagem'];
         }
+
         header('Location: ' . BASE_URL . '/admin/funcionarios');
         exit;
     }
@@ -205,6 +184,8 @@ class FuncionarioController
 
         $id_usuario = $_POST['cod_usuario'] ?? '';
         $status_atual = $_POST['status_atual'] ?? '';
+        $idLogado = $_SESSION['usuario_id'] ?? '';
+        $tipoLogado = $_SESSION['usuario_tipo'] ?? '';
 
         if (empty($id_usuario) || empty($status_atual)) {
             $_SESSION['flash_erro'] = "Dados insuficientes para alterar o status.";
@@ -212,9 +193,7 @@ class FuncionarioController
             exit;
         }
 
-        // ═══ PROTEÇÃO HIERÁRQUICA ═══
-        // Subadmin não pode alterar o status de um admin
-        $tipoLogado = $_SESSION['usuario_tipo'] ?? '';
+        // Bloqueio hierárquico básico
         $usuarioAlvo = $this->usuarioModel->buscarPorId($id_usuario);
         if ($tipoLogado === 'subadmin' && $usuarioAlvo && $usuarioAlvo['tipo'] === 'admin') {
             $_SESSION['flash_erro'] = "Você não tem permissão para alterar o status de um administrador.";
@@ -224,9 +203,8 @@ class FuncionarioController
 
         $novo_status = ($status_atual === 'ativo') ? 'inativo' : 'ativo';
 
-        $resultado = $this->funcionarioService->alterarStatusFuncionario($id_usuario, $novo_status);
+        $resultado = $this->funcionarioService->alterarStatusFuncionario($id_usuario, $novo_status, $idLogado);
 
-        // Feedback visual usando sessões flash
         if ($resultado['sucesso']) {
             $_SESSION['flash_sucesso'] = $resultado['mensagem'];
         } else {

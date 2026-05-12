@@ -153,6 +153,11 @@ document.addEventListener("DOMContentLoaded", () => {
                     cancelButtonText: 'Cancelar'
                 }).then((result) => {
                     if (result.isConfirmed) {
+                        // Fecha o modal visualmente para não sobrepor o alerta ou o processamento
+                        const modal = document.querySelector('#modalFuncionario');
+                        if (modal) modal.classList.remove('active');
+                        document.body.classList.remove('modal-open');
+
                         HTMLFormElement.prototype.submit.call(formFuncionario);
                     }
                 });

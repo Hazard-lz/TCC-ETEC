@@ -92,13 +92,19 @@ button, .btn {
     font-family: inherit;
     cursor: pointer;
     transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    white-space: nowrap; /* Impede que o texto quebre em duas linhas */
+    height: 42px;        /* Altura fixa para garantir que fiquem iguais */
 }
 
 .btn-primary {
     background: var(--gradient-brand);
     color: #ffffff;
     border: none;
-    padding: 0.6rem 1.2rem;
+    padding: 0 1.5rem;   /* Padding horizontal apenas, altura é fixa */
     border-radius: 8px;
     font-weight: 600;
     font-size: 0.95rem;
@@ -115,9 +121,10 @@ button, .btn {
     background-color: transparent;
     color: var(--text-main);
     border: 1px solid var(--border-color);
-    padding: 0.6rem 1.2rem;
+    padding: 0 1.5rem;   /* Mesmos limites do primário */
     border-radius: 8px;
     font-weight: 600;
+    font-size: 0.95rem;  /* Igualando o tamanho da fonte */
 }
 
 .btn-secondary:hover {
