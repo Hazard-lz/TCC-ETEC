@@ -204,6 +204,7 @@ $router->post('/api/onesignal/registrar', function () {
 });
 
 $router->get('/api/profissionais-por-servico', 'FuncionarioController@listarProfissionaisPorServicoApi');
+$router->post('/api/servicos-profissional', 'FuncionarioController@listarServicosPorProfissionalApi');
 
 $router->get('/api/agenda-eventos', 'AgendamentoController@apiEventos');
 

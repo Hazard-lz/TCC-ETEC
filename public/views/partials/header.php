@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel - Belezou</title>
+    <link rel="icon" type="image/png" href="<?= BASE_URL ?>/public/resources/images/favicon.png">
 
     <!-- ① SweetAlert2 — carregado PRIMEIRO para estar disponível em todo o documento -->
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css" rel="stylesheet">

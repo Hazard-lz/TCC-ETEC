@@ -274,6 +274,35 @@ class FuncionarioController
         exit;
     }
 
+    public function listarServicosPorProfissionalApi()
+    {
+        header('Content-Type: application/json');
+        
+        $dados = json_decode(file_get_contents("php://input"), true);
+        $id_funcionario = $dados['id_funcionario'] ?? $_POST['id_funcionario'] ?? '';
+
+        if (empty($id_funcionario)) {
+            echo json_encode(['sucesso' => false, 'mensagem' => 'Profissional não informado.']);
+            exit;
+        }
+
+        $servicosRaw = $this->funcionarioModel->buscarServicosPorFuncionario($id_funcionario, 'ativo');
+        
+        $servicos = array_filter($servicosRaw, function($s) {
+            return $s['status_servico'] === 'ativo';
+        });
+
+        $servicosFormatados = array_map(function($s) {
+            return [
+                'id_servico' => $s['cod_servico'],
+                'nome_servico' => $s['nome_servico']
+            ];
+        }, array_values($servicos));
+
+        echo json_encode(['sucesso' => true, 'servicos' => $servicosFormatados]);
+        exit;
+    }
+
     public function dashboard()
     {
         $id_usuario = $_SESSION['usuario_id'];

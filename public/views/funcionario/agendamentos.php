@@ -22,6 +22,8 @@ if (session_status() === PHP_SESSION_NONE) {
 
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/locales/pt-br.global.min.js'></script>
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
     <style>
 
 
@@ -387,9 +389,10 @@ if (session_status() === PHP_SESSION_NONE) {
             <div class="modal-body">
                 <form id="formAgendamento" action="<?= BASE_URL ?>/funcionario/agenda" method="POST">
                     <?= CsrfGuard::campoHidden() ?>
+                    
                     <div class="form-group">
                         <label>Cliente</label>
-                        <select name="id_cliente" class="form-control" required>
+                        <select id="id_cliente" name="id_cliente" class="form-control" required>
                             <option value="">Selecione...</option>
                             <?php if (!empty($clientes)):
                                 foreach ($clientes as $cli): ?>
@@ -399,17 +402,6 @@ if (session_status() === PHP_SESSION_NONE) {
                     </div>
 
                     <div class="form-grid">
-                        <div class="form-group">
-                            <label>Serviço</label>
-                            <select id="id_servico" name="id_servico" class="form-control" required>
-                                <option value="">Selecione...</option>
-                                <?php if (!empty($servicos)):
-                                    foreach ($servicos as $sv): ?>
-                                        <option value="<?= $sv['id_servico'] ?>"><?= htmlspecialchars($sv['nome_servico']) ?>
-                                        </option>
-                                    <?php endforeach; endif; ?>
-                            </select>
-                        </div>
                         <div class="form-group">
                             <label>Profissional</label>
                             <select id="id_funcionario" name="id_funcionario" class="form-control" required>
@@ -421,13 +413,18 @@ if (session_status() === PHP_SESSION_NONE) {
                                     <?php endforeach; endif; ?>
                             </select>
                         </div>
+                        <div class="form-group">
+                            <label>Serviço</label>
+                            <select id="id_servico" name="id_servico" class="form-control" required disabled>
+                                <option value="">Selecione um Profissional primeiro</option>
+                            </select>
+                        </div>
                     </div>
 
                     <div class="form-grid">
                         <div class="form-group">
                             <label>Data</label>
-                            <input type="date" id="data" name="data" class="form-control" value="<?= date('Y-m-d') ?>"
-                                required>
+                            <input type="date" id="data" name="data" class="form-control" value="<?= date('Y-m-d') ?>" required>
                         </div>
                         <div class="form-group">
                             <label>Horário</label>
@@ -437,8 +434,7 @@ if (session_status() === PHP_SESSION_NONE) {
                         </div>
                     </div>
 
-                    <button type="submit" class="btn-primary" style="width: 100%; margin-top: 1rem;">Confirmar
-                        Agendamento</button>
+                    <button type="submit" class="btn-primary" style="width: 100%; margin-top: 1rem;">Confirmar Agendamento</button>
                 </form>
             </div>
         </div>
@@ -617,6 +613,59 @@ if (session_status() === PHP_SESSION_NONE) {
                 }
             });
 
+            // Inicializar Tom Select para Clientes
+            new TomSelect("#id_cliente", {
+                create: false,
+                sortField: {
+                    field: "text",
+                    direction: "asc"
+                },
+                placeholder: "Pesquisar cliente..."
+            });
+
+            // Cascata de Serviços via AJAX
+            document.getElementById('id_funcionario').addEventListener('change', function () {
+                const idFuncionario = this.value;
+                const selectServico = document.getElementById('id_servico');
+                const selectHora = document.getElementById('hora');
+
+                // Limpar horário e serviço
+                selectHora.innerHTML = '<option value="">Selecione Profissional/Serviço/Data</option>';
+                selectServico.innerHTML = '<option value="">Carregando...</option>';
+                selectServico.disabled = true;
+
+                if (!idFuncionario) {
+                    selectServico.innerHTML = '<option value="">Selecione um Profissional primeiro</option>';
+                    return;
+                }
+
+                // Buscar serviços do profissional
+                fetch("<?= BASE_URL ?>/api/servicos-profissional", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ id_funcionario: idFuncionario })
+                })
+                .then(res => res.json())
+                .then(res => {
+                    selectServico.innerHTML = '<option value="">Selecione o Serviço...</option>';
+                    if (res.sucesso && res.servicos && res.servicos.length > 0) {
+                        selectServico.disabled = false;
+                        res.servicos.forEach(s => {
+                            const opt = document.createElement('option');
+                            opt.value = s.id_servico;
+                            opt.textContent = s.nome_servico;
+                            selectServico.appendChild(opt);
+                        });
+                    } else {
+                        selectServico.innerHTML = '<option value="">Nenhum serviço encontrado</option>';
+                    }
+                })
+                .catch(err => {
+                    console.error("Erro ao carregar serviços:", err);
+                    selectServico.innerHTML = '<option value="">Erro ao carregar</option>';
+                });
+            });
+
             // API de Horários Livres
             const inputsDispo = ['id_funcionario', 'id_servico', 'data'];
             inputsDispo.forEach(id => {
@@ -644,7 +693,13 @@ if (session_status() === PHP_SESSION_NONE) {
                                         selectHora.appendChild(opt);
                                     });
                                 }
+                            })
+                            .catch(err => {
+                                console.error("Erro ao carregar horários:", err);
+                                selectHora.innerHTML = '<option value="">Erro ao carregar</option>';
                             });
+                    } else {
+                        selectHora.innerHTML = '<option value="">Selecione Profissional/Serviço/Data</option>';
                     }
                 });
             });

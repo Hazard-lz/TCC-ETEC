@@ -47,6 +47,7 @@ class Middleware {
             $rotasIsentasCsrf = [
                 '/api/onesignal/registrar',
                 '/api/horarios-livres',
+                '/api/servicos-profissional',
             ];
 
             $isento = false;

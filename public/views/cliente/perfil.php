@@ -27,6 +27,7 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
         <title>Meu Perfil - Belezou App</title>
+        <link rel="icon" type="image/png" href="<?= BASE_URL ?>/public/resources/images/favicon.png">
 
         <!-- SweetAlert2 — necessário para o botão "Sair da Conta" -->
         <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css" rel="stylesheet">

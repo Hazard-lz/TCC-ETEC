@@ -226,7 +226,7 @@
    ========================================= */
 ASIDE {
 
-    width: 50%;
+    width: 100%;
 
 }
 
@@ -241,6 +241,7 @@ ASIDE {
     align-items: center;
     /* centraliza filhos horizontalmente */
     text-align: center;
+    box-sizing: border-box; /* evita que o padding estoure a largura de 100% no mobile */
 }
 
 .resumo-lateral-titulo {
@@ -380,6 +381,7 @@ ASIDE {
 /* Aside sem sticky no mobile */
 #resumo-lateral {
     position: static;
+    margin-bottom: 6rem; /* espaço para não ficar colado atrás da .bottom-nav flutuante */
 }
 
 /* =========================================

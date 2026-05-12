@@ -13,6 +13,7 @@ if (!isset($_SESSION['usuario_id'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Histórico - Belezou App</title>
+    <link rel="icon" type="image/png" href="<?= BASE_URL ?>/public/resources/images/favicon.png">
 
     <!-- SweetAlert2 — confirmações de cancelamento -->
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css" rel="stylesheet">
