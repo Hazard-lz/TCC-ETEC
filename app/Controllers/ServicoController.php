@@ -44,6 +44,12 @@ class ServicoController {
 
         $resultado = $this->servicoService->registrarServico($nome, $descricao, $preco, $duracao);
         
+        if ($resultado['sucesso']) {
+            $_SESSION['flash_sucesso'] = $resultado['mensagem'];
+        } else {
+            $_SESSION['flash_erro'] = $resultado['mensagem'];
+        }
+
         echo json_encode($resultado);
     }
 
@@ -68,6 +74,12 @@ class ServicoController {
             $this->servicoService->alterarStatusServico($id, $status);
         }
 
+        if ($resultado['sucesso']) {
+            $_SESSION['flash_sucesso'] = $resultado['mensagem'];
+        } else {
+            $_SESSION['flash_erro'] = $resultado['mensagem'];
+        }
+
         echo json_encode($resultado);
         exit; // Encerra o script imediatamente após imprimir o JSON (MUITO IMPORTANTE)
     }
@@ -80,6 +92,12 @@ class ServicoController {
 
         $resultado = $this->servicoService->alterarStatusServico($id, $status);
         
+        if ($resultado['sucesso']) {
+            $_SESSION['flash_sucesso'] = $resultado['mensagem'];
+        } else {
+            $_SESSION['flash_erro'] = $resultado['mensagem'];
+        }
+
         echo json_encode($resultado);
     }
 
@@ -122,6 +140,12 @@ class ServicoController {
         $id = $dados['id_servico'] ?? '';
 
         $resultado = $this->servicoService->excluirServico($id);
+
+        if ($resultado['sucesso']) {
+            $_SESSION['flash_sucesso'] = $resultado['mensagem'];
+        } else {
+            $_SESSION['flash_erro'] = $resultado['mensagem'];
+        }
 
         echo json_encode($resultado);
         exit;

@@ -30,9 +30,9 @@ function alterarStatusServico(id, nome, status) {
             .then(res => res.json())
             .then(data => {
                 if(data.sucesso === true || data.status === 'sucesso') {
-                    alert(data.mensagem);
                     window.location.reload();
                 } else {
+                    // Se houver erro, podemos usar o alert ou SweetAlert, mas o padrão flashmessage é para sucesso no reload
                     alert('Erro: ' + data.mensagem);
                 }
             })
@@ -62,7 +62,6 @@ function excluirServico(id, nome) {
             .then(res => res.json())
             .then(data => {
                 if(data.sucesso === true || data.status === 'sucesso') {
-                    alert(data.mensagem);
                     window.location.reload(); 
                 } else {
                     alert('Erro: ' + data.mensagem);
@@ -143,7 +142,6 @@ document.addEventListener("DOMContentLoaded", () => {
             .then(data => {
                 // CORREÇÃO: Lendo 'data.sucesso' em vez de 'data.status'
                 if (data.sucesso === true || data.status === 'sucesso') {
-                    alert(data.mensagem);
                     window.location.reload(); // Recarrega a página automaticamente para exibir a edição/criação
                 } else {
                     errorMsg.textContent = data.mensagem;

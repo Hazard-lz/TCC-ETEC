@@ -40,6 +40,17 @@ $servicos = array_merge($ativos, $inativos);
             Serviço</button>
     </div>
 
+    <?php if (isset($_SESSION['flash_sucesso'])): ?>
+        <div class="alert alert-success">
+            <strong>Sucesso!</strong> <?= $_SESSION['flash_sucesso']; unset($_SESSION['flash_sucesso']); ?>
+        </div>
+    <?php endif; ?>
+    <?php if (isset($_SESSION['flash_erro'])): ?>
+        <div class="alert alert-danger">
+            <strong>Erro:</strong> <?= $_SESSION['flash_erro']; unset($_SESSION['flash_erro']); ?>
+        </div>
+    <?php endif; ?>
+
     <div class="base-card">
         <div class="form-group mb-3" style="margin-bottom: 1.5rem;">
             <input type="text" class="form-control input-pesquisa-tabela" placeholder="Pesquisar serviço...">
