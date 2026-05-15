@@ -59,7 +59,7 @@ if (!isset($_SESSION['usuario_id']) || !isset($_SESSION['is_funcionario'])) {
                 <h2 class="accordion-header">
                     <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#di1" aria-expanded="true">
                         <span class="ajuda-num">1</span>
-                        Como criar e configurar minha grade de horários?
+                        <span>Como criar e configurar minha grade de horários?</span>
                     </button>
                 </h2>
                 <div id="di1" class="accordion-collapse collapse show" data-bs-parent="#accordionDisponibilidade">
@@ -84,7 +84,7 @@ if (!isset($_SESSION['usuario_id']) || !isset($_SESSION['is_funcionario'])) {
                 <h2 class="accordion-header">
                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#di2">
                         <span class="ajuda-num">2</span>
-                        Posso ter mais de uma grade de horários?
+                        <span>Posso ter mais de uma grade de horários?</span>
                     </button>
                 </h2>
                 <div id="di2" class="accordion-collapse collapse" data-bs-parent="#accordionDisponibilidade">
@@ -102,7 +102,7 @@ if (!isset($_SESSION['usuario_id']) || !isset($_SESSION['is_funcionario'])) {
                 <h2 class="accordion-header">
                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#di3">
                         <span class="ajuda-num">3</span>
-                        O que é a "Antecedência Mínima" e como funciona?
+                        <span>O que é a "Antecedência Mínima" e como funciona?</span>
                     </button>
                 </h2>
                 <div id="di3" class="accordion-collapse collapse" data-bs-parent="#accordionDisponibilidade">
@@ -129,7 +129,7 @@ if (!isset($_SESSION['usuario_id']) || !isset($_SESSION['is_funcionario'])) {
                 <h2 class="accordion-header">
                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#ag1">
                         <span class="ajuda-num">1</span>
-                        Como visualizar minha agenda do dia?
+                        <span>Como visualizar minha agenda do dia?</span>
                     </button>
                 </h2>
                 <div id="ag1" class="accordion-collapse collapse" data-bs-parent="#accordionAgenda">
@@ -148,7 +148,7 @@ if (!isset($_SESSION['usuario_id']) || !isset($_SESSION['is_funcionario'])) {
                 <h2 class="accordion-header">
                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#ag2">
                         <span class="ajuda-num">2</span>
-                        Como confirmar ou finalizar um atendimento?
+                        <span>Como confirmar ou finalizar um atendimento?</span>
                     </button>
                 </h2>
                 <div id="ag2" class="accordion-collapse collapse" data-bs-parent="#accordionAgenda">
@@ -171,7 +171,7 @@ if (!isset($_SESSION['usuario_id']) || !isset($_SESSION['is_funcionario'])) {
                 <h2 class="accordion-header">
                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#ag3">
                         <span class="ajuda-num">3</span>
-                        Como agendar um cliente pelo balcão (presencialmente)?
+                        <span>Como agendar um cliente pelo balcão (presencialmente)?</span>
                     </button>
                 </h2>
                 <div id="ag3" class="accordion-collapse collapse" data-bs-parent="#accordionAgenda">
@@ -194,7 +194,7 @@ if (!isset($_SESSION['usuario_id']) || !isset($_SESSION['is_funcionario'])) {
                 <h2 class="accordion-header">
                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#ag4">
                         <span class="ajuda-num">4</span>
-                        Como ver meu histórico de atendimentos?
+                        <span>Como ver meu histórico de atendimentos?</span>
                     </button>
                 </h2>
                 <div id="ag4" class="accordion-collapse collapse" data-bs-parent="#accordionAgenda">
@@ -221,7 +221,7 @@ if (!isset($_SESSION['usuario_id']) || !isset($_SESSION['is_funcionario'])) {
                 <h2 class="accordion-header">
                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#pf1">
                         <span class="ajuda-num">1</span>
-                        Como editar meu perfil e dados pessoais?
+                        <span>Como editar meu perfil e dados pessoais?</span>
                     </button>
                 </h2>
                 <div id="pf1" class="accordion-collapse collapse" data-bs-parent="#accordionPerfil">
@@ -243,7 +243,7 @@ if (!isset($_SESSION['usuario_id']) || !isset($_SESSION['is_funcionario'])) {
                 <h2 class="accordion-header">
                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#pf2">
                         <span class="ajuda-num">2</span>
-                        Como definir quais serviços eu realizo?
+                        <span>Como definir quais serviços eu realizo?</span>
                     </button>
                 </h2>
                 <div id="pf2" class="accordion-collapse collapse" data-bs-parent="#accordionPerfil">
@@ -257,7 +257,7 @@ if (!isset($_SESSION['usuario_id']) || !isset($_SESSION['is_funcionario'])) {
                 <h2 class="accordion-header">
                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#pf3">
                         <span class="ajuda-num">3</span>
-                        Como alterar minha senha de acesso?
+                        <span>Como alterar minha senha de acesso?</span>
                     </button>
                 </h2>
                 <div id="pf3" class="accordion-collapse collapse" data-bs-parent="#accordionPerfil">

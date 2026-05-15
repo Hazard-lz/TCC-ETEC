@@ -37,7 +37,7 @@ if (!isset($_SESSION['usuario_id'])) {
                 <a href="<?= BASE_URL ?>/" style="position:absolute; left: 1rem; font-size: 1.3rem; color: var(--text-main); text-decoration:none;">
                     <i class="bi bi-chevron-left"></i>
                 </a>
-                <h2 style="color: var(--text-main); font-size: 1.15rem; font-weight: 700;">Ajuda / FAQ</h2>
+                <h2 class="ajuda-page-title">Ajuda / FAQ</h2>
             </header>
 
             <main class="app-content">
@@ -63,7 +63,7 @@ if (!isset($_SESSION['usuario_id'])) {
                             <h2 class="accordion-header">
                                 <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#ag1" aria-expanded="true">
                                     <span class="ajuda-num">1</span>
-                                    Como fazer um novo agendamento?
+                                    <span>Como fazer um novo agendamento?</span>
                                 </button>
                             </h2>
                             <div id="ag1" class="accordion-collapse collapse show" data-bs-parent="#accordionAgendamento">
@@ -87,7 +87,7 @@ if (!isset($_SESSION['usuario_id'])) {
                             <h2 class="accordion-header">
                                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#ag2">
                                     <span class="ajuda-num">2</span>
-                                    Por que não consigo ver horários disponíveis?
+                                    <span>Por que não consigo ver horários disponíveis?</span>
                                 </button>
                             </h2>
                             <div id="ag2" class="accordion-collapse collapse" data-bs-parent="#accordionAgendamento">
@@ -111,7 +111,7 @@ if (!isset($_SESSION['usuario_id'])) {
                             <h2 class="accordion-header">
                                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#ag3">
                                     <span class="ajuda-num">3</span>
-                                    O que significa cada status de agendamento?
+                                    <span>O que significa cada status de agendamento?</span>
                                 </button>
                             </h2>
                             <div id="ag3" class="accordion-collapse collapse" data-bs-parent="#accordionAgendamento">
@@ -139,7 +139,7 @@ if (!isset($_SESSION['usuario_id'])) {
                             <h2 class="accordion-header">
                                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#ca1" aria-expanded="false">
                                     <span class="ajuda-num">1</span>
-                                    Como cancelar um agendamento?
+                                    <span>Como cancelar um agendamento?</span>
                                 </button>
                             </h2>
                             <div id="ca1" class="accordion-collapse collapse" data-bs-parent="#accordionCancelamento">
@@ -162,7 +162,7 @@ if (!isset($_SESSION['usuario_id'])) {
                             <h2 class="accordion-header">
                                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#ca2">
                                     <span class="ajuda-num">2</span>
-                                    Posso remarcar para outro dia?
+                                    <span>Posso remarcar para outro dia?</span>
                                 </button>
                             </h2>
                             <div id="ca2" class="accordion-collapse collapse" data-bs-parent="#accordionCancelamento">
@@ -193,7 +193,7 @@ if (!isset($_SESSION['usuario_id'])) {
                             <h2 class="accordion-header">
                                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#pe1">
                                     <span class="ajuda-num">1</span>
-                                    Como ver meu histórico de visitas?
+                                    <span>Como ver meu histórico de visitas?</span>
                                 </button>
                             </h2>
                             <div id="pe1" class="accordion-collapse collapse" data-bs-parent="#accordionPerfil">
@@ -211,7 +211,7 @@ if (!isset($_SESSION['usuario_id'])) {
                             <h2 class="accordion-header">
                                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#pe2">
                                     <span class="ajuda-num">2</span>
-                                    Como atualizar meus dados cadastrais?
+                                    <span>Como atualizar meus dados cadastrais?</span>
                                 </button>
                             </h2>
                             <div id="pe2" class="accordion-collapse collapse" data-bs-parent="#accordionPerfil">
@@ -233,7 +233,7 @@ if (!isset($_SESSION['usuario_id'])) {
                             <h2 class="accordion-header">
                                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#pe3">
                                     <span class="ajuda-num">3</span>
-                                    Como alterar minha senha?
+                                    <span>Como alterar minha senha?</span>
                                 </button>
                             </h2>
                             <div id="pe3" class="accordion-collapse collapse" data-bs-parent="#accordionPerfil">
@@ -259,7 +259,7 @@ if (!isset($_SESSION['usuario_id'])) {
                             <h2 class="accordion-header">
                                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#pe4">
                                     <span class="ajuda-num">4</span>
-                                    Por que meu e-mail precisa ser verificado?
+                                    <span>Por que meu e-mail precisa ser verificado?</span>
                                 </button>
                             </h2>
                             <div id="pe4" class="accordion-collapse collapse" data-bs-parent="#accordionPerfil">

@@ -151,6 +151,51 @@ if (!isset($_SESSION['usuario_id'])) {
 
     <script src="<?= BASE_URL ?>/public/resources/js/historico.js"></script>
     <script src="<?= BASE_URL ?>/public/resources/js/app-cliente.js"></script>
-</body>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // ─── Exibição de Alertas (Flash Messages) via SweetAlert ───
+            <?php if (isset($_SESSION['flash_sucesso'])): ?>
+                Swal.fire({
+                    title: 'Sucesso!',
+                    text: '<?= $_SESSION['flash_sucesso']; unset($_SESSION['flash_sucesso']); ?>',
+                    icon: 'success',
+                    customClass: {
+                        popup: 'swal-belezou-popup',
+                        title: 'swal-belezou-title',
+                        htmlContainer: 'swal-belezou-text',
+                        confirmButton: 'swal-belezou-btn-confirm'
+                    },
+                    buttonsStyling: false
+                });
+            <?php endif; ?>
+
+            <?php if (isset($_SESSION['flash_erro'])): ?>
+                Swal.fire({
+                    title: 'Ops!',
+                    text: '<?= $_SESSION['flash_erro']; unset($_SESSION['flash_erro']); ?>',
+                    icon: 'error',
+                    customClass: {
+                        popup: 'swal-belezou-popup',
+                        title: 'swal-belezou-title',
+                        htmlContainer: 'swal-belezou-text',
+                        confirmButton: 'swal-belezou-btn-danger'
+                    },
+                    buttonsStyling: false
+                });
+            <?php endif; ?>
+
+            // ─── Refresh Dinâmico (Polling) ───
+            // Se houver agendamentos próximos, verifica atualizações a cada 30 segundos
+            <?php if (!empty($proximos)): ?>
+                setInterval(() => {
+                    // Só recarrega se a página estiver visível (economiza bateria/dados)
+                    if (!document.hidden) {
+                        window.location.reload();
+                    }
+                }, 30000);
+            <?php endif; ?>
+        });
+    </script>
 
 </html>

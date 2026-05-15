@@ -60,7 +60,7 @@ $isAdmin = ($_SESSION['usuario_tipo'] ?? '') === 'admin';
                 <h2 class="accordion-header">
                     <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#sv1" aria-expanded="true">
                         <span class="ajuda-num">1</span>
-                        Como cadastrar um novo serviço?
+                        <span>Como cadastrar um novo serviço?</span>
                     </button>
                 </h2>
                 <div id="sv1" class="accordion-collapse collapse show" data-bs-parent="#accordionServicos">
@@ -84,7 +84,7 @@ $isAdmin = ($_SESSION['usuario_tipo'] ?? '') === 'admin';
                 <h2 class="accordion-header">
                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sv2">
                         <span class="ajuda-num">2</span>
-                        Como editar o preço ou duração de um serviço?
+                        <span>Como editar o preço ou duração de um serviço?</span>
                     </button>
                 </h2>
                 <div id="sv2" class="accordion-collapse collapse" data-bs-parent="#accordionServicos">
@@ -103,7 +103,7 @@ $isAdmin = ($_SESSION['usuario_tipo'] ?? '') === 'admin';
                 <h2 class="accordion-header">
                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sv3">
                         <span class="ajuda-num">3</span>
-                        Como desativar ou excluir um serviço?
+                        <span>Como desativar ou excluir um serviço?</span>
                     </button>
                 </h2>
                 <div id="sv3" class="accordion-collapse collapse" data-bs-parent="#accordionServicos">
@@ -132,7 +132,7 @@ $isAdmin = ($_SESSION['usuario_tipo'] ?? '') === 'admin';
                 <h2 class="accordion-header">
                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#eq1">
                         <span class="ajuda-num">1</span>
-                        Como cadastrar um novo funcionário?
+                        <span>Como cadastrar um novo funcionário?</span>
                     </button>
                 </h2>
                 <div id="eq1" class="accordion-collapse collapse" data-bs-parent="#accordionEquipe">
@@ -156,7 +156,7 @@ $isAdmin = ($_SESSION['usuario_tipo'] ?? '') === 'admin';
                 <h2 class="accordion-header">
                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#eq2">
                         <span class="ajuda-num">2</span>
-                        O que são os níveis de acesso (Admin, Subadmin, Comum)?
+                        <span>O que são os níveis de acesso (Admin, Subadmin, Comum)?</span>
                     </button>
                 </h2>
                 <div id="eq2" class="accordion-collapse collapse" data-bs-parent="#accordionEquipe">
@@ -174,7 +174,7 @@ $isAdmin = ($_SESSION['usuario_tipo'] ?? '') === 'admin';
                 <h2 class="accordion-header">
                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#eq3">
                         <span class="ajuda-num">3</span>
-                        Como reativar o acesso de um funcionário inativo?
+                        <span>Como reativar o acesso de um funcionário inativo?</span>
                     </button>
                 </h2>
                 <div id="eq3" class="accordion-collapse collapse" data-bs-parent="#accordionEquipe">
@@ -188,7 +188,7 @@ $isAdmin = ($_SESSION['usuario_tipo'] ?? '') === 'admin';
                 <h2 class="accordion-header">
                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#eq4">
                         <span class="ajuda-num">4</span>
-                        O funcionário não recebeu o e-mail de configuração. O que fazer?
+                        <span>O funcionário não recebeu o e-mail de configuração. O que fazer?</span>
                     </button>
                 </h2>
                 <div id="eq4" class="accordion-collapse collapse" data-bs-parent="#accordionEquipe">
@@ -207,7 +207,7 @@ $isAdmin = ($_SESSION['usuario_tipo'] ?? '') === 'admin';
                 <h2 class="accordion-header">
                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#eq5">
                         <span class="ajuda-num">5</span>
-                        Como transferir o cargo de Administrador?
+                        <span>Como transferir o cargo de Administrador?</span>
                     </button>
                 </h2>
                 <div id="eq5" class="accordion-collapse collapse" data-bs-parent="#accordionEquipe">
@@ -240,7 +240,7 @@ $isAdmin = ($_SESSION['usuario_tipo'] ?? '') === 'admin';
                 <h2 class="accordion-header">
                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#re1">
                         <span class="ajuda-num">1</span>
-                        Como interpretar o Painel Inicial (Dashboard)?
+                        <span>Como interpretar o Painel Inicial (Dashboard)?</span>
                     </button>
                 </h2>
                 <div id="re1" class="accordion-collapse collapse" data-bs-parent="#accordionRelatorios">
@@ -260,7 +260,7 @@ $isAdmin = ($_SESSION['usuario_tipo'] ?? '') === 'admin';
                 <h2 class="accordion-header">
                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#re2">
                         <span class="ajuda-num">2</span>
-                        Como usar o Relatório de Desempenho?
+                        <span>Como usar o Relatório de Desempenho?</span>
                     </button>
                 </h2>
                 <div id="re2" class="accordion-collapse collapse" data-bs-parent="#accordionRelatorios">
@@ -284,7 +284,7 @@ $isAdmin = ($_SESSION['usuario_tipo'] ?? '') === 'admin';
                 <h2 class="accordion-header">
                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#re3">
                         <span class="ajuda-num">3</span>
-                        Agendamentos pendentes expiram automaticamente?
+                        <span>Agendamentos pendentes expiram automaticamente?</span>
                     </button>
                 </h2>
                 <div id="re3" class="accordion-collapse collapse" data-bs-parent="#accordionRelatorios">

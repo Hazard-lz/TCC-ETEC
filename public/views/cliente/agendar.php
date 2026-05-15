@@ -45,12 +45,7 @@ if (!isset($_SESSION['usuario_id'])) {
 
             <main class="app-content">
 
-                <?php if (isset($_SESSION['flash_erro'])): ?>
-                    <div class="alert alert-error" style="color: red; margin-bottom: 1rem; text-align: center;">
-                        <?= htmlspecialchars($_SESSION['flash_erro']);
-                        unset($_SESSION['flash_erro']); ?>
-                    </div>
-                <?php endif; ?>
+                <!-- Os alertas agora são exibidos via SweetAlert no final da página -->
 
                 <div class="agendar-layout">
 
@@ -223,6 +218,41 @@ if (!isset($_SESSION['usuario_id'])) {
 
     <script src="<?= BASE_URL ?>/public/resources/js/agendar.js?v=<?= time() ?>"></script>
     <script src="<?= BASE_URL ?>/public/resources/js/app-cliente.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // ─── Exibição de Alertas (Flash Messages) via SweetAlert ───
+            <?php if (isset($_SESSION['flash_sucesso'])): ?>
+                Swal.fire({
+                    title: 'Sucesso!',
+                    text: '<?= $_SESSION['flash_sucesso']; unset($_SESSION['flash_sucesso']); ?>',
+                    icon: 'success',
+                    customClass: {
+                        popup: 'swal-belezou-popup',
+                        title: 'swal-belezou-title',
+                        htmlContainer: 'swal-belezou-text',
+                        confirmButton: 'swal-belezou-btn-confirm'
+                    },
+                    buttonsStyling: false
+                });
+            <?php endif; ?>
+
+            <?php if (isset($_SESSION['flash_erro'])): ?>
+                Swal.fire({
+                    title: 'Ops!',
+                    text: '<?= $_SESSION['flash_erro']; unset($_SESSION['flash_erro']); ?>',
+                    icon: 'error',
+                    customClass: {
+                        popup: 'swal-belezou-popup',
+                        title: 'swal-belezou-title',
+                        htmlContainer: 'swal-belezou-text',
+                        confirmButton: 'swal-belezou-btn-danger'
+                    },
+                    buttonsStyling: false
+                });
+            <?php endif; ?>
+        });
+    </script>
 </body>
 
 </html>

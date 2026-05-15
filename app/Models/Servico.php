@@ -15,7 +15,12 @@ class Servico extends BaseModel {
 
     public function listarPorStatus($status) {
         $sql = "SELECT * FROM servicos WHERE status = :status ORDER BY nome_servico ASC";
-        return $this->executarQuery($sql, [':status' => $status], 'todos');
+        return $this->executarQuery($sql, [':status' => $status], 'todos') ?: [];
+    }
+
+    public function buscarPorNome($nome) {
+        $sql = "SELECT * FROM servicos WHERE LOWER(TRIM(nome_servico)) = LOWER(TRIM(:nome)) LIMIT 1";
+        return $this->executarQuery($sql, [':nome' => $nome], 'unico');
     }
 
     public function buscarPorId($id_servico) {

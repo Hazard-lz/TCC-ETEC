@@ -24,6 +24,10 @@ if (session_status() === PHP_SESSION_NONE) {
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/locales/pt-br.global.min.js'></script>
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+    
+    <!-- SweetAlert2 -->
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
     <style>
 
 
@@ -346,15 +350,7 @@ if (session_status() === PHP_SESSION_NONE) {
     <!-- O sidebar.php já abre <div id="conteudo-temporario"> sem fechar.
          O conteúdo abaixo entra dentro dele automaticamente. -->
 
-        <?php if (isset($_SESSION['flash_erro'])): ?>
-            <div class="alert alert-danger"><?= $_SESSION['flash_erro'] ?></div>
-            <?php unset($_SESSION['flash_erro']); ?>
-        <?php endif; ?>
-
-        <?php if (isset($_SESSION['flash_sucesso'])): ?>
-            <div class="alert alert-success"><?= $_SESSION['flash_sucesso'] ?></div>
-            <?php unset($_SESSION['flash_sucesso']); ?>
-        <?php endif; ?>
+        <!-- Os alertas agora são exibidos via SweetAlert no final da página -->
 
         <div class="header-actions">
             <div>
@@ -601,6 +597,45 @@ if (session_status() === PHP_SESSION_NONE) {
 
             // Expõe o calendário globalmente para o updateSize funcionar
             window.belezouCalendar = calendar;
+            
+            // ─── Refresh Dinâmico (Polling) ───
+            // Atualiza os eventos do calendário a cada 30 segundos
+            setInterval(() => {
+                if (!document.hidden) {
+                    calendar.refetchEvents();
+                }
+            }, 30000);
+
+            // ─── Exibição de Alertas (Flash Messages) via SweetAlert ───
+            <?php if (isset($_SESSION['flash_sucesso'])): ?>
+                Swal.fire({
+                    title: 'Sucesso!',
+                    text: '<?= $_SESSION['flash_sucesso']; unset($_SESSION['flash_sucesso']); ?>',
+                    icon: 'success',
+                    customClass: {
+                        popup: 'swal-belezou-popup',
+                        title: 'swal-belezou-title',
+                        htmlContainer: 'swal-belezou-text',
+                        confirmButton: 'swal-belezou-btn-confirm'
+                    },
+                    buttonsStyling: false
+                });
+            <?php endif; ?>
+
+            <?php if (isset($_SESSION['flash_erro'])): ?>
+                Swal.fire({
+                    title: 'Ops!',
+                    text: '<?= $_SESSION['flash_erro']; unset($_SESSION['flash_erro']); ?>',
+                    icon: 'error',
+                    customClass: {
+                        popup: 'swal-belezou-popup',
+                        title: 'swal-belezou-title',
+                        htmlContainer: 'swal-belezou-text',
+                        confirmButton: 'swal-belezou-btn-danger'
+                    },
+                    buttonsStyling: false
+                });
+            <?php endif; ?>
 
             // Recalcula o tamanho do calendário quando a sidebar abre/fecha
             // O CSS transition dura 300ms (veja admin-layout.css), esperamos um pouco mais

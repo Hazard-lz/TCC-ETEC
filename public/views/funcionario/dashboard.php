@@ -36,6 +36,10 @@ foreach ($proximosAgendamentos as $ag) {
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/admin.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/dashboard.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/listas.css">
+    
+    <!-- SweetAlert2 -->
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
     <?php require_once __DIR__ . '/../partials/onesignal.php'; ?>
 </head>
 
@@ -167,6 +171,48 @@ foreach ($proximosAgendamentos as $ag) {
     </div>
 
     <script src="<?= BASE_URL ?>/public/resources/js/admin.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // ─── Exibição de Alertas (Flash Messages) via SweetAlert ───
+            <?php if (isset($_SESSION['flash_sucesso'])): ?>
+                Swal.fire({
+                    title: 'Sucesso!',
+                    text: '<?= $_SESSION['flash_sucesso']; unset($_SESSION['flash_sucesso']); ?>',
+                    icon: 'success',
+                    customClass: {
+                        popup: 'swal-belezou-popup',
+                        title: 'swal-belezou-title',
+                        htmlContainer: 'swal-belezou-text',
+                        confirmButton: 'swal-belezou-btn-confirm'
+                    },
+                    buttonsStyling: false
+                });
+            <?php endif; ?>
+
+            <?php if (isset($_SESSION['flash_erro'])): ?>
+                Swal.fire({
+                    title: 'Ops!',
+                    text: '<?= $_SESSION['flash_erro']; unset($_SESSION['flash_erro']); ?>',
+                    icon: 'error',
+                    customClass: {
+                        popup: 'swal-belezou-popup',
+                        title: 'swal-belezou-title',
+                        htmlContainer: 'swal-belezou-text',
+                        confirmButton: 'swal-belezou-btn-danger'
+                    },
+                    buttonsStyling: false
+                });
+            <?php endif; ?>
+
+            // ─── Refresh Dinâmico (Polling) ───
+            // Recarrega o dashboard a cada 30 segundos para manter os números reais
+            setInterval(() => {
+                if (!document.hidden) {
+                    window.location.reload();
+                }
+            }, 30000);
+        });
+    </script>
 </body>
 
 </html>

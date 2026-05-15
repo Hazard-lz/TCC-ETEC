@@ -3,6 +3,14 @@
    Compatível com dark mode via variáveis do root.css
    ======================================================= */
 
+/* ── Título da página (Header mobile) ── */
+.ajuda-page-title {
+    color: var(--text-main);
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin: 0;
+}
+
 /* ── Hero de topo com gradiente da marca ── */
 .ajuda-hero {
     background: var(--gradient-brand);
@@ -30,9 +38,13 @@
     line-height: 1.3;
 }
 
+.ajuda-hero h1, .ajuda-hero p {
+    color: #ffffff !important;
+}
+
 .ajuda-hero p {
     font-size: 0.92rem;
-    opacity: 0.9;
+    opacity: 0.95;
     line-height: 1.5;
 }
 
@@ -75,11 +87,14 @@
     flex-direction: column;
     gap: 0.75rem;
     margin-bottom: 2rem;
+    width: 100%;
+    max-width: 100%;
 }
 
 /* ── Cada item do Accordion ── */
 .ajuda-item {
     background-color: var(--surface-color);
+    width: 100%;
     border-radius: 15px;
     border: 1px solid var(--border-color);
     overflow: hidden;
@@ -108,8 +123,23 @@
     box-shadow: none !important;
     transition: background-color 0.3s ease, color 0.3s ease;
     gap: 0.75rem;
-    overflow-wrap: break-word; /* impede texto longo de estourar a largura no mobile */
+    width: 100%;
+    text-align: left;
+}
+
+.ajuda-item .accordion-button span:not(.ajuda-num) {
+    flex: 1;
+    min-width: 0;
+    overflow-wrap: break-word;
     word-break: break-word;
+    white-space: normal;
+}
+
+@media (max-width: 480px) {
+    .ajuda-item .accordion-button {
+        padding: 1rem;
+        font-size: 0.9rem;
+    }
 }
 
 .ajuda-item .accordion-button::after {
@@ -144,6 +174,13 @@
     font-size: 0.93rem;
     line-height: 1.75;
     padding: 1.2rem 1.4rem;
+}
+
+@media (max-width: 480px) {
+    .ajuda-item .accordion-body {
+        padding: 1rem;
+        font-size: 0.88rem;
+    }
 }
 
 /* Listas dentro do accordion */
@@ -247,6 +284,20 @@
     color: #c4b5fd;
 }
 
+[data-theme="dark"] .ajuda-item .accordion-button:not(.collapsed)::after {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23ff8a95'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
+}
+
+/* Ajuste de ícones em títulos de página (Desktop) */
+.page-title h2 i {
+    color: var(--color-purple);
+    transition: color 0.3s ease;
+}
+
+[data-theme="dark"] .page-title h2 i {
+    color: #a78bfa !important;
+}
+
 [data-theme="dark"] .ajuda-item .accordion-body {
     background-color: var(--surface-color);
 }
@@ -257,6 +308,24 @@
 
 [data-theme="dark"] .ajuda-warning {
     background: rgba(244, 91, 105, 0.12);
+}
+
+[data-theme="dark"] .ajuda-badge.badge-pink {
+    background: rgba(244, 91, 105, 0.2);
+    color: #ff8a95; /* Rosa mais claro para melhor contraste */
+    border-color: rgba(244, 91, 105, 0.4);
+}
+
+[data-theme="dark"] .ajuda-badge.badge-purple {
+    background: rgba(139, 92, 246, 0.2);
+    color: #a78bfa; /* Roxo mais claro */
+    border-color: rgba(139, 92, 246, 0.4);
+}
+
+[data-theme="dark"] .ajuda-badge.badge-blue {
+    background: rgba(59, 130, 246, 0.2);
+    color: #60a5fa; /* Azul mais claro */
+    border-color: rgba(59, 130, 246, 0.4);
 }
 
 /* ── Link de contato no rodapé do FAQ ── */
@@ -284,6 +353,31 @@
     padding: 1rem;
     padding-bottom: 7rem; /* espaço generoso para o bottom-nav não cobrir o footer card */
     box-sizing: border-box; /* garante que o padding não estoure a largura */
+}
+
+@media (max-width: 768px) {
+    .mobile-ajuda-container {
+        padding: 0.5rem; /* Reduzido para evitar excesso com o padding do pai */
+        padding-bottom: 6rem;
+    }
+
+    .ajuda-hero {
+        flex-direction: column;
+        text-align: center;
+        padding: 1.5rem 1rem;
+    }
+
+    .ajuda-hero .ajuda-hero-icon {
+        font-size: 2.5rem;
+    }
+
+    .ajuda-hero h1 {
+        font-size: 1.2rem;
+    }
+
+    .ajuda-footer-card {
+        padding: 1.2rem;
+    }
 }
 
 /* ── Ajuste para as views desktop (funcionário/admin) ── */
