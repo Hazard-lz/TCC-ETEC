@@ -91,7 +91,8 @@ class FuncionarioController
                 $salario,
                 $tipo,
                 $idLogado,
-                $tipoLogado
+                $tipoLogado,
+                $email
             );
 
             // A sincronização de cargo/sessão agora é feita AUTOMATICAMENTE pelo Middleware em cada clique.
@@ -377,6 +378,15 @@ class FuncionarioController
         $telefone = $_POST['telefone'] ?? null;
         $especialidade = $_POST['especialidade'] ?? '';
 
+        $senha = $_POST['senha'] ?? '';
+        $confirmar_senha = $_POST['confirmar_senha'] ?? '';
+
+        if (!empty($senha) && $senha !== $confirmar_senha) {
+            $_SESSION['flash_erro'] = "As senhas não coincidem.";
+            header('Location: ' . BASE_URL . '/funcionario/perfil');
+            exit;
+        }
+
         // Preserva o salário original porque um funcionário comum não deve alterar o próprio salário
         $salario = $funcionario['salario_base'] ?? 0;
 
@@ -386,7 +396,12 @@ class FuncionarioController
             $nome,
             $telefone,
             $especialidade,
-            $salario
+            $salario,
+            null, // tipo
+            $idLogado, // idLogado
+            null, // tipoLogado
+            null, // email
+            !empty($senha) ? $senha : null // senha
         );
 
         if ($resultado['sucesso']) {

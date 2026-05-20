@@ -39,6 +39,9 @@ class ClienteService extends BaseService {
 
             $idNovoUsuario = $resultadoUsuario['id'];
 
+            // 1.1 Registra o consentimento dos termos e LGPD na base de dados
+            $this->usuarioModel->aceitarTermosLGPD($idNovoUsuario);
+
             // 2. VERIFICAÇÃO DE EVOLUÇÃO (Correção do erro de duplicação)
             // Checa se já existe um registro atrelado a esse usuário na tabela 'clientes'
             $clienteExistente = $this->clienteModel->buscarPorCodUsuario($idNovoUsuario);

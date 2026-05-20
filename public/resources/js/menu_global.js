@@ -47,6 +47,7 @@ function renderizarLayoutGlobal(usuario) {
         // Relatórios: exclusivo do admin (subadmin NÃO vê)
         if (isAdmin) {
             navLinks += `<li class="nav-item"><a href="${BASE_URL}/admin/relatorios/desempenho" class="nav-link ${pathAtual.includes('relatorios') ? 'active' : ''}" title="Relatórios"><i class="bi bi-graph-up me-2"></i> <span>Relatórios</span></a></li>`;
+            navLinks += `<li class="nav-item"><a href="${BASE_URL}/admin/configuracoes" class="nav-link ${pathAtual.includes('configuracoes') ? 'active' : ''}" title="Configurações"><i class="bi bi-gear me-2"></i> <span>Configurações</span></a></li>`;
             navLinks += `<li class="nav-item"><a href="${BASE_URL}/admin/ajuda" class="nav-link ${pathAtual.includes('/admin/ajuda') ? 'active' : ''}" title="Ajuda Administrativa"><i class="bi bi-question-circle me-2"></i> <span>Ajuda Admin</span></a></li>`;
         }
     }

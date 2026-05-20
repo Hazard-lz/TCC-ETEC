@@ -242,7 +242,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
             <?php endif; ?>
 
             <!-- CARDS DE MÉTRICAS -->
-            <div class="metricas-grid">
+            <div class="metricas-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
                 <div class="metrica-card">
                     <div class="metrica-titulo">Atendimentos Concluídos</div>
                     <div class="metrica-valor"><?= $totalConcluidos ?></div>
@@ -254,13 +254,23 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                     <div class="metrica-sub">total em serviços concluídos</div>
                 </div>
                 <div class="metrica-card">
+                    <div class="metrica-titulo">Faturamento Líquido</div>
+                    <div class="metrica-valor" style="color: #10b981;">R$ <?= number_format($faturamentoLiquido, 2, ',', '.') ?></div>
+                    <div class="metrica-sub">bruto menos salários base</div>
+                </div>
+                <div class="metrica-card">
                     <div class="metrica-titulo">Ticket Médio</div>
                     <div class="metrica-valor">R$ <?= number_format($ticketMedio, 2, ',', '.') ?></div>
                     <div class="metrica-sub">valor médio por atendimento</div>
                 </div>
                 <div class="metrica-card">
-                    <div class="metrica-titulo">Taxa de Cancelamento</div>
-                    <div class="metrica-valor"><?= number_format($taxaCancelamento, 1, ',', '.') ?>%</div>
+                    <div class="metrica-titulo">Taxa de Conversão</div>
+                    <div class="metrica-valor" style="color: #8b5cf6;"><?= number_format($taxaConversao, 1, ',', '.') ?>%</div>
+                    <div class="metrica-sub">atendimentos concluídos / total</div>
+                </div>
+                <div class="metrica-card">
+                    <div class="metrica-titulo">Taxa de Absenteísmo</div>
+                    <div class="metrica-valor" style="color: #ef4444;"><?= number_format($taxaAbsenteismo, 1, ',', '.') ?>%</div>
                     <div class="metrica-sub"><?= $totalCancelados ?> cancelado(s) de <?= $totalGeral ?> total</div>
                 </div>
             </div>
@@ -441,8 +451,10 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
             csv += 'Métricas Gerais\n';
             csv += `Atendimentos Concluídos;<?= $totalConcluidos ?? 0 ?>\n`;
             csv += `Faturamento Bruto;R$ <?= number_format($faturamentoBruto ?? 0, 2, ',', '') ?>\n`;
+            csv += `Faturamento Líquido;R$ <?= number_format($faturamentoLiquido ?? 0, 2, ',', '') ?>\n`;
             csv += `Ticket Médio;R$ <?= number_format($ticketMedio ?? 0, 2, ',', '') ?>\n`;
-            csv += `Taxa de Cancelamento (%);<?= number_format($taxaCancelamento ?? 0, 1, ',', '') ?>%\n\n`;
+            csv += `Taxa de Conversão (%);<?= number_format($taxaConversao ?? 0, 1, ',', '') ?>%\n`;
+            csv += `Taxa de Absenteísmo (%);<?= number_format($taxaAbsenteismo ?? 0, 1, ',', '') ?>%\n\n`;
 
             // Ranking
             csv += 'Ranking de Serviços\n';

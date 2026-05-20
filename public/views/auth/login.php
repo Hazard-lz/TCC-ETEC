@@ -64,7 +64,7 @@
                     <input type="password" id="senha" name="senha" class="form-control" placeholder="Digite sua senha" required>
                     
                     <div class="forgot-password-container">
-                        <a href="<?= BASE_URL ?>/recuperar-senha">Esqueci a minha senha</a>
+                        <a href="<?= BASE_URL ?>/recuperar-senha" class="forgot-password">Esqueci a minha senha</a>
                     </div>
                     
                     <div id="loginError" class="error-message" style="display: none; text-align: center; margin-top: 1rem; color: #dc2626;">Por favor, preencha todos os campos corretamente.</div>

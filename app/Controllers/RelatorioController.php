@@ -60,6 +60,25 @@ class RelatorioController {
 
             $ticketMedio = ($totalConcluidos > 0) ? $faturamentoBruto / $totalConcluidos : 0;
             $taxaCancelamento = ($totalGeral > 0) ? ($totalCancelados / $totalGeral) * 100 : 0;
+            $taxaConversao = ($totalGeral > 0) ? ($totalConcluidos / $totalGeral) * 100 : 0;
+            $taxaAbsenteismo = $taxaCancelamento;
+
+            // Cálculo proporcional dos salários contratuais para obter o faturamento líquido
+            $dias = (strtotime($dataFim) - strtotime($dataInicio)) / (86400) + 1;
+            if ($dias < 1) $dias = 1;
+
+            if ($idFuncionario === 'todos') {
+                $custoTotal = 0;
+                foreach ($listaFuncionarios as $func) {
+                    $sal = (float) ($func['salario'] ?? 0);
+                    $custoTotal += ($sal / 30.0) * $dias;
+                }
+                $faturamentoLiquido = max(0, $faturamentoBruto - $custoTotal);
+            } else {
+                $sal = (float) ($funcionarioSelecionado['salario'] ?? 0);
+                $custo = ($sal / 30.0) * $dias;
+                $faturamentoLiquido = max(0, $faturamentoBruto - $custo);
+            }
         }
 
         require_once __DIR__ . '/../../public/views/admin/relatorio_desempenho.php';

@@ -126,9 +126,61 @@ if (strpos($html, '<head>') !== false) {
         $tagsParaInjetar .= "\n    " . CsrfGuard::metaTag();
     }
 
+    // ── Injeção de Identidade Visual White-Label ──
+    try {
+        $configModel = new Configuracao();
+        $corPrimaria = $configModel->obterValor('cor_primaria');
+        $corSecundaria = $configModel->obterValor('cor_secundaria');
+        $logoUrl = $configModel->obterValor('logo_url');
+
+        $tagsBranding = "";
+        if (!empty($corPrimaria) || !empty($corSecundaria)) {
+            $p = !empty($corPrimaria) ? htmlspecialchars($corPrimaria) : '#f45b69';
+            $s = !empty($corSecundaria) ? htmlspecialchars($corSecundaria) : '#8b5cf6';
+
+            $tagsBranding .= "\n    <style id=\"white-label-colors\">";
+            $tagsBranding .= "\n        :root {";
+            $tagsBranding .= "\n            --color-pink: {$p} !important;";
+            $tagsBranding .= "\n            --color-purple: {$s} !important;";
+            $tagsBranding .= "\n            --gradient-brand: linear-gradient(135deg, {$s} 0%, {$p} 100%) !important;";
+            $tagsBranding .= "\n        }";
+            $tagsBranding .= "\n        .sidebar {";
+            $tagsBranding .= "\n            background: linear-gradient(135deg, {$s} 0%, {$p} 100%) !important;";
+            $tagsBranding .= "\n        }";
+            $tagsBranding .= "\n    </style>";
+        }
+
+        if (!empty($logoUrl)) {
+            $tagsBranding .= "\n    <script id=\"white-label-logo-script\">";
+            $tagsBranding .= "\n        window.LOGO_URL = '" . htmlspecialchars($logoUrl) . "';";
+            $tagsBranding .= "\n        document.addEventListener('DOMContentLoaded', () => {";
+            $tagsBranding .= "\n            const atualizarLogos = () => {";
+            $tagsBranding .= "\n                document.querySelectorAll('.login-logo, .sidebar-logo').forEach(img => {";
+            $tagsBranding .= "\n                    img.src = window.LOGO_URL;";
+            $tagsBranding .= "\n                });";
+            $tagsBranding .= "\n            };";
+            $tagsBranding .= "\n            atualizarLogos();";
+            $tagsBranding .= "\n            // Observa possíveis renderizações tardias do JS";
+            $tagsBranding .= "\n            setTimeout(atualizarLogos, 100);";
+            $tagsBranding .= "\n            setTimeout(atualizarLogos, 500);";
+            $tagsBranding .= "\n        });";
+            $tagsBranding .= "\n    </script>";
+        }
+
+        if (!empty($tagsBranding)) {
+            $tagsParaInjetar .= $tagsBranding;
+        }
+    } catch (Exception $e) {
+        // Silencioso se der erro antes do banco ou tabelas estarem prontos
+    }
+
     if (!empty($tagsParaInjetar)) {
-        // Insere logo após a abertura da tag <head>
-        $html = str_replace('<head>', '<head>' . $tagsParaInjetar, $html);
+        // Insere logo antes do fechamento da tag </head> para garantir maior prioridade do que os links de CSS
+        if (strpos($html, '</head>') !== false) {
+            $html = str_replace('</head>', $tagsParaInjetar . "\n</head>", $html);
+        } else {
+            $html = str_replace('<head>', '<head>' . $tagsParaInjetar, $html);
+        }
     }
 }
 

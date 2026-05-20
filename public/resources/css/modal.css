@@ -41,9 +41,11 @@ body.modal-open {
   width: 90%;
   max-width: 600px; /* Largura ideal para o form de serviços */
   max-height: 90vh; /* Não deixa vazar da tela no celular */
-  overflow-y: auto; /* Cria rolagem interna se a tela for pequena */
+  overflow: hidden; /* Impede que o container role por fora */
   border-radius: var(--radius-lg);
   box-shadow: 0 15px 50px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
 
   /* Animação de surgir de baixo */
   transform: translateY(30px);
@@ -86,6 +88,9 @@ body.modal-open {
 /* Corpo do Modal onde vai o formulário */
 .modal-body {
   padding: 2rem;
+  overflow-y: auto; /* Habilita scroll interno vertical */
+  max-height: calc(90vh - 85px); /* Subtrai a altura estimada do cabeçalho */
+  flex: 1; /* Ocupa todo o espaço vertical disponível */
 }
 
 /* Select dentro de modais — respeita o tema */
@@ -106,7 +111,13 @@ body.modal-open {
 .modal-actions {
   display: flex;
   gap: 1rem;
-  margin-top: 2rem;
+  position: sticky;
+  bottom: -2rem; /* Fixa no limite inferior do scroll cobrindo o padding do modal-body */
+  background-color: var(--surface-color);
+  padding: 1.25rem 2rem;
+  margin: 1.5rem -2rem -2rem -2rem; /* Estica até as bordas para fusão completa com o rodapé */
+  border-top: 1px solid var(--border-color);
+  z-index: 10;
 }
 
 .modal-actions .btn-primary,

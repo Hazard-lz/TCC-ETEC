@@ -305,9 +305,10 @@ class UsuarioService extends BaseService
         return $this->sucesso('Senha alterada com segurança!');
     }
 
-    public function atualizarUsuario($id_usuario, $nome, $telefone)
+    public function atualizarUsuario($id_usuario, $nome, $telefone, $email = null)
     {
         $telefone = !empty(trim($telefone)) ? trim($telefone) : null;
+        $email = !empty(trim($email)) ? trim($email) : null;
 
         if ($telefone) {
             $existente = $this->usuarioModel->buscarPorTelefoneDiferenteDe($telefone, $id_usuario);
@@ -316,11 +317,27 @@ class UsuarioService extends BaseService
             }
         }
 
-        $sucesso = $this->usuarioModel->atualizar($id_usuario, $nome, $telefone);
+        if ($email) {
+            $existenteEmail = $this->usuarioModel->buscarPorEmail($email);
+            if ($existenteEmail && $existenteEmail['id_usuario'] != $id_usuario) {
+                return $this->erro('Este e-mail já está cadastrado em outra conta.');
+            }
+        }
+
+        $sucesso = $this->usuarioModel->atualizar($id_usuario, $nome, $telefone, $email);
         if ($sucesso !== false) {
             return $this->sucesso('Dados básicos atualizados com sucesso!');
         }
         return $this->erro('Erro ao atualizar os dados do usuário no banco de dados.');
+    }
+
+    public function aceitarTermosLGPD($idUsuario)
+    {
+        $sucesso = $this->usuarioModel->aceitarTermosLGPD($idUsuario);
+        if ($sucesso !== false) {
+            return $this->sucesso('Termos de privacidade aceitos com sucesso!');
+        }
+        return $this->erro('Erro ao registrar aceite dos termos.');
     }
 
     public function reenviarCodigoVerificacao($email)

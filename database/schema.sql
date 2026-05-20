@@ -11,8 +11,11 @@ CREATE TABLE usuarios (
     email_verificado TINYINT(1) NOT NULL DEFAULT 0,
     expiracao_codigo DATETIME DEFAULT NULL,
     onesignal_sub_id VARCHAR(255) DEFAULT NULL,
+    aceito_termos TINYINT(1) NOT NULL DEFAULT 0,
+    data_aceite DATETIME DEFAULT NULL,
     data_criacao TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
 
 -- 2. Tabela: servicos
 CREATE TABLE servicos (
@@ -107,3 +110,11 @@ CREATE TABLE itens_agendamento (
     -- SET NULL: Se o serviço for excluído permanentemente, o histórico mantém os dados financeiros mas o ID do serviço fica nulo
     FOREIGN KEY (cod_sv_func) REFERENCES funcionario_servicos(id_sv_funcionario) ON DELETE SET NULL
 );
+
+-- 9. Tabela: configuracoes_sistema (White-Label e Parametrização)
+CREATE TABLE configuracoes_sistema (
+    id_config INT AUTO_INCREMENT PRIMARY KEY,
+    chave VARCHAR(100) UNIQUE NOT NULL,
+    valor TEXT DEFAULT NULL,
+    data_atualizacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);

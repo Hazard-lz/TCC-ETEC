@@ -41,6 +41,7 @@ $router->post('/historico/cancelar', 'AgendamentoController@cancelarPeloCliente'
 
 // Rotas de Ajuda (FAQ)
 $router->view('/cliente/ajuda', 'cliente/ajuda');
+$router->view('/contingencia', 'cliente/contingencia');
 
 
 // ===========================================================
@@ -138,6 +139,10 @@ $router->get('/admin/funcionarios/reenviar-email', function () {
 });
 
 $router->get('/admin/relatorios/desempenho', 'RelatorioController@desempenhoFuncionario');
+
+$router->get('/admin/configuracoes', 'ConfiguracaoController@carregarTela');
+$router->post('/admin/configuracoes/salvar', 'ConfiguracaoController@salvar');
+$router->post('/admin/configuracoes/disparar-comunicado', 'ConfiguracaoController@dispararComunicadoLote');
 
 $router->view('/admin/ajuda', 'admin/ajuda');
 

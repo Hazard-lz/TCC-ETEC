@@ -82,8 +82,10 @@ function abrirEdicaoFuncionario(button) {
         }
     }
 
-    // Trava a edição do e-mail na atualização
-    document.getElementById("email").setAttribute("readonly", "true");
+    // Libera a edição do e-mail
+    const emailInput = document.getElementById("email");
+    emailInput.removeAttribute("readonly");
+    emailInput.setAttribute("data-original", func.email);
 }
 
 function limparModalFuncionario() {
@@ -92,7 +94,9 @@ function limparModalFuncionario() {
     document.getElementById("id_funcionario").value = "";
 
     // Libera o e-mail para um novo cadastro
-    document.getElementById("email").removeAttribute("readonly");
+    const emailInput = document.getElementById("email");
+    emailInput.removeAttribute("readonly");
+    emailInput.removeAttribute("data-original");
 
     // Restaura o Select para a criação de um novo funcionário
     const selectTipo = document.getElementById("tipo");
@@ -120,6 +124,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (formFuncionario) {
         formFuncionario.addEventListener("submit", function (event) {
+            event.preventDefault(); // Pausa o envio padrão
+
             const salarioInput = document.getElementById("salario").value;
             let errorMessage = "";
             
@@ -131,40 +137,72 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             if (errorMessage !== "") {
-                event.preventDefault(); 
                 errorMsg.textContent = errorMessage;
                 errorMsg.style.display = "block";
                 return;
             }
+            errorMsg.style.display = "none";
 
-            // ═══ CONFIRMAÇÃO DE TRANSFERÊNCIA DE ADMIN ═══
-            const selectTipo = document.getElementById("tipo");
-            if (selectTipo && selectTipo.value === "admin") {
-                event.preventDefault(); // Pausa o envio
-                const nomeFuncionario = document.getElementById("nome").value;
-                Swal.fire({
-                    title: 'Atenção',
-                    text: "⚠️ ATENÇÃO: TRANSFERÊNCIA DE CARGO\n\nAo promover \"" + nomeFuncionario + "\" a Administrador, você PERDERÁ seu cargo de Admin e se tornará Subadministrador.\n\nEssa ação é imediata. Deseja continuar?",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#dc3545',
-                    cancelButtonColor: '#6c757d',
-                    confirmButtonText: 'Confirmar',
-                    cancelButtonText: 'Cancelar'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        // Fecha o modal visualmente para não sobrepor o alerta ou o processamento
-                        const modal = document.querySelector('#modalFuncionario');
-                        if (modal) modal.classList.remove('active');
-                        document.body.classList.remove('modal-open');
-
-                        HTMLFormElement.prototype.submit.call(formFuncionario);
-                    }
-                });
-                return;
+            // Helper para envio final
+            function enviarFormularioFinal() {
+                const modal = document.querySelector('#modalFuncionario');
+                if (modal) modal.classList.remove('active');
+                document.body.classList.remove('modal-open');
+                HTMLFormElement.prototype.submit.call(formFuncionario);
             }
 
-            errorMsg.style.display = "none";
+            // Helper de verificação de admin
+            function verificarAdmin() {
+                const selectTipo = document.getElementById("tipo");
+                if (selectTipo && selectTipo.value === "admin") {
+                    const nomeFuncionario = document.getElementById("nome").value;
+                    Swal.fire({
+                        ...window._swalDefaults,
+                        title: 'Atenção',
+                        text: "⚠️ ATENÇÃO: TRANSFERÊNCIA DE CARGO\n\nAo promover \"" + nomeFuncionario + "\" a Administrador, você PERDERÁ seu cargo de Admin e se tornará Subadministrador.\n\nEssa ação é imediata. Deseja continuar?",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Confirmar',
+                        cancelButtonText: 'Cancelar'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            enviarFormularioFinal();
+                        }
+                    });
+                } else {
+                    enviarFormularioFinal();
+                }
+            }
+
+            // ═══ SALVAGUARDA DE E-MAIL (SWEETALERT2) ═══
+            const idFuncionario = document.getElementById("id_funcionario").value;
+            const emailInput = document.getElementById("email");
+            const emailOriginal = emailInput.getAttribute("data-original") || "";
+            const emailAtual = emailInput.value.trim();
+
+            if (idFuncionario !== "" && emailOriginal !== "" && emailAtual !== emailOriginal) {
+                Swal.fire({
+                    ...window._swalDefaults,
+                    title: 'Confirmar alteração de e-mail?',
+                    html: 'Você está alterando o e-mail de acesso deste usuário.<br>Para confirmar esta alteração crítica, digite <strong>confirmar</strong> abaixo:',
+                    input: 'text',
+                    inputPlaceholder: 'Digite "confirmar" aqui',
+                    showCancelButton: true,
+                    confirmButtonText: 'Confirmar Alteração',
+                    cancelButtonText: 'Cancelar',
+                    inputValidator: (value) => {
+                        if (value !== 'confirmar') {
+                            return 'Você precisa digitar "confirmar" exatamente!';
+                        }
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        verificarAdmin();
+                    }
+                });
+            } else {
+                verificarAdmin();
+            }
         });
     }
 });

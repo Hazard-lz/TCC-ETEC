@@ -66,6 +66,17 @@ if (session_status() === PHP_SESSION_NONE) {
                 </div>
             </div>
 
+            <div class="form-grid mt-3">
+                <div class="form-group">
+                    <label for="senha">Nova Senha (deixe em branco para manter a atual)</label>
+                    <input type="password" id="senha" name="senha" class="form-control" placeholder="Mínimo 8 caracteres">
+                </div>
+                <div class="form-group">
+                    <label for="confirmar_senha">Confirmar Nova Senha</label>
+                    <input type="password" id="confirmar_senha" name="confirmar_senha" class="form-control" placeholder="Repita a nova senha">
+                </div>
+            </div>
+
             <div class="form-group">
                 <label for="email">E-mail de Acesso</label>
                 <input type="email" id="email" name="email" class="form-control"

@@ -181,6 +181,11 @@ function selecionarServico(id, nome, preco, elemento) {
 
   // Carrega profissionais
   buscarProfissionais(id);
+
+  // ARQUITETURA UX: Avanço automático após 300ms de delay para a micro-animação rodar
+  setTimeout(() => {
+    irParaPasso(1, 2);
+  }, 300);
 }
 
 async function buscarProfissionais(idServico) {
@@ -279,6 +284,17 @@ function selecionarProfissional(id, nome, elemento) {
   elemento.classList.add('selected');
 
   setBotoesPasso(2, true);
+
+  // ARQUITETURA UX: Avanço automático após 300ms de delay para a micro-animação rodar
+  setTimeout(() => {
+    irParaPasso(2, 3);
+    const dataLocal = new Date();
+    const ano = dataLocal.getFullYear();
+    const mes = String(dataLocal.getMonth() + 1).padStart(2, '0');
+    const dia = String(dataLocal.getDate()).padStart(2, '0');
+    const hoje = `${ano}-${mes}-${dia}`;
+    document.getElementById('data_agendamento').setAttribute('min', hoje);
+  }, 300);
 }
 
 // Listener do botão mobile do passo 2
@@ -360,6 +376,11 @@ function selecionarHorario(hora, elemento) {
   elemento.classList.add('selected');
 
   setBotoesPasso(3, true);
+
+  // ARQUITETURA UX: Avanço automático após 300ms de delay para a micro-animação rodar
+  setTimeout(() => {
+    montarResumo();
+  }, 300);
 }
 
 // Listener do botão mobile do passo 3
@@ -368,8 +389,43 @@ document.getElementById('btn-next-3').addEventListener('click', () => montarResu
 // ─── PASSO 4: CONFIRMAÇÃO ─────────────────────────────────────────────────────
 
 function montarResumo() {
+  const servicoNome = document.getElementById('servico_nome').value;
+  const servicoPreco = parseFloat(document.getElementById('servico_preco').value || 0);
+  const funcionarioNome = document.getElementById('funcionario_nome').value;
+  const hora = document.getElementById('horario_selecionado').value;
+  const dataBruta = document.getElementById('data_agendamento').value;
+
+  // Preenche o Cupom Estético de Agendamento
+  const elCupomSvc = document.getElementById('cupom-servico');
+  const elCupomProf = document.getElementById('cupom-profissional');
+  const elCupomPreco = document.getElementById('cupom-preco');
+  const elCupomDuracao = document.getElementById('cupom-duracao');
+  const elCupomData = document.getElementById('cupom-datahora');
+
+  if (elCupomSvc) elCupomSvc.textContent = servicoNome || 'Não selecionado';
+  if (elCupomProf) elCupomProf.textContent = funcionarioNome || 'Não selecionado';
+  if (elCupomPreco) elCupomPreco.textContent = formatarPreco(servicoPreco);
+
+  // Tenta buscar a duração do serviço a partir do card de serviço selecionado no Passo 1
+  let duracao = "Sob Consulta";
+  const cardSelecionado = document.querySelector('#step-1 .selectable-card.selected p');
+  if (cardSelecionado) {
+    const textContent = cardSelecionado.textContent;
+    const match = textContent.match(/Duração:\s*(\d+)\s*min/i);
+    if (match) {
+      duracao = match[1] + " min";
+    }
+  }
+  if (elCupomDuracao) elCupomDuracao.textContent = duracao;
+
+  if (dataBruta && hora && elCupomData) {
+    const [ano, mes, dia] = dataBruta.split('-');
+    elCupomData.textContent = `${dia}/${mes}/${ano} às ${hora.substring(0, 5)}`;
+  } else if (elCupomData) {
+    elCupomData.textContent = 'Não selecionado';
+  }
+
   irParaPasso(3, 4);
-  // No passo 4 o botão global já está habilitado (feito dentro de irParaPasso)
 }
 
 // ─── Clique nos Indicadores do Stepper (navegar para passos anteriores) ────────

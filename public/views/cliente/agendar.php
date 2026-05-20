@@ -149,6 +149,44 @@ if (!isset($_SESSION['usuario_id'])) {
                         <div class="step-content" id="step-4">
                             <h3 class="section-title">Confirme o Agendamento</h3>
                             <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Revise os detalhes no resumo e confirme o seu agendamento.</p>
+                            
+                            <!-- CUPOM ESTÉTICO DE AGENDAMENTO (WHITE-LABEL STYLED TICKET) -->
+                            <div class="ticket-cupom" style="background: var(--surface-color); border: 2px dashed var(--border-color); border-radius: 16px; padding: 2rem; margin-bottom: 2rem; position: relative; box-shadow: 0 10px 25px rgba(0,0,0,0.03); overflow: hidden;">
+                                <!-- Semi-círculos nas laterais para efeito de ticket físico -->
+                                <div style="position: absolute; left: -10px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; border-radius: 50%; background: var(--bg-color); border-right: 2px dashed var(--border-color); z-index: 2;"></div>
+                                <div style="position: absolute; right: -10px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; border-radius: 50%; background: var(--bg-color); border-left: 2px dashed var(--border-color); z-index: 2;"></div>
+                                
+                                <div class="ticket-header" style="text-align: center; border-bottom: 2px dashed var(--border-color); padding-bottom: 1.25rem; margin-bottom: 1.5rem;">
+                                    <span style="font-size: 1.5rem;">✨</span>
+                                    <h4 style="margin: 0.5rem 0 0 0; color: var(--color-purple); font-size: 1.3rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Belezou App</h4>
+                                    <p style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: var(--text-muted);">TICKET DE RESERVA</p>
+                                </div>
+                                
+                                <div class="ticket-body" style="display: flex; flex-direction: column; gap: 1.2rem;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed rgba(0,0,0,0.05); padding-bottom: 0.5rem;">
+                                        <span style="color: var(--text-muted); font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem;"><i class="bi bi-scissors" style="color: var(--color-purple);"></i> Serviço:</span>
+                                        <span id="cupom-servico" style="color: var(--text-main); font-weight: 600; font-size: 1rem; text-align: right;">A selecionar...</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed rgba(0,0,0,0.05); padding-bottom: 0.5rem;">
+                                        <span style="color: var(--text-muted); font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem;"><i class="bi bi-person-badge" style="color: var(--color-purple);"></i> Profissional:</span>
+                                        <span id="cupom-profissional" style="color: var(--text-main); font-weight: 600; font-size: 1rem; text-align: right;">A selecionar...</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed rgba(0,0,0,0.05); padding-bottom: 0.5rem;">
+                                        <span style="color: var(--text-muted); font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem;"><i class="bi bi-calendar-event" style="color: var(--color-purple);"></i> Data e Hora:</span>
+                                        <span id="cupom-datahora" style="color: var(--text-main); font-weight: 600; font-size: 1rem; text-align: right;">A selecionar...</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed rgba(0,0,0,0.05); padding-bottom: 0.5rem;">
+                                        <span style="color: var(--text-muted); font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem;"><i class="bi bi-hourglass-split" style="color: var(--color-purple);"></i> Duração:</span>
+                                        <span id="cupom-duracao" style="color: var(--text-main); font-weight: 600; font-size: 1rem; text-align: right;">A selecionar...</span>
+                                    </div>
+                                    
+                                    <div style="border-top: 1px solid var(--border-color); padding-top: 1.2rem; margin-top: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
+                                        <span style="color: var(--text-main); font-weight: 700; font-size: 1.1rem;">VALOR TOTAL:</span>
+                                        <span id="cupom-preco" style="color: var(--color-pink); font-weight: 800; font-size: 1.4rem;">R$ --</span>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="form-actions-mobile" style="display: flex; justify-content: space-between; gap: 0.5rem;">
                                 <button type="button" class="btn-secondary btn-voltar-mobile" onclick="voltarPasso(3)">Voltar</button>
                                 <!-- Botão de submit visível só no mobile -->

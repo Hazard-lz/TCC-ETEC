@@ -48,7 +48,7 @@ class FuncionarioService extends BaseService {
         }
     }
 
-    public function atualizarDadosFuncionario($id_usuario, $id_funcionario, $nome, $telefone, $especialidade, $salario, $tipo = null, $idLogado = null, $tipoLogado = null) {
+    public function atualizarDadosFuncionario($id_usuario, $id_funcionario, $nome, $telefone, $especialidade, $salario, $tipo = null, $idLogado = null, $tipoLogado = null, $email = null, $senha = null) {
         
         if (empty($id_usuario) || empty($id_funcionario)) {
             return $this->erro('Parâmetros de identificação do funcionário estão ausentes.');
@@ -62,7 +62,7 @@ class FuncionarioService extends BaseService {
         try {
             if (!$this->conn->inTransaction()) { $this->conn->beginTransaction(); }
 
-            $resultadoUsuario = $this->usuarioService->atualizarUsuario($id_usuario, $nome, $telefone);
+            $resultadoUsuario = $this->usuarioService->atualizarUsuario($id_usuario, $nome, $telefone, $email);
             
             if ($resultadoUsuario['sucesso'] === false) {
                 $this->conn->rollBack();
@@ -73,10 +73,19 @@ class FuncionarioService extends BaseService {
                 throw new Exception("Erro ao atualizar o contrato do funcionário.");
             }
 
+            $usuarioModel = new Usuario();
+
+            // ═══ ATUALIZAÇÃO DE SENHA ═══
+            if (!empty($senha)) {
+                if (strlen($senha) < 8) {
+                    throw new Exception("A senha deve ter no mínimo 8 caracteres.");
+                }
+                $senhaHash = password_hash($senha, PASSWORD_DEFAULT);
+                $usuarioModel->atualizarSenha($id_usuario, $senhaHash);
+            }
+
             // ═══ ATUALIZAÇÃO DE TIPO / ACESSO ═══
             if ($tipo !== null) {
-                $usuarioModel = new Usuario();
-
                 // Caso especial: Transferência de Admin (Admin Único)
                 if ($tipo === 'admin' && $tipoLogado === 'admin' && $id_usuario !== $idLogado) {
                     // Promove o alvo
@@ -97,7 +106,7 @@ class FuncionarioService extends BaseService {
             $this->conn->rollBack();
             error_log("Erro na atualização do funcionário: " . $e->getMessage());
             
-            return $this->erro('Não foi possível salvar as alterações do funcionário.');
+            return $this->erro($e->getMessage() ?: 'Não foi possível salvar as alterações do funcionário.');
         }
     }
 

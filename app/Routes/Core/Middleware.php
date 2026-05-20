@@ -100,6 +100,30 @@ class Middleware
             }
         }
 
+        // --- CONTINGÊNCIA GLOBAL (FECHAMENTO DO SALÃO) ---
+        if ($uri === '/agendar' || $uri === '/api/horarios-livres') {
+            $isFuncionario = isset($_SESSION['is_funcionario']) && $_SESSION['is_funcionario'] === true;
+            if (!$isFuncionario) {
+                $configModel = new Configuracao();
+                $statusFuncionamento = $configModel->obterValor('status_funcionamento', 'ativo');
+                
+                if ($statusFuncionamento === 'inativo') {
+                    if ($uri === '/api/horarios-livres') {
+                        header('Content-Type: application/json');
+                        http_response_code(503);
+                        echo json_encode([
+                            'sucesso' => false,
+                            'mensagem' => 'O salão está temporariamente fechado para novos agendamentos.'
+                        ]);
+                        exit;
+                    } else {
+                        header("Location: " . BASE_URL . "/contingencia");
+                        exit;
+                    }
+                }
+            }
+        }
+
         // --- BLOQUEIO DE RELATÓRIOS (SÓ ADMIN PURO) ---
         // Esta regra DEVE vir antes da regra genérica /admin
         if (strpos($uri, '/admin/relatorios') === 0) {

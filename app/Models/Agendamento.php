@@ -57,11 +57,14 @@ class Agendamento extends BaseModel {
     public function buscarPorId($id_agendamento) {
         $sql = "SELECT a.*, 
                        u_cli.nome AS cliente_nome, 
+                       u_cli.email AS cliente_email,
                        u_func.nome AS funcionario_nome, 
+                       u_func.email AS funcionario_email,
                        ia.nome_servico_registrado AS nome_servico, 
                        ia.hora_inicio, ia.hora_fim, ia.preco_cobrado,
                        c.cod_usuario AS cliente_cod_usuario,
-                       f.cod_usuario AS funcionario_cod_usuario
+                       f.cod_usuario AS funcionario_cod_usuario,
+                       fs.cod_funcionario AS cod_funcionario
                 FROM agendamentos a
                 INNER JOIN clientes c ON a.cod_cliente = c.id_cliente
                 INNER JOIN usuarios u_cli ON c.cod_usuario = u_cli.id_usuario
@@ -333,7 +336,7 @@ class Agendamento extends BaseModel {
     /**
      * Matemética de detecção de colisão de tempo para evitar overbooking.
      */
-    public function verificarConflitoHorario($id_funcionario, $data, $hora_inicio, $hora_fim) {
+    public function verificarConflitoHorario($id_funcionario, $data, $hora_inicio, $hora_fim, $id_agendamento_ignorar = null) {
         $sql = "SELECT a.id_agendamento 
                 FROM agendamentos a
                 INNER JOIN itens_agendamento ia ON a.id_agendamento = ia.cod_agendamento
@@ -343,12 +346,19 @@ class Agendamento extends BaseModel {
                   AND a.status NOT IN ('cancelado')
                   AND (ia.hora_inicio < :hora_fim AND ia.hora_fim > :hora_inicio)";
         
-        return $this->executarQuery($sql, [
+        $params = [
             ':cod_funcionario' => $id_funcionario,
             ':data' => $data,
             ':hora_inicio' => $hora_inicio,
             ':hora_fim' => $hora_fim
-        ], 'unico');
+        ];
+
+        if ($id_agendamento_ignorar !== null) {
+            $sql .= " AND a.id_agendamento != :id_agendamento_ignorar";
+            $params[':id_agendamento_ignorar'] = $id_agendamento_ignorar;
+        }
+        
+        return $this->executarQuery($sql, $params, 'unico');
     }
 
     /**
