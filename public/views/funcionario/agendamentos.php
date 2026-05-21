@@ -28,318 +28,7 @@ if (session_status() === PHP_SESSION_NONE) {
     <!-- SweetAlert2 -->
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
-    <style>
-
-
-        /* --- AJUSTES DE DESIGN DO CALENDÁRIO --- */
-        .fc {
-            background: var(--surface-color);
-            border-radius: var(--radius-lg);
-            padding: 1rem;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
-            border: 1px solid var(--border-color) !important;
-            width: 100% !important;
-            min-width: 0 !important;
-            box-sizing: border-box;
-        }
-
-        /* Garante que o container pai do calendário não transborda */
-        #calendario-agendamentos {
-            width: 100%;
-            min-width: 0;
-            overflow: hidden;
-        }
-
-        /* Corrigir o esmagamento do texto nos blocos de evento */
-        .fc-v-event .fc-event-main {
-            white-space: normal !important;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-start;
-            padding: 4px !important;
-            font-size: 0.85rem;
-            line-height: 1.2;
-        }
-
-        /* Esconder a hora dentro do bloco colorido para sobrar espaço para o nome */
-        .fc-v-event .fc-event-time {
-            display: none !important;
-        }
-
-        /* Personalização dos eventos por status */
-        .evento-marcado {
-            background: linear-gradient(135deg, #a78bfa, var(--color-purple)) !important;
-            border: none !important;
-        }
-
-        .evento-concluido {
-            background: linear-gradient(135deg, #2ecc71, #27ae60) !important;
-            border: none !important;
-        }
-
-        .evento-pendente {
-            background: linear-gradient(135deg, #f45b69, #e74c3c) !important;
-            border: none !important;
-        }
-
-        .fc-event:hover {
-            transform: scale(1.01);
-            z-index: 10 !important;
-            cursor: pointer;
-        }
-
-        /* --- ESTILOS DA AGENDA EM LISTA (listWeek) --- */
-        .fc-theme-standard .fc-list {
-            border: 1px solid var(--border-color) !important;
-            border-radius: var(--radius-lg) !important;
-            overflow: hidden;
-            background: var(--surface-color);
-        }
-
-        /* Cabeçalho do dia */
-        .fc-list-day-cushion {
-            background-color: var(--bg-color) !important;
-            padding: 10px 16px !important;
-        }
-
-        /* Borda do separador de dia — aplica na linha th */
-        .fc-list-day th {
-            border-color: var(--border-color) !important;
-        }
-
-        .fc-list-day-text, .fc-list-day-side-text {
-            color: var(--text-main) !important;
-            font-weight: 700 !important;
-            font-size: 0.8rem;
-            letter-spacing: 0.5px;
-        }
-
-        /* Remove o fundo colorido e aplica borda em TODOS os tds (inclusive o do dot) */
-        .fc-list-event td {
-            background: var(--surface-color) !important;
-            border-bottom: 1px solid var(--border-color) !important;
-            border-top: none !important;
-        }
-
-        /* A célula do dot não precisa de border-bottom (evita a linha branca) */
-        .fc-list-event-graphic {
-            border-bottom: none !important;
-        }
-
-        /* Força o background da <tr> como transparente para não vazar a cor do evento */
-        .fc-list-event {
-            background-color: transparent !important;
-        }
-
-        /* Hover: tint roxo visível no desktop */
-        .fc-list-event:hover td {
-            background: rgba(139, 92, 246, 0.18) !important;
-            cursor: pointer;
-        }
-
-        .fc-list-event-time {
-            color: var(--text-muted) !important;
-            font-size: 0.85rem !important;
-            padding: 14px 10px 14px 0 !important;
-            white-space: nowrap;
-            background: transparent !important;
-        }
-
-        .fc-list-event-title {
-            color: var(--text-main) !important;
-            font-weight: 500;
-            font-size: 0.95rem;
-            padding: 14px 16px !important;
-            background: transparent !important;
-        }
-
-        /* Borda lateral colorida no lugar do fundo colorido */
-        .evento-marcado td:first-child   { border-left: 4px solid var(--color-purple) !important; }
-        .evento-concluido td:first-child { border-left: 4px solid #2ecc71 !important; }
-        .evento-pendente td:first-child  { border-left: 4px solid #f45b69 !important; }
-
-        /* Dot colorido */
-        .fc-list-event-dot { border-width: 6px !important; }
-        .evento-marcado .fc-list-event-dot   { border-color: var(--color-purple) !important; background: var(--color-purple) !important; }
-        .evento-concluido .fc-list-event-dot { border-color: #2ecc71 !important; background: #2ecc71 !important; }
-        .evento-pendente .fc-list-event-dot  { border-color: #f45b69 !important; background: #f45b69 !important; }
-
-        /* Horário colorido com o status */
-        .evento-marcado .fc-list-event-time   { color: var(--color-purple) !important; font-weight: 600 !important; }
-        .evento-concluido .fc-list-event-time { color: #2ecc71 !important; font-weight: 600 !important; }
-        .evento-pendente .fc-list-event-time  { color: #f45b69 !important; font-weight: 600 !important; }
-
-        .fc-list-empty {
-            background-color: var(--surface-color) !important;
-            color: var(--text-muted) !important;
-            padding: 4rem !important;
-            text-align: center;
-        }
-
-        .fc-list-table { border-collapse: collapse !important; }
-        .fc-list-table tr th,
-        .fc-list-table tr td { border-color: var(--border-color) !important; }
-
-        /* Ajuste do botão de hoje e setas */
-        .fc-button-primary {
-            background: var(--surface-color) !important;
-            border-color: var(--border-color) !important;
-            color: var(--text-main) !important;
-            text-transform: capitalize !important;
-            font-weight: 600 !important;
-            box-shadow: none !important;
-        }
-
-        .fc-button-primary:hover {
-            background: var(--bg-color) !important;
-            border-color: var(--color-purple) !important;
-        }
-
-        .fc-button-active {
-            background: var(--color-purple) !important;
-            border-color: var(--color-purple) !important;
-            color: white !important;
-        }
-
-        /* --- PÁGINA HEADER --- */
-        .header-actions {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-            flex-wrap: wrap;
-            gap: 0.8rem;
-        }
-
-        .header-actions h2 {
-            color: var(--text-main);
-            margin: 0;
-            font-size: 1.4rem;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 0.8rem;
-            flex-shrink: 0;
-        }
-
-        /* Botão flutuante no mobile */
-        .fab-novo {
-            display: none;
-            position: fixed;
-            bottom: 1.5rem;
-            right: 1.5rem;
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            background: var(--gradient-brand);
-            color: #fff;
-            font-size: 1.8rem;
-            font-weight: 300;
-            line-height: 56px;
-            text-align: center;
-            border: none;
-            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.5);
-            z-index: 900;
-            cursor: pointer;
-            padding: 0;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .fab-novo:hover {
-            transform: scale(1.1);
-            box-shadow: 0 8px 25px rgba(139, 92, 246, 0.6);
-        }
-
-        /* --- LEGENDA DE CORES --- */
-        .legenda-status {
-            display: flex;
-            gap: 1.2rem;
-            flex-wrap: wrap;
-            margin-bottom: 1rem;
-            font-size: 0.82rem;
-            color: var(--text-muted);
-        }
-
-        .legenda-item {
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-        }
-
-        .legenda-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            flex-shrink: 0;
-        }
-
-        /* --- RESPONSIVIDADE MOBILE --- */
-        @media (max-width: 992px) {
-            /* Toolbar: tudo na mesma linha, que quebra quando precisa */
-            .fc .fc-toolbar {
-                flex-direction: row;
-                flex-wrap: wrap;
-                gap: 0.4rem;
-                justify-content: center;
-                align-items: center;
-            }
-
-            .fc .fc-toolbar-chunk {
-                display: flex;
-                align-items: center;
-            }
-
-            .fc-toolbar-title {
-                font-size: 0.9rem !important;
-                width: 100%;
-                text-align: center;
-                order: -1;
-            }
-
-            /* Esconder vista "Semana" no mobile */
-            .fc-timeGridWeek-button {
-                display: none !important;
-            }
-
-
-            /* Header da página empilha */
-            .header-actions {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            /* Botoes de ação do header ficam ocultos — usa FAB */
-            .action-buttons .btn-desktop {
-                display: none;
-            }
-
-            /* FAB visível */
-            .fab-novo {
-                display: block;
-            }
-
-            /* Calendário ocupa toda a largura da tela no mobile */
-            .fc {
-                border-radius: 0 !important;
-                border-left: none !important;
-                border-right: none !important;
-                padding: 0.5rem 0 !important;
-                /* Cancela o padding horizontal de 1rem do content-area no mobile */
-                width: calc(100% + 2rem) !important;
-                margin-left: -1rem !important;
-                margin-right: -1rem !important;
-                box-sizing: border-box;
-            }
-
-            /* Padding interno da lista para compensar */
-            .fc-list-event-graphic { padding-left: 8px !important; }
-            .fc-list-event-title   { padding: 12px 12px !important; }
-            .fc-list-event-time    { padding: 12px 8px 12px 0 !important; }
-            .fc-list-day-cushion   { padding: 8px 12px !important; }
-        }
-    </style>
+    <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/agenda.css">
     <?php require_once __DIR__ . '/../partials/onesignal.php'; ?>
 </head>
 
@@ -354,9 +43,36 @@ if (session_status() === PHP_SESSION_NONE) {
 
         <div class="header-actions">
             <div>
-                <h2>Minha Agenda</h2>
+                <h2 id="titulo-agenda-container" style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin: 0;">
+                    <span id="titulo-agenda" style="margin: 0; font-size: 1.4rem; font-weight: 700; color: var(--text-main);">Minha Agenda</span>
+                    <span id="alerta-pendentes" style="display: none;">
+                        <i class="bi bi-bell-fill"></i> <span id="contador-pendentes">0</span> pendente(s)
+                    </span>
+                </h2>
                 <p style="margin:0; color: var(--text-muted); font-size:0.9rem;">Clique em um evento para ver detalhes e gerenciar</p>
             </div>
+
+            <?php 
+            $isGerencia = in_array($_SESSION['usuario_tipo'] ?? '', ['admin', 'subadmin']);
+            if ($isGerencia): 
+            ?>
+                <!-- Seletor de profissionais para a gerência -->
+                <div class="agenda-filter-container">
+                    <label for="filtro-profissional" class="agenda-filter-label">
+                        <i class="bi bi-funnel-fill"></i> Filtrar por Profissional:
+                    </label>
+                    <select id="filtro-profissional" class="agenda-filter-select">
+                        <?php if (!empty($profissionais)): ?>
+                            <?php foreach ($profissionais as $p): ?>
+                                <option value="<?= $p['id_funcionario'] ?>" <?= $p['id_funcionario'] == $idFuncionarioLogado ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($p['nome']) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </select>
+                </div>
+            <?php endif; ?>
+
             <div class="action-buttons">
                 <button onclick="window.location.href='<?= BASE_URL ?>/funcionario/disponibilidade'" class="btn-secondary btn-desktop">⏱ Gerenciar Horário</button>
                 <button data-modal-target="#modalNovoAgendamento" class="btn-primary btn-desktop">+ Novo Agendamento</button>
@@ -468,6 +184,13 @@ if (session_status() === PHP_SESSION_NONE) {
                         </div>
                     </div>
                     <div style="display:flex; align-items:center; gap:0.75rem;">
+                        <span style="font-size:1.2rem; width:24px; text-align:center;">📅</span>
+                        <div>
+                            <div style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">Data</div>
+                            <div style="font-weight:600; color:var(--text-main);" id="detalhesData"></div>
+                        </div>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:0.75rem;">
                         <span style="font-size:1.2rem; width:24px; text-align:center;">🕐</span>
                         <div>
                             <div style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">Horário</div>
@@ -497,7 +220,7 @@ if (session_status() === PHP_SESSION_NONE) {
                             <?= CsrfGuard::campoHidden() ?>
                             <input type="hidden" name="id_agendamento" class="inputIdAgendamento">
                             <input type="hidden" name="novo_status" value="cancelado">
-                            <button type="submit" class="btn-secondary" style="width:100%; color:#ef4444; border-color:#ef4444;">✕ Recusar</button>
+                            <button type="button" class="btn-secondary" style="width:100%; color:#ef4444; border-color:#ef4444;" onclick="event.preventDefault(); Swal.fire({title: 'Atenção', text: 'Deseja realmente recusar este agendamento?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc3545', cancelButtonColor: '#6c757d', confirmButtonText: 'Confirmar', cancelButtonText: 'Cancelar'}).then((result) => { if (result.isConfirmed) { this.closest('form').submit(); } });">✕ Recusar</button>
                         </form>
                     </div>
 
@@ -520,6 +243,21 @@ if (session_status() === PHP_SESSION_NONE) {
         </div>
     </div>
 
+    <!-- Novo modal de lista de agendamentos pendentes -->
+    <div id="modalListaPendentes" class="modal-overlay">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3>Agendamentos Pendentes</h3>
+                <button data-close-modal class="btn-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="lista-pendentes-body" id="lista-pendentes-container">
+                    <!-- Gerado dinamicamente via JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="<?= BASE_URL ?>/public/resources/js/admin.js"></script>
     <script src="<?= BASE_URL ?>/public/resources/js/modal.js"></script>
 
@@ -532,13 +270,14 @@ if (session_status() === PHP_SESSION_NONE) {
                 initialView: window.innerWidth < 768 ? 'listWeek' : 'timeGridWeek',
                 slotMinTime: '<?= $slotMinTime ?? "06:00:00" ?>',
                 slotMaxTime: '<?= $slotMaxTime ?? "23:59:00" ?>',
-                slotDuration: '00:15:00', // Grelha de 15 em 15 min
+                slotDuration: '00:15:00', // Grade de 15 em 15 min
                 allDaySlot: false,
+                slotEventOverlap: false, // Evita sobreposição visual de agendamentos próximos (lado a lado puro)
                 expandRows: true, // Faz as linhas preencherem o espaço disponível
                 handleWindowResize: true,
+                height: window.innerWidth < 992 ? 'parent' : 'auto',
 
-                // --- SOLUÇÃO PARA O ESMAGAMENTO ---
-                eventMinHeight: 60, // Força altura mínima para os blocos serem legíveis
+                eventMinHeight: 84, // Força altura mínima para os blocos serem legíveis (cabe cliente, serviço e funcionário)
 
                 headerToolbar: {
                     left: 'prev,next today',
@@ -562,13 +301,83 @@ if (session_status() === PHP_SESSION_NONE) {
                     }
                 },
 
-                events: '<?= BASE_URL ?>/api/agenda-eventos',
+                events: {
+                    url: '<?= BASE_URL ?>/api/agenda-eventos',
+                    extraParams: function () {
+                        var filtro = document.getElementById('filtro-profissional');
+                        return {
+                            funcionario_id: filtro ? filtro.value : ''
+                        };
+                    }
+                },
+
+                eventContent: function (arg) {
+                    const props = arg.event.extendedProps;
+                    const isList = arg.view.type.includes('list');
+
+                    const status = props.status;
+                    let statusLabel = status;
+                    let statusClass = 'status-badge-marcado';
+
+                    if (status === 'pendente') {
+                        statusLabel = 'Pendente';
+                        statusClass = 'status-badge-pendente';
+                    } else if (status === 'marcado') {
+                        statusLabel = 'Marcado';
+                        statusClass = 'status-badge-marcado';
+                    } else if (status === 'concluido') {
+                        statusLabel = 'Concluído';
+                        statusClass = 'status-badge-concluido';
+                    } else if (status === 'cancelado') {
+                        statusLabel = 'Cancelado';
+                        statusClass = 'status-badge-cancelado';
+                    }
+
+                    if (isList) {
+                        return {
+                            html: `
+                                <div class="fc-list-event-custom">
+                                    <div class="fc-list-event-main-info">
+                                        <span class="fc-list-event-client-name">${props.cliente || ''}</span>
+                                        <span class="fc-list-event-service-name">
+                                            <i class="bi bi-scissors"></i> ${props.servico || ''}
+                                        </span>
+                                    </div>
+                                    <div class="fc-list-event-meta">
+                                        <span class="fc-list-event-prof">
+                                            <i class="bi bi-person-badge"></i> ${props.profissional || ''}
+                                        </span>
+                                        <span class="status-badge ${statusClass}">${statusLabel}</span>
+                                    </div>
+                                </div>
+                            `
+                        };
+                    } else {
+                        return {
+                            html: `
+                                <div class="fc-grid-event-custom">
+                                    <div class="fc-event-client">${props.cliente || ''}</div>
+                                    <span class="status-badge grid-badge ${statusClass}">${statusLabel}</span>
+                                    <div class="fc-event-service">
+                                        <i class="bi bi-scissors"></i>
+                                        <span>${props.servico || ''}</span>
+                                    </div>
+                                    <div class="fc-event-prof">
+                                        <i class="bi bi-person-fill"></i>
+                                        <span>${props.profissional || ''}</span>
+                                    </div>
+                                </div>
+                            `
+                        };
+                    }
+                },
 
                 eventClick: function (info) {
                     const props = info.event.extendedProps;
                     document.getElementById('detalhesCliente').textContent = props.cliente;
                     document.getElementById('detalhesServico').textContent = props.servico;
                     document.getElementById('detalhesProfissional').textContent = props.profissional;
+                    document.getElementById('detalhesData').textContent = info.event.start.toLocaleDateString('pt-BR');
                     document.getElementById('detalhesHorario').textContent = info.event.start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
                     // Badge de status colorido
@@ -589,7 +398,7 @@ if (session_status() === PHP_SESSION_NONE) {
                     document.getElementById('boxAcoesPendente').style.display = props.status === 'pendente' ? 'flex' : 'none';
                     document.getElementById('boxAcoesMarcado').style.display  = props.status === 'marcado'  ? 'flex' : 'none';
 
-                    document.getElementById('modalDetalhes').classList.add('active');
+                    openModal('#modalDetalhes');
                 }
             });
 
@@ -599,10 +408,11 @@ if (session_status() === PHP_SESSION_NONE) {
             window.belezouCalendar = calendar;
             
             // ─── Refresh Dinâmico (Polling) ───
-            // Atualiza os eventos do calendário a cada 30 segundos
+            // Atualiza os eventos do calendário e os alertas pendentes a cada 30 segundos
             setInterval(() => {
                 if (!document.hidden) {
                     calendar.refetchEvents();
+                    atualizarAlertasPendentes();
                 }
             }, 30000);
 
@@ -738,6 +548,120 @@ if (session_status() === PHP_SESSION_NONE) {
                     }
                 });
             });
+
+            // --- Integração do Filtro de Profissionais (Gerência) ---
+            var filtroProf = document.getElementById('filtro-profissional');
+            
+            function atualizarTituloAgenda() {
+                var titulo = document.getElementById('titulo-agenda');
+                if (filtroProf && titulo) {
+                    var nomeProf = filtroProf.options[filtroProf.selectedIndex].text;
+                    var idLogado = '<?= $idFuncionarioLogado ?>';
+                    if (filtroProf.value == idLogado) {
+                        titulo.textContent = 'Minha Agenda';
+                    } else {
+                        titulo.textContent = 'Agenda de ' + nomeProf;
+                    }
+                }
+            }
+
+            // Inicializa o título correto
+            atualizarTituloAgenda();
+
+            if (filtroProf) {
+                filtroProf.addEventListener('change', function () {
+                    atualizarTituloAgenda();
+                    calendar.refetchEvents();
+                    atualizarAlertasPendentes();
+                });
+            }
+
+            // ─── Sistema de Alerta de Agendamentos Pendentes ───
+            var cachePendentes = [];
+
+            function atualizarAlertasPendentes() {
+                var params = new URLSearchParams();
+                if (filtroProf) {
+                    params.set('funcionario_id', filtroProf.value);
+                }
+
+                fetch('<?= BASE_URL ?>/api/agendamentos-pendentes?' + params.toString())
+                    .then(function(res) { return res.json(); })
+                    .then(function(data) {
+                        cachePendentes = data || [];
+                        var alerta = document.getElementById('alerta-pendentes');
+                        var contador = document.getElementById('contador-pendentes');
+
+                        if (cachePendentes.length > 0) {
+                            alerta.style.display = 'inline-flex';
+                            contador.textContent = cachePendentes.length;
+                        } else {
+                            alerta.style.display = 'none';
+                        }
+                    })
+                    .catch(function(err) {
+                        console.error('Erro ao buscar pendentes:', err);
+                    });
+            }
+
+            // Clique no sino abre a lista de pendentes
+            document.getElementById('alerta-pendentes').addEventListener('click', function() {
+                var container = document.getElementById('lista-pendentes-container');
+
+                if (cachePendentes.length === 0) {
+                    container.innerHTML = '<p style="text-align:center; color:var(--text-muted); padding:1rem;">Nenhum agendamento pendente encontrado.</p>';
+                } else {
+                    var html = '';
+                    cachePendentes.forEach(function(p) {
+                        html += '<div class="pendente-item-card" onclick="verDetalhesPendente(' + p.id_agendamento + ')">';
+                        html += '  <div class="pendente-item-info">';
+                        html += '    <div class="pendente-item-cliente"><i class="bi bi-person-fill"></i> ' + (p.cliente_nome || '') + '</div>';
+                        html += '    <div class="pendente-item-servico"><i class="bi bi-scissors"></i> ' + (p.nome_servico || '') + '</div>';
+                        html += '  </div>';
+                        html += '  <div class="pendente-item-meta">';
+                        html += '    <span class="pendente-item-data"><i class="bi bi-calendar3"></i> ' + (p.data_formatada || '') + '</span>';
+                        html += '    <span class="pendente-item-hora"><i class="bi bi-clock"></i> ' + (p.hora_inicio_formatada || '') + '</span>';
+                        html += '  </div>';
+                        html += '</div>';
+                    });
+                    container.innerHTML = html;
+                }
+
+                openModal('#modalListaPendentes');
+            });
+
+            // Abrir detalhes de um agendamento pendente a partir da lista
+            window.verDetalhesPendente = function(idAgendamento) {
+                var item = cachePendentes.find(function(p) { return p.id_agendamento == idAgendamento; });
+                if (!item) return;
+
+                // Fecha o modal da lista primeiro
+                closeModal('#modalListaPendentes');
+
+                // Abre o modal de detalhes com pequeno delay para transição suave
+                setTimeout(function() {
+                    document.getElementById('detalhesCliente').textContent = item.cliente_nome || '';
+                    document.getElementById('detalhesServico').textContent = item.nome_servico || '';
+                    document.getElementById('detalhesProfissional').textContent = item.profissional_nome || '';
+                    document.getElementById('detalhesData').textContent = item.data_formatada || '';
+                    document.getElementById('detalhesHorario').textContent = (item.hora_inicio_formatada || '') + ' - ' + (item.hora_fim_formatada || '');
+
+                    var statusEl = document.getElementById('detalhesStatus');
+                    statusEl.textContent = 'Pendente';
+                    statusEl.style.background = 'rgba(244,91,105,0.15)';
+                    statusEl.style.color = '#f45b69';
+
+                    document.querySelectorAll('.inputIdAgendamento').forEach(function(input) { input.value = idAgendamento; });
+
+                    document.getElementById('boxAcoesPendente').style.display = 'flex';
+                    document.getElementById('boxAcoesMarcado').style.display = 'none';
+
+                    openModal('#modalDetalhes');
+                }, 200);
+            };
+
+            // Inicializa o alerta ao carregar a página
+            atualizarAlertasPendentes();
         });
     </script>
 </body>

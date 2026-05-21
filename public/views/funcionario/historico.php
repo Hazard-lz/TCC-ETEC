@@ -26,7 +26,7 @@ $isGerencia = in_array($tipoUsuario, ['admin', 'subadmin']);
     <div class="page-header">
         <div class="page-title">
             <h2>Histórico de Agendamentos</h2>
-            <p>Consulte o registo completo de todos os atendimentos.</p>
+            <p>Consulte o registro completo de todos os atendimentos.</p>
         </div>
     </div>
 

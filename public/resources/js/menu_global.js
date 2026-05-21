@@ -199,7 +199,7 @@ function iniciarEventosLayout() {
 
         overlay.addEventListener('click', fecharMenuMobile);
 
-        // Bloqueia o arrasto/scroll se o utilizador tentar scrollar no overlay escuro
+        // Bloqueia o arrasto/scroll se o usuário tentar scrollar no overlay escuro
         overlay.addEventListener('touchmove', (e) => {
             if (overlay.classList.contains('open')) {
                 e.preventDefault();

@@ -304,8 +304,7 @@ if (!isset($_SESSION['usuario_id'])) {
                     <span class="nav-icon">👤</span><span>Perfil</span>
                 </a>
                 <a href="<?= BASE_URL ?>/cliente/ajuda" class="nav-item active">
-                    <span class="nav-icon"><i class="bi bi-question-circle" style="font-size: 1.2rem;"></i></span>
-                    <span>Ajuda</span>
+                    <span class="nav-icon"><i class="bi bi-question-circle" style="font-size: 1.2rem;"></i></span><span>Ajuda</span>
                 </a>
             </nav>
 

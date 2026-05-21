@@ -251,7 +251,7 @@ class UsuarioService extends BaseService
         $assunto = "Recuperação de Senha - Belezou App";
         $html = "<div style='text-align:center; padding: 20px; font-family: sans-serif;'>
                     <h2>Olá, {$usuario['nome']}!</h2>
-                    <p>Recebemos um pedido para redefinir a sua senha.</p>
+                    <p>Recebemos uma solicitação para redefinir a sua senha.</p>
                     <p>O seu código de recuperação (válido por 30 minutos) é:</p>
                     <h1 style='color: #8b5cf6; letter-spacing: 5px; font-size: 2.5rem; background: #f8fafc; padding: 10px; border-radius: 8px; display: inline-block;'>{$codigo}</h1>
                     <p>Se não pediu esta alteração, ignore este e-mail.</p>

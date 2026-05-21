@@ -130,7 +130,7 @@ class AuthController
             );
         }
 
-        // Limpa o cookie auxiliar de tipo de utilizador
+        // Limpa o cookie auxiliar de tipo de usuário
         setcookie('belezou_tipo', '', ['expires' => time() - 42000, 'path' => '/']);
 
         session_destroy();

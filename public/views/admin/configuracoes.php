@@ -179,8 +179,8 @@ $isAdmin = ($tipoLogado === 'admin');
             <form action="<?= BASE_URL ?>/admin/configuracoes/salvar" method="POST" id="formConfig">
                 <?= CsrfGuard::campoHidden() ?>
 
-                <div class="status-option <?= $statusFuncionamento === 'ativo' ? 'active-option' : '' ?>" onclick="selecionarOpcao('ativo')">
-                    <input type="radio" name="status_funcionamento" id="opt_ativo" value="ativo" <?= $statusFuncionamento === 'ativo' ? 'checked' : '' ?>>
+                <label class="status-option <?= $statusFuncionamento === 'ativo' ? 'active-option' : '' ?>" for="opt_ativo">
+                    <input type="radio" name="status_funcionamento" id="opt_ativo" value="ativo" <?= $statusFuncionamento === 'ativo' ? 'checked' : '' ?> onchange="atualizarClassesStatus()">
                     <div class="status-option-content">
                         <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
                             <h4>Estabelecimento Aberto (Normal)</h4>
@@ -188,10 +188,10 @@ $isAdmin = ($tipoLogado === 'admin');
                         </div>
                         <p>O fluxo de agendamento online para clientes funciona perfeitamente. Clientes podem buscar profissionais, horários livres e realizar marcações no site.</p>
                     </div>
-                </div>
+                </label>
 
-                <div class="status-option <?= $statusFuncionamento === 'inativo' ? 'inactive-option' : '' ?>" onclick="selecionarOpcao('inativo')">
-                    <input type="radio" name="status_funcionamento" id="opt_inativo" value="inativo" <?= $statusFuncionamento === 'inativo' ? 'checked' : '' ?>>
+                <label class="status-option <?= $statusFuncionamento === 'inativo' ? 'inactive-option' : '' ?>" for="opt_inativo">
+                    <input type="radio" name="status_funcionamento" id="opt_inativo" value="inativo" <?= $statusFuncionamento === 'inativo' ? 'checked' : '' ?> onchange="atualizarClassesStatus()">
                     <div class="status-option-content">
                         <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
                             <h4>Fechamento Global (Contingência)</h4>
@@ -199,7 +199,7 @@ $isAdmin = ($tipoLogado === 'admin');
                         </div>
                         <p>O agendamento para clientes comuns é completamente suspenso. Qualquer tentativa de acessar a tela de agendamento ou listar horários livres será bloqueada e redirecionada para a página de contingência explicativa. A gerência/equipe ainda pode usar a agenda interna.</p>
                     </div>
-                </div>
+                </label>
 
                 <!-- ══ PERSONALIZAÇÃO VISUAL (WHITE-LABEL) ══ -->
                 <hr style="border: 0; border-top: 1px solid var(--border-color, #e2e8f0); margin: 2rem 0;">
@@ -268,22 +268,20 @@ $isAdmin = ($tipoLogado === 'admin');
     </div>
 
     <script>
-        function selecionarOpcao(tipo) {
-            document.getElementById('opt_' + tipo).checked = true;
-            
+        function atualizarClassesStatus() {
             // Remove classes ativas de ambas as opções
             const options = document.querySelectorAll('.status-option');
             options.forEach(opt => {
+                const input = opt.querySelector('input[type="radio"]');
                 opt.classList.remove('active-option', 'inactive-option');
+                if (input.checked) {
+                    if (input.value === 'ativo') {
+                        opt.classList.add('active-option');
+                    } else {
+                        opt.classList.add('inactive-option');
+                    }
+                }
             });
-            
-            // Adiciona classe correspondente à opção clicada
-            const targetOpt = document.getElementById('opt_' + tipo).closest('.status-option');
-            if (tipo === 'ativo') {
-                targetOpt.classList.add('active-option');
-            } else {
-                targetOpt.classList.add('inactive-option');
-            }
         }
 
         // Integração SweetAlert2 para o disparo em lote
@@ -320,7 +318,7 @@ $isAdmin = ($tipoLogado === 'admin');
                             fetch('<?= BASE_URL ?>/admin/configuracoes/disparar-comunicado', {
                                 method: 'POST',
                                 headers: {
-                                    'Content-Type: 'application/x-www-form-urlencoded',
+                                    'Content-Type': 'application/x-www-form-urlencoded',
                                 },
                                 body: 'csrf_token=' + encodeURIComponent(csrfToken)
                             })

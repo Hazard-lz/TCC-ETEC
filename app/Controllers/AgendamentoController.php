@@ -60,7 +60,7 @@ class AgendamentoController
             $this->redirecionarAposErro();
         }
 
-        // 2. Identificar quem está a fazer a ação através da sessão
+        // 2. Identificar quem está fazendo a ação com base na sessão
         $id_usuario_logado = $_SESSION['usuario_id'];
         $tipo_usuario_logado = $_SESSION['usuario_tipo'];
 
@@ -69,7 +69,7 @@ class AgendamentoController
 
         // 3. Tradução de IDs conforme a arquitetura de "Herança" no BD
         if ($tipo_usuario_logado === 'comum') {
-            // O próprio cliente está a agendar pelo telemóvel/site
+            // O próprio cliente está agendando pelo celular/site
             $cliente = $this->clienteModel->buscarPorCodUsuario($id_usuario_logado);
             if (!$cliente) {
                 $_SESSION['flash_erro'] = "Perfil de cliente não encontrado. Atualize o seu cadastro.";
@@ -79,7 +79,7 @@ class AgendamentoController
             $id_cliente = $cliente['id_cliente'];
 
         } else {
-            // Um admin ou funcionário está a agendar para um cliente (via balcão)
+            // Um admin ou funcionário está agendando para um cliente (via balcão)
             $id_cliente = $_POST['id_cliente'] ?? '';
 
             if (empty($id_cliente)) {
@@ -88,7 +88,7 @@ class AgendamentoController
                 exit;
             }
 
-            // Descobre o ID do funcionário que está a criar este agendamento (auditoria)
+            // Descobre o ID do funcionário que está criando este agendamento (auditoria)
             $funcionarioCriador = $this->funcionarioModel->buscarPorCodUsuario($id_usuario_logado);
             if ($funcionarioCriador) {
                 $id_funcionario_criador = $funcionarioCriador['id_funcionario'];
@@ -154,7 +154,7 @@ class AgendamentoController
     }
 
     /**
-     * Utilitário privado para garantir que o utilizador volta para a tela correta.
+     * Utilitário privado para garantir que o usuário volta para a tela correta.
      */
     private function redirecionarAposErro()
     {
@@ -236,7 +236,7 @@ class AgendamentoController
         $dataProxima = (clone $dataBase)->modify('+7 days')->format('Y-m-d');
         $hoje = date('Y-m-d');
 
-        // Lógica matemática infalível para ir buscar o Domingo desta semana (0 = Domingo)
+        // Lógica matemática infalível para encontrar o Domingo desta semana (0 = Domingo)
         $diaSemana = (int) $dataBase->format('w');
         $domingoBase = clone $dataBase;
         $domingoBase->modify("-{$diaSemana} days");
@@ -306,9 +306,17 @@ class AgendamentoController
         $dataInicio = $_GET['start'] ?? date('Y-m-d');
         $dataFim = $_GET['end'] ?? date('Y-m-d', strtotime('+7 days'));
 
+        // Validação de Gerência (Admin ou Subadmin) para permitir filtrar outros funcionários
+        $isGerencia = in_array($_SESSION['usuario_tipo'] ?? '', ['admin', 'subadmin']);
+        $idFuncionarioAgenda = $funcionario['id_funcionario'];
+        
+        if ($isGerencia && isset($_GET['funcionario_id']) && !empty($_GET['funcionario_id'])) {
+            $idFuncionarioAgenda = (int) $_GET['funcionario_id'];
+        }
+
         $agendamentoModel = new Agendamento();
         $agendamentos = $agendamentoModel->listarAgendaFuncionarioPeriodo(
-            $funcionario['id_funcionario'],
+            $idFuncionarioAgenda,
             $dataInicio,
             $dataFim
         );
@@ -333,6 +341,53 @@ class AgendamentoController
         }
 
         echo json_encode($eventos);
+        exit;
+    }
+
+    /**
+     * API JSON: Retorna os agendamentos pendentes para a notificação de alertas.
+     * GET: /api/agendamentos-pendentes?funcionario_id=XXX
+     */
+    public function apiPendentes()
+    {
+        header('Content-Type: application/json');
+
+        if (!isset($_SESSION['usuario_id'])) {
+            echo json_encode([]);
+            exit;
+        }
+
+        $funcionario = $this->funcionarioModel->buscarPorCodUsuario($_SESSION['usuario_id']);
+        if (!$funcionario) {
+            echo json_encode([]);
+            exit;
+        }
+
+        $isGerencia = in_array($_SESSION['usuario_tipo'] ?? '', ['admin', 'subadmin']);
+        $idFuncionarioFiltro = $funcionario['id_funcionario'];
+
+        if ($isGerencia && isset($_GET['funcionario_id']) && !empty($_GET['funcionario_id'])) {
+            $idFuncionarioFiltro = $_GET['funcionario_id'];
+        }
+
+        $agendamentoModel = new Agendamento();
+        $agendamentoModel->cancelarPendentesExpirados();
+        
+        $pendentes = $agendamentoModel->listarPendentes($idFuncionarioFiltro);
+        
+        $formatados = [];
+        if ($pendentes) {
+            foreach ($pendentes as $p) {
+                $dataObj = new DateTime($p['data_agendamento']);
+                $p['data_formatada'] = $dataObj->format('d/m/Y');
+                $p['hora_inicio_formatada'] = substr($p['hora_inicio'], 0, 5);
+                $p['hora_fim_formatada'] = substr($p['hora_fim'], 0, 5);
+                $p['preco_formatado'] = number_format($p['preco_cobrado'], 2, ',', '.');
+                $formatados[] = $p;
+            }
+        }
+
+        echo json_encode($formatados);
         exit;
     }
 

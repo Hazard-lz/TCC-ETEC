@@ -84,7 +84,7 @@ class DisponibilidadeService extends BaseService {
             $this->disponibilidadeModel->atualizarGrade($idDisponibilidade, $nomeGrade, $antecedenciaHoras);
         }
 
-        // 2. Se o utilizador marcou a checkbox para ativar esta grade agora
+        // 2. Se o usuário marcou o checkbox para ativar esta grade agora
         if ($isAtiva) {
             $this->disponibilidadeModel->definirGradeAtiva($idFuncionario, $idDisponibilidade);
         }
@@ -185,7 +185,7 @@ class DisponibilidadeService extends BaseService {
         $inicioIntervalo = $temIntervalo ? strtotime($grade['intervalo_inicio']) : null;
         $fimIntervalo = $temIntervalo ? strtotime($grade['intervalo_fim']) : null;
 
-        $ponteiroAtual = $inicioExpediente;
+        $ponteiroAtual = $inicioExpediente; // ponteiro de tempo (iterador)
 
         while (($ponteiroAtual + ($duracaoMinutos * 60)) <= $fimExpediente) {
             $horaDoSlot = date('H:i', $ponteiroAtual);

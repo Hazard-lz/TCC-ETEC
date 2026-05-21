@@ -23,7 +23,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         .app-wrapper .mobile-container .app-content {
             display: flex !important;
             flex-direction: column !important;
-            justify-content: center !important;
+            justify-content: flex-start !important; /* Evita que o topo seja cortado em telas menores */
             align-items: center !important;
             flex-grow: 1 !important;
             height: 100% !important;
@@ -60,6 +60,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
 
         /* Card de contingência com glassmorphism premium */
         .contingencia-card {
+            margin: auto 0; /* Centralização flexível e segura em qualquer tamanho de tela */
             text-align: center;
             padding: 2.5rem 2rem;
             background: rgba(255, 255, 255, 0.85);

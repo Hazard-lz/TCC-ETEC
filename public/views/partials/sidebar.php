@@ -1,5 +1,5 @@
 <?php
-// 1. Pega os dados do utilizador que estão salvos na sessão do PHP
+// 1. Pega os dados do usuário que estão salvos na sessão do PHP
 $userData = json_encode([
     'nome' => $_SESSION['usuario_nome'] ?? 'Usuário',
     'tipo' => $_SESSION['usuario_tipo'] ?? 'funcionario'

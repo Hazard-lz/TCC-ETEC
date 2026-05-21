@@ -45,7 +45,7 @@ $router->view('/contingencia', 'cliente/contingencia');
 
 
 // ===========================================================
-// ROTAS DE AUTENTICAÇÃO E REGISTO
+// Rotas de autenticação e cadastro
 // ===========================================================
 
 $router->view('/cadastro', 'auth/cadastro');
@@ -213,6 +213,7 @@ $router->get('/api/profissionais-por-servico', 'FuncionarioController@listarProf
 $router->post('/api/servicos-profissional', 'FuncionarioController@listarServicosPorProfissionalApi');
 
 $router->get('/api/agenda-eventos', 'AgendamentoController@apiEventos');
+$router->get('/api/agendamentos-pendentes', 'AgendamentoController@apiPendentes');
 
 $router->post('/funcionario/disponibilidade/salvar', 'DisponibilidadeController@salvar');
 $router->get('/funcionario/disponibilidade/salvar', function () {

@@ -181,6 +181,36 @@ class Agendamento extends BaseModel {
     }
 
     /**
+     * Retorna a lista de agendamentos pendentes.
+     */
+    public function listarPendentes($id_funcionario = null) {
+        $sql = "SELECT a.id_agendamento, a.data_agendamento, a.status,
+                       u_cli.nome AS cliente_nome, 
+                       ia.nome_servico_registrado AS nome_servico, 
+                       ia.hora_inicio, ia.hora_fim, ia.preco_cobrado,
+                       u_func.nome AS profissional_nome
+                FROM agendamentos a
+                INNER JOIN clientes c ON a.cod_cliente = c.id_cliente
+                INNER JOIN usuarios u_cli ON c.cod_usuario = u_cli.id_usuario
+                INNER JOIN itens_agendamento ia ON a.id_agendamento = ia.cod_agendamento
+                LEFT JOIN funcionario_servicos fs ON ia.cod_sv_func = fs.id_sv_funcionario
+                LEFT JOIN funcionarios f ON fs.cod_funcionario = f.id_funcionario
+                LEFT JOIN usuarios u_func ON f.cod_usuario = u_func.id_usuario
+                WHERE a.status = 'pendente'";
+                
+        $params = [];
+        if ($id_funcionario !== null && $id_funcionario !== 'todos') {
+            $sql .= " AND (fs.cod_funcionario = :cod_funcionario OR a.cod_funcionario_criador = :cod_funcionario_criador)";
+            $params[':cod_funcionario'] = $id_funcionario;
+            $params[':cod_funcionario_criador'] = $id_funcionario;
+        }
+
+        $sql .= " ORDER BY a.data_agendamento ASC, ia.hora_inicio ASC";
+                
+        return $this->executarQuery($sql, $params, 'todos');
+    }
+
+    /**
      * Busca APENAS o agendamento futuro mais próximo do cliente.
      * ARQUITETURA: O uso do LIMIT 1 e ordenação ASC garante altíssima 
      * performance, retornando só o que a página inicial precisa.

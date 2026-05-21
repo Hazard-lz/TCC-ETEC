@@ -53,6 +53,8 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         .metrica-card:nth-child(2)::before { background: #2ecc71; }
         .metrica-card:nth-child(3)::before { background: #3498db; }
         .metrica-card:nth-child(4)::before { background: var(--color-pink); }
+        .metrica-card:nth-child(5)::before { background: #8b5cf6; }
+        .metrica-card:nth-child(6)::before { background: #ef4444; }
         .metrica-card .metrica-titulo { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem; }
         .metrica-card .metrica-valor { font-size: 1.8rem; font-weight: 800; color: var(--text-main); line-height: 1.1; }
         .metrica-card .metrica-sub { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.3rem; }
@@ -104,7 +106,8 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
             padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600;
             cursor: pointer; transition: all 0.2s; white-space: nowrap;
         }
-        .btn-filtro-rapido:hover { background: var(--color-purple); color: white; }
+        .btn-filtro-rapido:hover, .btn-filtro-rapido.active { background: var(--color-purple); color: white; }
+        .btn-filtro-rapido.active { box-shadow: 0 2px 6px rgba(139, 92, 246, 0.25) !important; }
         
         .chart-container {
             background: var(--surface-color); border-radius: var(--radius-lg); padding: 1.5rem;
@@ -132,9 +135,20 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         @media print {
             @page { margin: 10mm; size: A4 portrait; }
             
+            /* Reset backgrounds and colors for all containers on print to force a white document */
+            html, body, .main-wrapper, .main-content, #area-relatorio, 
+            .metrica-card, .base-card, .header-funcionario, .data-table, 
+            .data-table tr, .data-table td, .data-table th {
+                background: white !important;
+                background-color: white !important;
+                color: black !important;
+                box-shadow: none !important;
+                text-shadow: none !important;
+                margin: 0 !important;
+            }
+
             html, body, .main-wrapper, #area-relatorio { 
-                background: white !important; color: black !important; 
-                margin: 0 !important; padding: 0 !important; 
+                padding: 0 !important; 
                 width: 100% !important; max-width: 100% !important;
                 min-height: 0 !important; height: auto !important; 
                 overflow: visible !important;
@@ -145,20 +159,129 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
             
             .filtro-form, .btn-exportar, .sidebar, .topbar, .sidebar-overlay, .btn-filtro-rapido { display: none !important; }
             
+            /* Headers and Titles color black */
+            h2, h3, .secao-relatorio h3, .secao-relatorio h3 i {
+                color: black !important;
+            }
+
+            /* Metric Grid and Cards print styling */
             .metricas-grid { display: flex !important; flex-wrap: wrap !important; gap: 10px !important; margin-bottom: 1.5rem !important; }
-            .metrica-card { flex: 1 1 45% !important; box-shadow: none !important; border: 1px solid #ddd !important; break-inside: avoid; page-break-inside: avoid; padding: 1rem !important; margin-bottom: 0 !important; }
             
+            .metrica-card { 
+                flex: 1 1 45% !important; 
+                box-shadow: none !important; 
+                border: 1px solid #e2e8f0 !important; 
+                background: #ffffff !important;
+                break-inside: avoid; 
+                page-break-inside: avoid; 
+                padding: 1rem !important; 
+                margin-bottom: 0 !important; 
+            }
+            
+            .metrica-card .metrica-titulo {
+                color: #475569 !important;
+            }
+            
+            .metrica-card .metrica-valor {
+                color: #0f172a !important;
+            }
+            
+            /* Ensure high-contrast colors for metric values on white paper */
+            .metrica-card:nth-child(3) .metrica-valor {
+                color: #16a34a !important; /* Legible green */
+            }
+            
+            .metrica-card:nth-child(5) .metrica-valor {
+                color: #7c3aed !important; /* Legible purple */
+            }
+            
+            .metrica-card:nth-child(6) .metrica-valor {
+                color: #dc2626 !important; /* Legible red */
+            }
+            
+            .metrica-card .metrica-sub {
+                color: #64748b !important;
+            }
+            
+            /* Employee card on print */
+            .header-funcionario {
+                border: 1px solid #e2e8f0 !important;
+                background: #f8fafc !important;
+                padding: 1rem !important;
+                margin-bottom: 1.5rem !important;
+                display: flex !important;
+                align-items: center !important;
+                gap: 1rem !important;
+            }
+            .header-funcionario .info h3 {
+                color: #0f172a !important;
+            }
+            .header-funcionario .info p {
+                color: #475569 !important;
+            }
+            .header-funcionario .avatar {
+                background: #8b5cf6 !important;
+                color: white !important;
+                border: none !important;
+            }
+
+            /* Chart container on print */
             .chart-container { 
-                box-shadow: none !important; border: 1px solid #ddd !important; 
-                break-inside: avoid; page-break-inside: avoid; 
-                height: 280px !important; margin-bottom: 1.5rem !important; 
-                width: 100% !important; padding: 10px !important;
+                box-shadow: none !important; 
+                border: 1px solid #e2e8f0 !important; 
+                background: #ffffff !important;
+                break-inside: avoid; 
+                page-break-inside: avoid; 
+                height: 280px !important; 
+                margin-bottom: 1.5rem !important; 
+                width: 100% !important; 
+                padding: 10px !important;
             }
             
             canvas#faturamentoChart { display: none !important; }
             img#chart-print-img { display: block !important; width: 100% !important; height: 100% !important; object-fit: contain !important; }
             
-            .base-card { box-shadow: none !important; border: 1px solid #ddd !important; break-inside: avoid; page-break-inside: avoid; margin-bottom: 1.5rem !important; }
+            /* Base cards & Tables print styling */
+            .base-card { 
+                box-shadow: none !important; 
+                border: 1px solid #e2e8f0 !important; 
+                background: #ffffff !important;
+                break-inside: avoid; 
+                page-break-inside: avoid; 
+                margin-bottom: 1.5rem !important; 
+            }
+            
+            .data-table th {
+                background-color: #f1f5f9 !important;
+                color: #0f172a !important;
+                border-bottom: 2px solid #cbd5e1 !important;
+            }
+            
+            .data-table td {
+                border-bottom: 1px solid #e2e8f0 !important;
+                color: #334155 !important;
+            }
+            
+            .data-table tr td[data-label="#"] {
+                color: #8b5cf6 !important;
+            }
+
+            /* Frequency badge & Visual progress bar on print */
+            .badge-frequencia {
+                background: #f3e8ff !important;
+                color: #6b21a8 !important;
+                border: 1px solid #e9d5ff !important;
+            }
+            
+            .barra-visual {
+                background-color: #f1f5f9 !important;
+                border: 1px solid #e2e8f0 !important;
+                border-radius: 4px;
+            }
+            
+            .barra-visual .barra {
+                background: #8b5cf6 !important;
+            }
             
             .secao-relatorio:last-child { margin-bottom: 0 !important; }
             .secao-relatorio:last-child .base-card { margin-bottom: 0 !important; }
@@ -365,6 +488,57 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <script>
+        // FORMATAÇÃO DE DATA LOCAL SEM BUG DE TIMEZONE
+        function formatarDataLocal(date) {
+            const ano = date.getFullYear();
+            const mes = String(date.getMonth() + 1).padStart(2, '0');
+            const dia = String(date.getDate()).padStart(2, '0');
+            return `${ano}-${mes}-${dia}`;
+        }
+
+        // VERIFICA E MARCA O FILTRO ATIVO CONFORME OS VALORES DOS INPUTS
+        function checkFiltroAtivo() {
+            const dataInicioInput = document.querySelector('input[name="data_inicio"]');
+            const dataFimInput = document.querySelector('input[name="data_fim"]');
+            if (!dataInicioInput || !dataFimInput) return;
+
+            const dataInicioVal = dataInicioInput.value;
+            const dataFimVal = dataFimInput.value;
+            
+            // Limpa as classes active
+            document.querySelectorAll('.btn-filtro-rapido').forEach(btn => btn.classList.remove('active'));
+
+            const hoje = new Date();
+
+            // Hoje
+            const hjStr = formatarDataLocal(hoje);
+            if (dataInicioVal === hjStr && dataFimVal === hjStr) {
+                const btn = document.querySelector('.btn-filtro-rapido[onclick*="hoje"]');
+                if (btn) btn.classList.add('active');
+                return;
+            }
+
+            // Semana
+            const dInicioSemana = new Date(hoje);
+            dInicioSemana.setDate(hoje.getDate() - hoje.getDay());
+            const dFimSemana = new Date(hoje);
+            dFimSemana.setDate(hoje.getDate() - hoje.getDay() + 6);
+            if (dataInicioVal === formatarDataLocal(dInicioSemana) && dataFimVal === formatarDataLocal(dFimSemana)) {
+                const btn = document.querySelector('.btn-filtro-rapido[onclick*="semana"]');
+                if (btn) btn.classList.add('active');
+                return;
+            }
+
+            // Mês
+            const dInicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+            const dFimMes = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
+            if (dataInicioVal === formatarDataLocal(dInicioMes) && dataFimVal === formatarDataLocal(dFimMes)) {
+                const btn = document.querySelector('.btn-filtro-rapido[onclick*="mes"]');
+                if (btn) btn.classList.add('active');
+                return;
+            }
+        }
+
         // FILTROS RÁPIDOS DE DATA
         function setFiltroData(tipo) {
             const dataInicio = document.querySelector('input[name="data_inicio"]');
@@ -372,21 +546,35 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
             const hoje = new Date();
             
             if (tipo === 'hoje') {
-                const hj = hoje.toISOString().split('T')[0];
+                const hj = formatarDataLocal(hoje);
                 dataInicio.value = hj;
                 dataFim.value = hj;
             } else if (tipo === 'semana') {
-                const primeiroDia = new Date(hoje.setDate(hoje.getDate() - hoje.getDay()));
-                const ultimoDia = new Date(hoje.setDate(hoje.getDate() - hoje.getDay() + 6));
-                dataInicio.value = primeiroDia.toISOString().split('T')[0];
-                dataFim.value = ultimoDia.toISOString().split('T')[0];
+                const dInicio = new Date(hoje);
+                dInicio.setDate(hoje.getDate() - hoje.getDay());
+                const dFim = new Date(hoje);
+                dFim.setDate(hoje.getDate() - hoje.getDay() + 6);
+                dataInicio.value = formatarDataLocal(dInicio);
+                dataFim.value = formatarDataLocal(dFim);
             } else if (tipo === 'mes') {
-                const primeiroDia = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
-                const ultimoDia = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
-                dataInicio.value = primeiroDia.toISOString().split('T')[0];
-                dataFim.value = ultimoDia.toISOString().split('T')[0];
+                const dInicio = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+                const dFim = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
+                dataInicio.value = formatarDataLocal(dInicio);
+                dataFim.value = formatarDataLocal(dFim);
             }
+            
+            checkFiltroAtivo();
         }
+
+        // Quando o documento for carregado e os campos mudarem manualmente
+        document.addEventListener("DOMContentLoaded", () => {
+            checkFiltroAtivo();
+            
+            const dataInicioInput = document.querySelector('input[name="data_inicio"]');
+            const dataFimInput = document.querySelector('input[name="data_fim"]');
+            if (dataInicioInput) dataInicioInput.addEventListener('change', checkFiltroAtivo);
+            if (dataFimInput) dataFimInput.addEventListener('change', checkFiltroAtivo);
+        });
 
         // GRÁFICO DE FATURAMENTO DIÁRIO (Chart.js)
         let faturamentoChartInstance = null;

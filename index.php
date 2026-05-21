@@ -5,7 +5,7 @@ date_default_timezone_set('America/Sao_Paulo');
 ini_set('session.gc_maxlifetime', 60 * 60 * 24 * 30);
 
 // 2. COOKIE DE SESSÃO COM LIFETIME DINÂMICO
-// Lê um cookie auxiliar definido durante o login para saber o tipo de utilizador
+// Lê um cookie auxiliar definido durante o login para saber o tipo de usuário
 // ANTES de abrir a sessão (pois session_set_cookie_params só funciona antes do session_start)
 $tipoLogado = $_COOKIE['belezou_tipo'] ?? '';
 
@@ -64,7 +64,7 @@ if (!isset($_SESSION['ultima_autoconclusao']) || (time() - $_SESSION['ultima_aut
 // 1. ARQUITETURA: AUTOLOADER (Carregamento Dinâmico de Classes)
 // =========================================================================
 spl_autoload_register(function ($nome_da_classe) {
-    // Lista das pastas onde as classes ficam guardadas
+    // Lista das pastas onde as classes ficam armazenadas
     $pastas = [
         'app/Controllers/',
         'app/Models/',

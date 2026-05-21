@@ -74,7 +74,7 @@ class Disponibilidade extends BaseModel
     }
 
     /**
-     * Busca a grade que está a ditar as regras atualmente.
+     * Busca a grade que está ditando as regras atualmente.
      */
     public function buscarGradeAtiva($cod_funcionario)
     {

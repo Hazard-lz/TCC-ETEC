@@ -322,7 +322,7 @@ async function liberarHorarios() {
   document.getElementById('horario_selecionado').value = '';
   setBotoesPasso(3, false); // Bloqueia enquanto escolhe o horário
 
-  containerHorarios.innerHTML = '<p>A calcular horários disponíveis...</p>';
+  containerHorarios.innerHTML = '<p>Calculando horários disponíveis...</p>';
 
   if (!dataSelecionada || !idServico || !idFuncionario) return;
 

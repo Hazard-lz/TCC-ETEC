@@ -101,7 +101,7 @@
 
                                         <div class="form-group">
                                             <label for="nascimento">Data de Nascimento</label>
-                                            <input type="date" id="nascimento" name="nascimento" class="form-control" value="<?= $clienteNascimento ?>" required>
+                                            <input type="date" id="nascimento" name="nascimento" class="form-control" value="<?= $clienteNascimento ?>">
                                         </div>
 
                                         <button type="submit" class="btn-primary" style="padding: 0.8rem; font-size: 0.95rem;">Salvar Dados</button>
