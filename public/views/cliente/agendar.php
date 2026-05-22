@@ -141,7 +141,7 @@ if (!isset($_SESSION['usuario_id'])) {
                             </div>
                             <div class="form-actions-mobile" style="display: flex; justify-content: space-between; gap: 0.5rem;">
                                 <button type="button" class="btn-secondary btn-voltar-mobile" onclick="voltarPasso(2)">Voltar</button>
-                                <button type="button" class="btn-primary btn-mobile-next" id="btn-next-3" onclick="montarResumo()" disabled>Continuar</button>
+                                <button type="button" class="btn-primary btn-mobile-next" id="btn-next-3" onclick="montarResumo()" disabled>Revisar agendamento</button>
                             </div>
                         </div>
 
@@ -187,11 +187,10 @@ if (!isset($_SESSION['usuario_id'])) {
                                 </div>
                             </div>
 
-                            <div class="form-actions-mobile" style="display: flex; justify-content: space-between; gap: 0.5rem;">
-                                <button type="button" class="btn-secondary btn-voltar-mobile" onclick="voltarPasso(3)">Voltar</button>
-                                <!-- Botão de submit visível só no mobile -->
-                                <button type="submit" class="btn-primary btn-confirmar btn-mobile-next" id="btn-confirmar-mobile">
-                                    ✅ Confirmar
+                            <div class="step-4-actions">
+                                <button type="button" class="btn-secondary btn-voltar-step4" onclick="voltarPasso(3)">Voltar</button>
+                                <button type="submit" class="btn-primary btn-confirmar btn-confirmar-step4" id="btn-confirmar-desktop-mobile">
+                                    Marcar Agendamento
                                 </button>
                             </div>
                         </div>
@@ -226,6 +225,11 @@ if (!isset($_SESSION['usuario_id'])) {
                             <!-- Botão global — visível apenas no desktop -->
                             <button type="button" id="btn-continuar-global" class="btn-primary btn-global-continuar" disabled>
                                 Continuar
+                            </button>
+
+                            <!-- Botão voltar global — visível apenas no desktop de forma dinâmica -->
+                            <button type="button" id="btn-voltar-global" class="btn-secondary btn-global-voltar" style="display: none;">
+                                Voltar
                             </button>
                         </div>
                     </aside>

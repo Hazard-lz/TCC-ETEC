@@ -135,8 +135,10 @@
     transition: all 0.2s;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 0.25rem;
 }
 
 .selectable-card:hover {
@@ -446,6 +448,24 @@ ASIDE {
         display: none !important;
     }
 
+    /* Botão voltar global no aside (desktop) */
+    .btn-global-voltar {
+        display: none;
+        width: 100%;
+        margin-top: 0.8rem;
+        padding: 0.9rem 1rem;
+        border-radius: var(--radius-md);
+        font-size: 1rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        transition: all 0.3s;
+        text-align: center;
+    }
+
+    .btn-global-voltar.visible {
+        display: block !important;
+    }
+
     /* Cartões de serviço/profissional: 2 colunas no desktop */
     .cards-container {
         grid-template-columns: repeat(2, 1fr);
@@ -462,5 +482,52 @@ ASIDE {
 
     .resumo-total-valor {
         font-size: 1.6rem;
+    }
+}
+
+/* =========================================
+   ESTILOS EXCLUSIVOS DO PASSO 4 (CONFIRMAÇÃO)
+   ========================================= */
+
+/* Novo contêiner de ações do Passo 4 */
+.step-4-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 2rem;
+    width: 100%;
+}
+
+.step-4-actions .btn-secondary,
+.step-4-actions .btn-primary {
+    margin-top: 0 !important;
+    padding: 0.8rem 1.5rem;
+    border-radius: 25px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease;
+}
+
+.step-4-actions .btn-secondary {
+    flex: 1;
+}
+
+.step-4-actions .btn-primary {
+    flex: 2;
+}
+
+/* Quando o Passo 4 estiver ativo, centraliza o layout no desktop */
+@media (min-width: 992px) {
+    .agendar-layout.step-4-active {
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        width: 100%;
+    }
+    
+    .agendar-layout.step-4-active .agendar-form-col {
+        max-width: 600px;
+        width: 100%;
     }
 }

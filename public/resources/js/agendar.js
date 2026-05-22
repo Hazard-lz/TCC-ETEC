@@ -46,7 +46,7 @@ function setBotoesPasso(passo, habilitado) {
     if (passo === 4) {
       btnGlobal.textContent = '✅ Confirmar Agendamento';
     } else if (passo === 3) {
-      btnGlobal.textContent = 'Ver Resumo';
+      btnGlobal.textContent = 'Revisar agendamento';
     } else {
       btnGlobal.textContent = 'Continuar';
     }
@@ -79,6 +79,32 @@ function atualizarConectores(passoAtual) {
   });
 }
 
+function atualizarBotoesSidebar(passo) {
+  const btnVoltarGlobal = document.getElementById('btn-voltar-global');
+  if (!btnVoltarGlobal) return;
+
+  if (passo > 1 && passo < 4) {
+    btnVoltarGlobal.classList.add('visible');
+  } else {
+    btnVoltarGlobal.classList.remove('visible');
+  }
+}
+
+function atualizarLayoutPasso(passo) {
+  const layout = document.querySelector('.agendar-layout');
+  const resumo = document.getElementById('resumo-lateral');
+  if (!layout) return;
+
+  if (passo === 4) {
+    layout.classList.add('step-4-active');
+    if (resumo) resumo.style.display = 'none';
+  } else {
+    layout.classList.remove('step-4-active');
+    if (resumo) resumo.style.display = '';
+  }
+  atualizarBotoesSidebar(passo);
+}
+
 function irParaPasso(passoAtual, proximoPasso) {
   document.getElementById(`step-${passoAtual}`).classList.remove('active');
   document.getElementById(`step-${proximoPasso}`).classList.add('active');
@@ -93,6 +119,7 @@ function irParaPasso(passoAtual, proximoPasso) {
     // No passo 4 o botão global já pode enviar o formulário
     setBotoesPasso(4, true);
   }
+  atualizarLayoutPasso(proximoPasso);
 }
 
 function voltarPasso(passoAnterior) {
@@ -111,6 +138,7 @@ function voltarPasso(passoAnterior) {
   if (passoAnterior === 3) jaTemSelecao = !!document.getElementById('horario_selecionado').value;
 
   setBotoesPasso(passoAnterior, jaTemSelecao);
+  atualizarLayoutPasso(passoAnterior);
 }
 
 /** Descobre qual passo está atualmente ativo (1-4) */
@@ -153,6 +181,17 @@ document.getElementById('btn-continuar-global').addEventListener('click', () => 
   // Passo 1 → 2
   irParaPasso(1, 2);
 });
+
+// Listener do botão voltar global (aside — desktop)
+const btnVoltarGlobal = document.getElementById('btn-voltar-global');
+if (btnVoltarGlobal) {
+  btnVoltarGlobal.addEventListener('click', () => {
+    const atual = passoAtivo();
+    if (atual > 1) {
+      voltarPasso(atual - 1);
+    }
+  });
+}
 
 // ─── PASSO 1: SERVIÇOS ────────────────────────────────────────────────────────
 
@@ -376,11 +415,6 @@ function selecionarHorario(hora, elemento) {
   elemento.classList.add('selected');
 
   setBotoesPasso(3, true);
-
-  // ARQUITETURA UX: Avanço automático após 300ms de delay para a micro-animação rodar
-  setTimeout(() => {
-    montarResumo();
-  }, 300);
 }
 
 // Listener do botão mobile do passo 3
@@ -463,6 +497,7 @@ document.querySelectorAll('.step-indicator[data-passo]').forEach((indicador) => 
     if (destino === 3) jaTemSelecao = !!document.getElementById('horario_selecionado').value;
 
     setBotoesPasso(destino, jaTemSelecao);
+    atualizarLayoutPasso(destino);
   });
 });
 
