@@ -189,4 +189,53 @@ class Disponibilidade extends BaseModel
             'max' => !empty($res['max_hora']) ? $res['max_hora'] : '23:59:00'
         ];
     }
+
+    // =========================================================================
+    // 3. GESTÃO DE BLOQUEIOS MANUAIS
+    // =========================================================================
+
+    public function cadastrarBloqueio($idFuncionario, $data, $inicio, $fim, $motivo)
+    {
+        $sql = "INSERT INTO bloqueios_agenda (cod_funcionario, data_bloqueio, hora_inicio, hora_fim, motivo) 
+                VALUES (:cod_funcionario, :data_bloqueio, :hora_inicio, :hora_fim, :motivo)";
+        return $this->executarQuery($sql, [
+            ':cod_funcionario' => $idFuncionario,
+            ':data_bloqueio' => $data,
+            ':hora_inicio' => $inicio,
+            ':hora_fim' => $fim,
+            ':motivo' => $motivo
+        ], 'id');
+    }
+
+    public function excluirBloqueio($idBloqueio, $idFuncionario)
+    {
+        $sql = "DELETE FROM bloqueios_agenda WHERE id_bloqueio = :id AND cod_funcionario = :cod_funcionario";
+        return $this->executarQuery($sql, [
+            ':id' => $idBloqueio,
+            ':cod_funcionario' => $idFuncionario
+        ]);
+    }
+
+    public function buscarBloqueiosDia($idFuncionario, $data)
+    {
+        $sql = "SELECT id_bloqueio, hora_inicio, hora_fim, motivo 
+                FROM bloqueios_agenda 
+                WHERE cod_funcionario = :cod_funcionario AND data_bloqueio = :data";
+        return $this->executarQuery($sql, [
+            ':cod_funcionario' => $idFuncionario,
+            ':data' => $data
+        ], 'todos');
+    }
+
+    public function buscarBloqueiosPeriodo($idFuncionario, $dataInicio, $dataFim)
+    {
+        $sql = "SELECT id_bloqueio, data_bloqueio, hora_inicio, hora_fim, motivo 
+                FROM bloqueios_agenda 
+                WHERE cod_funcionario = :cod_funcionario AND data_bloqueio BETWEEN :inicio AND :fim";
+        return $this->executarQuery($sql, [
+            ':cod_funcionario' => $idFuncionario,
+            ':inicio' => $dataInicio,
+            ':fim' => $dataFim
+        ], 'todos');
+    }
 }

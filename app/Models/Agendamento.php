@@ -62,6 +62,7 @@ class Agendamento extends BaseModel {
                        u_func.email AS funcionario_email,
                        ia.nome_servico_registrado AS nome_servico, 
                        ia.hora_inicio, ia.hora_fim, ia.preco_cobrado,
+                       ia.duracao_registrada AS duracao,
                        c.cod_usuario AS cliente_cod_usuario,
                        f.cod_usuario AS funcionario_cod_usuario,
                        fs.cod_funcionario AS cod_funcionario
@@ -83,7 +84,9 @@ class Agendamento extends BaseModel {
     public function listarPorCliente($id_cliente) {
         $sql = "SELECT a.id_agendamento, a.data_agendamento, a.status, 
                        ia.nome_servico_registrado AS nome_servico, ia.hora_inicio, ia.preco_cobrado,
-                       u_func.nome AS funcionario_nome
+                       u_func.nome AS funcionario_nome,
+                       fs.cod_funcionario,
+                       fs.cod_servico AS id_servico
                 FROM agendamentos a
                 INNER JOIN itens_agendamento ia ON a.id_agendamento = ia.cod_agendamento
                 LEFT JOIN funcionario_servicos fs ON ia.cod_sv_func = fs.id_sv_funcionario

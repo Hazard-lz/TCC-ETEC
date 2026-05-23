@@ -132,7 +132,7 @@ class DisponibilidadeService extends BaseService {
     // =========================================================================
     // MOTOR DE CÁLCULO DE HORÁRIOS LIVRES (ATUALIZADO PARA LER APENAS A ATIVA)
     // =========================================================================
-    public function calcularHorariosLivres($idFuncionario, $dataDesejada, $idServico) {
+    public function calcularHorariosLivres($idFuncionario, $dataDesejada, $idServico, $idAgendamentoIgnorar = null) {
         
         $servicoModel = new Servico();
         $dadosServico = $servicoModel->buscarPorId($idServico);
@@ -168,6 +168,24 @@ class DisponibilidadeService extends BaseService {
         
         if (!is_array($agendamentosDoDia)) {
             $agendamentosDoDia = [];
+        } else {
+            // Se for informada remarcação, ignora o agendamento atual na checagem de conflitos para evitar autocolisão
+            if ($idAgendamentoIgnorar !== null) {
+                $agendamentosDoDia = array_filter($agendamentosDoDia, function($ag) use ($idAgendamentoIgnorar) {
+                    return $ag['id_agendamento'] != $idAgendamentoIgnorar;
+                });
+            }
+        }
+
+        // Recupera bloqueios manuais da agenda e os trata como compromissos bloqueantes
+        $bloqueiosDoDia = $this->disponibilidadeModel->buscarBloqueiosDia($idFuncionario, $dataDesejada);
+        if (is_array($bloqueiosDoDia) && !empty($bloqueiosDoDia)) {
+            foreach ($bloqueiosDoDia as $bloqueio) {
+                $agendamentosDoDia[] = [
+                    'hora_inicio' => $bloqueio['hora_inicio'],
+                    'hora_fim' => $bloqueio['hora_fim']
+                ];
+            }
         }
 
         $antecedenciaMinima = isset($gradeAtiva['antecedencia_horas']) ? (int)$gradeAtiva['antecedencia_horas'] : 0;

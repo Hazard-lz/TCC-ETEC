@@ -191,6 +191,7 @@ class DisponibilidadeController
         $idFuncionario = isset($dados['id_funcionario']) ? (int)$dados['id_funcionario'] : 0;
         $dataDesejada = isset($dados['data']) ? trim($dados['data']) : '';
         $idServico = isset($dados['id_servico']) ? (int)$dados['id_servico'] : 0;
+        $idAgendamentoIgnorar = isset($dados['id_agendamento_ignorar']) ? (int)$dados['id_agendamento_ignorar'] : null;
 
         if (empty($idFuncionario) || empty($dataDesejada) || empty($idServico)) {
             http_response_code(400); 
@@ -200,7 +201,7 @@ class DisponibilidadeController
 
         try {
             $horariosDisponiveis = $this->disponibilidadeService->calcularHorariosLivres(
-                $idFuncionario, $dataDesejada, $idServico
+                $idFuncionario, $dataDesejada, $idServico, $idAgendamentoIgnorar
             );
 
             http_response_code(200); 
@@ -211,6 +212,102 @@ class DisponibilidadeController
             http_response_code(500); 
             echo json_encode(['sucesso' => false, 'mensagem' => 'Erro interno ao processar horários.']);
             error_log("Erro em buscarHorariosLivres: " . $e->getMessage());
+            exit;
+        }
+    }
+
+    public function salvarBloqueio()
+    {
+        if (session_status() === PHP_SESSION_NONE) { session_start(); }
+
+        if (!isset($_SESSION['usuario_id']) || !isset($_SESSION['is_funcionario'])) {
+            header("Location: " . BASE_URL . "/login");
+            exit;
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $idFuncionario = $this->getFuncionarioLogadoId();
+            if (!$idFuncionario) {
+                $_SESSION['flash_erro'] = "Perfil de funcionário não encontrado.";
+                header("Location: " . BASE_URL . "/funcionario/agenda");
+                exit;
+            }
+
+            $data = $_POST['data_bloqueio'] ?? '';
+            $inicio = $_POST['hora_inicio'] ?? '';
+            $fim = $_POST['hora_fim'] ?? '';
+            $motivo = $_POST['motivo'] ?? 'Bloqueio Manual';
+
+            if (empty($data) || empty($inicio) || empty($fim)) {
+                $_SESSION['flash_erro'] = "Todos os campos de horário do bloqueio são obrigatórios.";
+                header("Location: " . BASE_URL . "/funcionario/agenda");
+                exit;
+            }
+
+            if (strtotime($fim) <= strtotime($inicio)) {
+                $_SESSION['flash_erro'] = "O horário de término do bloqueio deve ser posterior ao de início.";
+                header("Location: " . BASE_URL . "/funcionario/agenda");
+                exit;
+            }
+
+            require_once __DIR__ . '/../Models/Disponibilidade.php';
+            $dispModel = new Disponibilidade();
+            
+            $conflito = $dispModel->buscarBloqueiosDia($idFuncionario, $data);
+            if (is_array($conflito)) {
+                foreach ($conflito as $b) {
+                    if (strtotime($inicio) < strtotime($b['hora_fim']) && strtotime($fim) > strtotime($b['hora_inicio'])) {
+                        $_SESSION['flash_erro'] = "Este intervalo colide com outro bloqueio já existente.";
+                        header("Location: " . BASE_URL . "/funcionario/agenda");
+                        exit;
+                    }
+                }
+            }
+
+            $sucesso = $dispModel->cadastrarBloqueio($idFuncionario, $data, $inicio, $fim, $motivo);
+
+            if ($sucesso) {
+                $_SESSION['flash_sucesso'] = "Horário bloqueado com sucesso!";
+            } else {
+                $_SESSION['flash_erro'] = "Erro ao cadastrar bloqueio na agenda.";
+            }
+
+            header("Location: " . BASE_URL . "/funcionario/agenda");
+            exit;
+        }
+    }
+
+    public function excluirBloqueio()
+    {
+        if (session_status() === PHP_SESSION_NONE) { session_start(); }
+
+        if (!isset($_SESSION['usuario_id']) || !isset($_SESSION['is_funcionario'])) {
+            header("Location: " . BASE_URL . "/login");
+            exit;
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $idFuncionario = $this->getFuncionarioLogadoId();
+            $idBloqueio = $_POST['id_bloqueio'] ?? '';
+
+            if (empty($idBloqueio)) {
+                $_SESSION['flash_erro'] = "ID do bloqueio não informado.";
+                header("Location: " . BASE_URL . "/funcionario/agenda");
+                exit;
+            }
+
+            require_once __DIR__ . '/../Models/Disponibilidade.php';
+            $dispModel = new Disponibilidade();
+
+            $sucesso = $dispModel->excluirBloqueio($idBloqueio, $idFuncionario);
+
+            if ($sucesso) {
+                $_SESSION['flash_sucesso'] = "Bloqueio de horário removido com sucesso!";
+            } else {
+                $_SESSION['flash_erro'] = "Falha ao remover o bloqueio de horário.";
+            }
+
+            header("Location: " . BASE_URL . "/funcionario/agenda");
             exit;
         }
     }

@@ -23,6 +23,11 @@ if (!isset($_SESSION['usuario_id'])) {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/app-cliente.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/historico.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/modal.css">
+
+    <script>
+        const BASE_URL = '<?= BASE_URL ?>';
+    </script>
     <?php require_once __DIR__ . '/../partials/onesignal.php'; ?>
 </head>
 
@@ -63,7 +68,7 @@ if (!isset($_SESSION['usuario_id'])) {
                             $podeCancelar = false;
                             $dataAgendamento = new DateTime($ag['data_agendamento']);
                             $hoje = new DateTime(date('Y-m-d'));
-                            if ($dataAgendamento > $hoje && in_array($ag['status'], ['pendente', 'marcado'])) {
+                            if ($ag['status'] === 'pendente' || ($dataAgendamento > $hoje && $ag['status'] === 'marcado')) {
                                 $podeCancelar = true;
                             }
                             ?>
@@ -81,15 +86,17 @@ if (!isset($_SESSION['usuario_id'])) {
                                     <div class="history-price">R$ <?= $ag['preco_formatado'] ?></div>
                                 </div>
                                 <?php if ($podeCancelar): ?>
-                                    <div style="margin-top: 15px; border-top: 1px solid #ffebee; padding-top: 10px;">
-                                        <form id="form-cancelar-<?= $ag['id_agendamento'] ?>" action="<?= BASE_URL ?>/historico/cancelar" method="POST">
+                                    <div style="margin-top: 15px; border-top: 1px solid var(--border-color); padding-top: 10px; display: flex; gap: 10px;">
+                                        <form id="form-cancelar-<?= $ag['id_agendamento'] ?>" action="<?= BASE_URL ?>/historico/cancelar" method="POST" style="flex: 1;">
                                             <?= CsrfGuard::campoHidden() ?>
                                             <input type="hidden" name="id_agendamento" value="<?= $ag['id_agendamento'] ?>">
                                             <button type="button"
                                                 onclick="cancelarAgendamento(<?= $ag['id_agendamento'] ?>)"
-                                                style="width: 100%; padding: 8px; border-radius: 8px; background-color: var(--color-pink); color: white; border: none; cursor: pointer; font-weight: 600; font-size: 0.9rem;">Cancelar
-                                                Agendamento</button>
+                                                style="width: 100%; padding: 10px; border-radius: 8px; background-color: var(--color-pink); color: white; border: none; cursor: pointer; font-weight: 600; font-size: 0.85rem;">Cancelar</button>
                                         </form>
+                                        <button type="button"
+                                            onclick="abrirModalRemarcar(<?= $ag['id_agendamento'] ?>, '<?= htmlspecialchars($ag['nome_servico'], ENT_QUOTES) ?>', '<?= htmlspecialchars($ag['funcionario_nome'], ENT_QUOTES) ?>', <?= $ag['cod_funcionario'] ?>, <?= $ag['id_servico'] ?>, '<?= $ag['status'] ?>')"
+                                            style="flex: 1; padding: 10px; border-radius: 8px; background-color: var(--color-purple); color: white; border: none; cursor: pointer; font-weight: 600; font-size: 0.85rem;">Remarcar</button>
                                     </div>
                                 <?php endif; ?>
                             </div>
@@ -148,6 +155,47 @@ if (!isset($_SESSION['usuario_id'])) {
         </div>
     </div>
 
+    <!-- Modal de Remarcação -->
+    <div id="modalRemarcar" class="modal-overlay">
+        <div class="modal-content" style="max-width: 450px;">
+            <div class="modal-header">
+                <h3>Remarcar Horário</h3>
+                <button type="button" class="btn-close" onclick="fecharModalRemarcar()">&times;</button>
+            </div>
+            
+            <div class="modal-body">
+                <form action="<?= BASE_URL ?>/historico/remarcar" method="POST" id="formRemarcar">
+                    <?= CsrfGuard::campoHidden() ?>
+                    <input type="hidden" name="id_agendamento" id="remarcar-id-agendamento">
+                    
+                    <div style="background: rgba(139, 92, 246, 0.04); border-left: 4px solid var(--color-purple); padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; border-top: 1px solid rgba(139,92,246,0.08); border-right: 1px solid rgba(139,92,246,0.08); border-bottom: 1px solid rgba(139,92,246,0.08);">
+                        <p style="margin: 0; font-size: 0.95rem; color: var(--text-main); font-weight: 600;">
+                            Serviço: <span id="remarcar-nome-servico" style="font-weight: 700; color: var(--color-purple);">--</span>
+                        </p>
+                        <p style="margin: 6px 0 0 0; font-size: 0.88rem; color: var(--text-muted); font-weight: 500;">
+                            Profissional: <span id="remarcar-nome-profissional" style="font-weight: 700; color: var(--text-main);">--</span>
+                        </p>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 1.5rem;">
+                        <label for="remarcar-data" style="display: block; margin-bottom: 0.6rem; color: var(--text-main); font-weight: 700; font-size: 0.92rem;">Escolha a nova data:</label>
+                        <input type="date" name="data" id="remarcar-data" onchange="atualizarHorariosRemarcar()" required class="form-control" style="font-weight: 600; font-size: 0.95rem;">
+                    </div>
+
+                    <div id="remarcar-box-horarios" style="display: none; margin-top: 20px; margin-bottom: 1.5rem;">
+                        <label style="display: block; color: var(--text-main); margin-bottom: 0.8rem; font-weight: 700; font-size: 0.92rem;">Horários Disponíveis:</label>
+                        <div class="horarios-container" id="remarcar-container-horarios" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+                            <!-- Horários preenchidos dinamicamente -->
+                        </div>
+                        <input type="hidden" name="hora" id="remarcar-hora-selecionada" required>
+                    </div>
+
+                    <button type="submit" class="btn-primary" id="btn-remarcar-confirmar" style="width: 100%; margin-top: 1rem;" disabled>Confirmar Remarcação</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
 
     <script src="<?= BASE_URL ?>/public/resources/js/historico.js"></script>
     <script src="<?= BASE_URL ?>/public/resources/js/app-cliente.js"></script>
@@ -189,8 +237,11 @@ if (!isset($_SESSION['usuario_id'])) {
             // Se houver agendamentos próximos, verifica atualizações a cada 30 segundos
             <?php if (!empty($proximos)): ?>
                 setInterval(() => {
-                    // Só recarrega se a página estiver visível (economiza bateria/dados)
-                    if (!document.hidden) {
+                    // Só recarrega se a página estiver visível E o modal de remarcação não estiver aberto
+                    const modalRemarcar = document.getElementById('modalRemarcar');
+                    const isModalAberto = modalRemarcar && modalRemarcar.classList.contains('active');
+                    
+                    if (!document.hidden && !isModalAberto) {
                         window.location.reload();
                     }
                 }, 30000);

@@ -190,6 +190,9 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
             .metrica-card:nth-child(3) .metrica-valor {
                 color: #16a34a !important; /* Legible green */
             }
+            .metrica-card:nth-child(3) .metrica-valor.valor-negativo {
+                color: #dc2626 !important; /* Legible red for deficit on print */
+            }
             
             .metrica-card:nth-child(5) .metrica-valor {
                 color: #7c3aed !important; /* Legible purple */
@@ -376,9 +379,9 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
                     <div class="metrica-valor">R$ <?= number_format($faturamentoBruto, 2, ',', '.') ?></div>
                     <div class="metrica-sub">total em serviços concluídos</div>
                 </div>
-                <div class="metrica-card">
+                 <div class="metrica-card">
                     <div class="metrica-titulo">Faturamento Líquido</div>
-                    <div class="metrica-valor" style="color: #10b981;">R$ <?= number_format($faturamentoLiquido, 2, ',', '.') ?></div>
+                    <div class="metrica-valor <?= $faturamentoLiquido >= 0 ? 'valor-positivo' : 'valor-negativo' ?>" style="color: <?= $faturamentoLiquido >= 0 ? '#10b981' : '#ef4444' ?>;">R$ <?= number_format($faturamentoLiquido, 2, ',', '.') ?></div>
                     <div class="metrica-sub">bruto menos salários base</div>
                 </div>
                 <div class="metrica-card">

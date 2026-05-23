@@ -388,7 +388,7 @@ class FuncionarioController
         }
 
         // Preserva o salário original porque um funcionário comum não deve alterar o próprio salário
-        $salario = $funcionario['salario_base'] ?? 0;
+        $salario = $funcionario['salario'] ?? 0;
 
         $resultado = $this->funcionarioService->atualizarDadosFuncionario(
             $idLogado,

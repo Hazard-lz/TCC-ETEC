@@ -38,6 +38,7 @@ $router->post('/agendar', 'AgendamentoController@salvar');
 
 $router->get('/historico', 'AgendamentoController@historicoCliente');
 $router->post('/historico/cancelar', 'AgendamentoController@cancelarPeloCliente');
+$router->post('/historico/remarcar', 'AgendamentoController@remarcarPeloCliente');
 
 // Rotas de Ajuda (FAQ)
 $router->view('/cliente/ajuda', 'cliente/ajuda');
@@ -240,6 +241,10 @@ $router->get('/funcionario/disponibilidade/excluir', function () {
     header("Location: " . BASE_URL . "/funcionario/disponibilidade");
     exit;
 });
+
+// Rotas de Bloqueio Manual de Agenda
+$router->post('/funcionario/bloqueio/salvar', 'DisponibilidadeController@salvarBloqueio');
+$router->post('/funcionario/bloqueio/excluir', 'DisponibilidadeController@excluirBloqueio');
 
 $router->post('/funcionario/servicos/salvar', function () {
     $funcionarioModel = new Funcionario();

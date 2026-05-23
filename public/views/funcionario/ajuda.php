@@ -69,7 +69,7 @@ if (!isset($_SESSION['usuario_id']) || !isset($_SESSION['is_funcionario'])) {
                             <li>Clique em <strong>"Nova Grade"</strong> e dê um nome (ex: "Semana Padrão").</li>
                             <li>Para cada dia da semana, defina o <strong>horário de início e fim</strong> do expediente.</li>
                             <li>Se houver almoço ou pausa, preencha os campos de <strong>Intervalo</strong> (início e fim). O sistema bloqueia esses horários automaticamente.</li>
-                            <li>Dias que você não atende devem ter o status <strong>"Folga"</strong>.</li>
+                            <li>Dias que você não atende devem ter o interruptor desativado (desligado, exibindo "Sem horário" na pré-visualização).</li>
                             <li>Marque a opção <strong>"Ativar esta grade"</strong> para que ela passe a reger os seus agendamentos.</li>
                         </ol>
                         <div class="ajuda-warning">
@@ -155,7 +155,7 @@ if (!isset($_SESSION['usuario_id']) || !isset($_SESSION['is_funcionario'])) {
                     <div class="accordion-body">
                         Na tela de Agendamentos, clique no evento e use os botões de ação:
                         <ul>
-                            <li><strong>Marcado</strong> — confirma que o cliente compareceu e o atendimento vai acontecer.</li>
+                            <li><strong>Marcado</strong> — indica que o agendamento foi confirmado pelo profissional ou criado no balcão e está ativo no calendário (aguardando a data/hora do atendimento).</li>
                             <li><strong>Concluído</strong> — marca o serviço como finalizado.</li>
                             <li><strong>Cancelado</strong> — cancela o agendamento (o cliente será notificado automaticamente via push).</li>
                         </ul>

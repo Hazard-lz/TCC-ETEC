@@ -267,7 +267,7 @@ $isAdmin = ($_SESSION['usuario_tipo'] ?? '') === 'admin';
                     <div class="accordion-body">
                         Acesse <strong>Relatórios</strong> no menu lateral. Nesta tela você pode:
                         <ul>
-                            <li><strong>Filtrar por período</strong> (mês/ano) e por <strong>funcionário específico</strong>.</li>
+                            <li><strong>Filtrar por período</strong> (especificando um intervalo de datas com início e fim, ou usando os atalhos rápidos como "Hoje", "Esta Semana" e "Este Mês") e por <strong>funcionário específico</strong> (ou visão geral).</li>
                             <li>Visualizar o <strong>volume de atendimentos</strong> no período — útil para identificar sazonalidade.</li>
                             <li>Analisar o <strong>faturamento consolidado</strong> por profissional.</li>
                             <li>Comparar a performance da equipe para tomada de decisão em comissões ou metas.</li>

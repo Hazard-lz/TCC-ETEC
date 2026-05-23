@@ -314,4 +314,170 @@ class AgendamentoService extends BaseService
 
         return ['sucesso' => false, 'mensagem' => 'Falha ao atualizar o status.'];
     }
+
+    /**
+     * Remarca um agendamento existente de forma segura, com transação e checagem de colisões.
+     */
+    public function remarcarAgendamento($idAgendamento, $novaData, $novaHoraInicio, $origem = 'cliente')
+    {
+        try {
+            // 1. Validação de data: impede remarcação em datas passadas
+            if ($novaData < date('Y-m-d')) {
+                return ['sucesso' => false, 'mensagem' => 'Não é possível remarcar para datas passadas.'];
+            }
+
+            // 2. Inicia Transação
+            if (!$this->conn->inTransaction()) {
+                $this->conn->beginTransaction();
+            }
+
+            // 3. Busca o agendamento atual
+            $agendamento = $this->agendamentoModel->buscarPorId($idAgendamento);
+            if (!$agendamento) {
+                throw new Exception("Agendamento não encontrado.");
+            }
+
+            // Validação de estado atual
+            if (in_array($agendamento['status'], ['concluido', 'cancelado'])) {
+                throw new Exception("Não é possível remarcar um agendamento concluído ou cancelado.");
+            }
+
+            $idFuncionario = $agendamento['cod_funcionario'];
+            $duracao = (int) $agendamento['duracao'];
+
+            // 4. Cálculos de Tempo: calcula a hora de término baseado na duração original do serviço
+            $horaFimObj = new DateTime($novaHoraInicio);
+            $horaFimObj->modify("+{$duracao} minutes");
+            $novaHoraFim = $horaFimObj->format('H:i:s');
+
+            // 5. Verificação de Conflito de Horário (Overbooking) - Ignora o próprio ID atual na colisão
+            $conflito = $this->agendamentoModel->verificarConflitoHorario($idFuncionario, $novaData, $novaHoraInicio, $novaHoraFim, $idAgendamento);
+            if ($conflito) {
+                throw new Exception("O profissional já possui um agendamento neste horário.");
+            }
+
+            // 6. Verificação de Bloqueios Manuais da Agenda do Funcionário
+            require_once __DIR__ . '/../Models/Disponibilidade.php';
+            $disponibilidadeModel = new Disponibilidade();
+            $bloqueios = $disponibilidadeModel->buscarBloqueiosDia($idFuncionario, $novaData);
+            
+            if (is_array($bloqueios)) {
+                $inicioNovo = strtotime($novaHoraInicio);
+                $fimNovo = strtotime($novaHoraFim);
+                foreach ($bloqueios as $b) {
+                    $inicioBloqueio = strtotime($b['hora_inicio']);
+                    $fimBloqueio = strtotime($b['hora_fim']);
+                    if ($inicioNovo < $fimBloqueio && $fimNovo > $inicioBloqueio) {
+                        throw new Exception("Este horário está bloqueado pelo profissional.");
+                    }
+                }
+            }
+
+            // 7. Atualiza os dados no Banco de Dados
+            // Atualiza data na capa
+            $sqlCapa = "UPDATE agendamentos SET data_agendamento = :data WHERE id_agendamento = :id";
+            $stmtCapa = $this->conn->prepare($sqlCapa);
+            $stmtCapa->execute([
+                ':data' => $novaData,
+                ':id' => $idAgendamento
+            ]);
+
+            // Atualiza horários no item
+            $sqlItem = "UPDATE itens_agendamento SET hora_inicio = :hora_inicio, hora_fim = :hora_fim WHERE cod_agendamento = :id";
+            $stmtItem = $this->conn->prepare($sqlItem);
+            $stmtItem->execute([
+                ':hora_inicio' => $novaHoraInicio,
+                ':hora_fim' => $novaHoraFim,
+                ':id' => $idAgendamento
+            ]);
+
+            // Efetiva a gravação no banco
+            $this->conn->commit();
+
+            // ==========================================
+            // INTEGRAÇÃO ONESIGNAL / EMAIL (Remarcação)
+            // ==========================================
+            try {
+                $agendamentoCompleto = $this->agendamentoModel->buscarPorId($idAgendamento);
+                if ($agendamentoCompleto) {
+                    $oneSignal = new OneSignalService();
+                    $emailService = new EmailService();
+                    
+                    $protocolo = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? "https" : "http";
+                    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+                    $urlBase = "$protocolo://$host" . BASE_URL;
+
+                    $dataPt = date('d/m/Y', strtotime($agendamentoCompleto['data_agendamento']));
+                    $horaPt = substr($agendamentoCompleto['hora_inicio'], 0, 5);
+
+                    if ($origem === 'cliente') {
+                        // Criado pelo CLIENTE -> Avisa o FUNCIONÁRIO
+                        if (!empty($agendamentoCompleto['funcionario_cod_usuario'])) {
+                            $msg = "📅 Agendamento Remarcado: {$agendamentoCompleto['cliente_nome']} alterou {$agendamentoCompleto['nome_servico']} para o dia $dataPt às $horaPt.";
+                            
+                            $oneSignal->enviarNotificacao(
+                                $agendamentoCompleto['funcionario_cod_usuario'], 
+                                $msg, 
+                                $urlBase . '/funcionario/agenda',
+                                "Agendamento Remarcado"
+                            );
+                        }
+                        if (!empty($agendamentoCompleto['funcionario_email'])) {
+                            $assunto = "Agendamento Remarcado pelo Cliente - Belezou App";
+                            $corpoHtml = "<div style='padding: 20px; font-family: sans-serif; color: #333;'>
+                                <h2>Olá, {$agendamentoCompleto['funcionario_nome']}!</h2>
+                                <p>O cliente remarcou um agendamento existente:</p>
+                                <p><strong>Cliente:</strong> {$agendamentoCompleto['cliente_nome']}</p>
+                                <p><strong>Serviço:</strong> {$agendamentoCompleto['nome_servico']}</p>
+                                <p><strong>Nova Data/Hora:</strong> {$dataPt} às {$horaPt}</p>
+                                <p>Acesse o painel do sistema para gerenciar sua agenda.</p>
+                            </div>";
+                            $emailService->enviar($agendamentoCompleto['funcionario_email'], $agendamentoCompleto['funcionario_nome'], $assunto, $corpoHtml);
+                        }
+                    } else {
+                        // Remarcado pelo FUNCIONÁRIO -> Avisa o CLIENTE
+                        if (!empty($agendamentoCompleto['cliente_cod_usuario'])) {
+                            $msg = "✨ Agendamento Remarcado: O seu horário de {$agendamentoCompleto['nome_servico']} foi remarcado para o dia $dataPt às $horaPt.";
+                            
+                            $oneSignal->enviarNotificacao(
+                                $agendamentoCompleto['cliente_cod_usuario'], 
+                                $msg, 
+                                $urlBase . '/historico',
+                                "Agendamento Remarcado"
+                            );
+                        }
+                        if (!empty($agendamentoCompleto['cliente_email'])) {
+                            $assunto = "Seu Agendamento foi Remarcado! - Belezou App";
+                            $corpoHtml = "<div style='padding: 20px; font-family: sans-serif; color: #333;'>
+                                <h2>Olá, {$agendamentoCompleto['cliente_nome']}!</h2>
+                                <p>O seu agendamento foi remarcado pelo profissional:</p>
+                                <p><strong>Serviço:</strong> {$agendamentoCompleto['nome_servico']}</p>
+                                <p><strong>Profissional:</strong> {$agendamentoCompleto['funcionario_nome']}</p>
+                                <p><strong>Nova Data/Hora:</strong> {$dataPt} às {$horaPt}</p>
+                                <p>Agradecemos a preferência!</p>
+                            </div>";
+                            $emailService->enviar($agendamentoCompleto['cliente_email'], $agendamentoCompleto['cliente_nome'], $assunto, $corpoHtml);
+                        }
+                    }
+                }
+            } catch (Exception $e) {
+                error_log("Aviso: Falha ao enviar notificação de remarcação: " . $e->getMessage());
+            }
+
+            return [
+                'sucesso' => true,
+                'mensagem' => 'Agendamento remarcado com sucesso!'
+            ];
+
+        } catch (Exception $e) {
+            if ($this->conn->inTransaction()) {
+                $this->conn->rollBack();
+            }
+            error_log("Erro em remarcarAgendamento: " . $e->getMessage());
+            return [
+                'sucesso' => false,
+                'mensagem' => $e->getMessage()
+            ];
+        }
+    }
 }

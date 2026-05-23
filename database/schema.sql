@@ -117,4 +117,16 @@ CREATE TABLE configuracoes_sistema (
     chave VARCHAR(100) UNIQUE NOT NULL,
     valor TEXT DEFAULT NULL,
     data_atualizacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- 10. Tabela: bloqueios_agenda (Bloqueio Manual de Horários)
+CREATE TABLE bloqueios_agenda (
+    id_bloqueio INT AUTO_INCREMENT PRIMARY KEY,
+    cod_funcionario INT NOT NULL,
+    data_bloqueio DATE NOT NULL,
+    hora_inicio TIME NOT NULL,
+    hora_fim TIME NOT NULL,
+    motivo VARCHAR(255) DEFAULT NULL,
+    data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (cod_funcionario) REFERENCES funcionarios(id_funcionario) ON DELETE CASCADE
 );

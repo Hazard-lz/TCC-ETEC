@@ -340,6 +340,29 @@ class AgendamentoController
             }
         }
 
+        // Recupera os bloqueios manuais de agenda para este profissional e período
+        require_once __DIR__ . '/../Models/Disponibilidade.php';
+        $disponibilidadeModel = new Disponibilidade();
+        $bloqueios = $disponibilidadeModel->buscarBloqueiosPeriodo($idFuncionarioAgenda, $dataInicio, $dataFim);
+        
+        if ($bloqueios) {
+            foreach ($bloqueios as $b) {
+                $eventos[] = [
+                    'id' => 'bloqueio_' . $b['id_bloqueio'],
+                    'title' => "🚫 Bloqueado\nMotivo: " . ($b['motivo'] ?? 'Bloqueio Manual'),
+                    'start' => $b['data_bloqueio'] . 'T' . $b['hora_inicio'],
+                    'end' => $b['data_bloqueio'] . 'T' . $b['hora_fim'],
+                    'className' => 'evento-bloqueado',
+                    'extendedProps' => [
+                        'isBloqueio' => true,
+                        'idBloqueio' => $b['id_bloqueio'],
+                        'motivo' => $b['motivo'] ?? 'Bloqueio Manual',
+                        'status' => 'bloqueado'
+                    ]
+                ];
+            }
+        }
+
         echo json_encode($eventos);
         exit;
     }
@@ -423,12 +446,13 @@ class AgendamentoController
             exit;
         }
 
-        // Regra de negócio: só pode cancelar até 1 dia antes
+        // Regra de negócio: só pode cancelar até 1 dia antes (para agendamentos marcados/confirmados)
+        // Agendamentos ainda pendentes podem ser cancelados no mesmo dia.
         $dataAgendamento = new DateTime($agendamento['data_agendamento']);
         $hoje = new DateTime(date('Y-m-d'));
 
-        if ($dataAgendamento <= $hoje) {
-            $_SESSION['flash_erro'] = "Não é possível cancelar no mesmo dia do agendamento ou em datas passadas. Cancelamentos apenas com 1 dia de antecedência.";
+        if ($agendamento['status'] === 'marcado' && $dataAgendamento <= $hoje) {
+            $_SESSION['flash_erro'] = "Não é possível cancelar um agendamento confirmado no mesmo dia. Cancelamentos apenas com 1 dia de antecedência.";
             header('Location: ' . BASE_URL . '/historico');
             exit;
         }
@@ -437,6 +461,63 @@ class AgendamentoController
 
         if ($resultado['sucesso']) {
             $_SESSION['flash_sucesso'] = "Agendamento cancelado com sucesso!";
+        } else {
+            $_SESSION['flash_erro'] = $resultado['mensagem'];
+        }
+
+        header('Location: ' . BASE_URL . '/historico');
+        exit;
+    }
+
+    /**
+     * Action: POST para /historico/remarcar
+     * Responsável por remarcar um agendamento a pedido do próprio cliente.
+     */
+    public function remarcarPeloCliente()
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $_SESSION['flash_erro'] = "Método inválido.";
+            header('Location: ' . BASE_URL . '/historico');
+            exit;
+        }
+
+        $id_agendamento = $_POST['id_agendamento'] ?? '';
+        $nova_data = $_POST['data'] ?? '';
+        $nova_hora = $_POST['hora'] ?? '';
+
+        if (empty($id_agendamento) || empty($nova_data) || empty($nova_hora)) {
+            $_SESSION['flash_erro'] = "Dados insuficientes para remarcar o agendamento.";
+            header('Location: ' . BASE_URL . '/historico');
+            exit;
+        }
+
+        // Validação de segurança (IDOR prevention)
+        $agendamentoModel = new Agendamento();
+        $agendamento = $agendamentoModel->buscarPorId($id_agendamento);
+
+        $cliente = $this->clienteModel->buscarPorCodUsuario($_SESSION['usuario_id']);
+
+        if (!$agendamento || !$cliente || $agendamento['cod_cliente'] !== $cliente['id_cliente']) {
+            $_SESSION['flash_erro'] = "Você não tem permissão para alterar este agendamento.";
+            header('Location: ' . BASE_URL . '/historico');
+            exit;
+        }
+
+        // Regra de negócio: só pode remarcar até 1 dia antes (para agendamentos marcados/confirmados)
+        // Agendamentos ainda pendentes podem ser remarcados no mesmo dia.
+        $dataAgendamento = new DateTime($agendamento['data_agendamento']);
+        $hoje = new DateTime(date('Y-m-d'));
+
+        if ($agendamento['status'] === 'marcado' && $dataAgendamento <= $hoje) {
+            $_SESSION['flash_erro'] = "Não é possível remarcar um agendamento confirmado no mesmo dia. Remarcações apenas com no mínimo 1 dia de antecedência.";
+            header('Location: ' . BASE_URL . '/historico');
+            exit;
+        }
+
+        $resultado = $this->agendamentoService->remarcarAgendamento($id_agendamento, $nova_data, $nova_hora, 'cliente');
+
+        if ($resultado['sucesso']) {
+            $_SESSION['flash_sucesso'] = "Agendamento remarcado com sucesso!";
         } else {
             $_SESSION['flash_erro'] = $resultado['mensagem'];
         }

@@ -75,6 +75,7 @@ if (session_status() === PHP_SESSION_NONE) {
 
             <div class="action-buttons">
                 <button onclick="window.location.href='<?= BASE_URL ?>/funcionario/disponibilidade'" class="btn-secondary btn-desktop">⏱ Gerenciar Horário</button>
+                <button data-modal-target="#modalNovoBloqueio" class="btn-secondary btn-desktop" style="background:#64748b; color:white; border-color:#64748b;"><i class="bi bi-slash-circle"></i> Bloquear Horário</button>
                 <button data-modal-target="#modalNovoAgendamento" class="btn-primary btn-desktop">+ Novo Agendamento</button>
             </div>
         </div>
@@ -84,6 +85,7 @@ if (session_status() === PHP_SESSION_NONE) {
             <span class="legenda-item"><span class="legenda-dot" style="background:#8b5cf6;"></span> Marcado</span>
             <span class="legenda-item"><span class="legenda-dot" style="background:#f45b69;"></span> Pendente</span>
             <span class="legenda-item"><span class="legenda-dot" style="background:#2ecc71;"></span> Concluído</span>
+            <span class="legenda-item"><span class="legenda-dot" style="background:#64748b;"></span> Bloqueado</span>
         </div>
 
         <div id="calendario-agendamentos"></div>
@@ -147,6 +149,44 @@ if (session_status() === PHP_SESSION_NONE) {
                     </div>
 
                     <button type="submit" class="btn-primary" style="width: 100%; margin-top: 1rem;">Confirmar Agendamento</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Novo Bloqueio Manual -->
+    <div id="modalNovoBloqueio" class="modal-overlay">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3>Bloquear Horário na Agenda</h3>
+                <button data-close-modal class="btn-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form action="<?= BASE_URL ?>/funcionario/bloqueio/salvar" method="POST">
+                    <?= CsrfGuard::campoHidden() ?>
+                    
+                    <div class="form-group" style="margin-bottom:1rem;">
+                        <label style="font-weight:600;">Data do Bloqueio</label>
+                        <input type="date" name="data_bloqueio" class="form-control" value="<?= date('Y-m-d') ?>" required>
+                    </div>
+
+                    <div class="form-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem;">
+                        <div class="form-group">
+                            <label style="font-weight:600;">Hora Início</label>
+                            <input type="time" name="hora_inicio" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label style="font-weight:600;">Hora Fim</label>
+                            <input type="time" name="hora_fim" class="form-control" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom:1.5rem;">
+                        <label style="font-weight:600;">Motivo do Bloqueio</label>
+                        <input type="text" name="motivo" class="form-control" placeholder="Ex: Almoço Externo, Consulta Médica..." required>
+                    </div>
+
+                    <button type="submit" class="btn-primary" style="width: 100%; background:#64748b; border-color:#64748b;">Confirmar e Bloquear Horário</button>
                 </form>
             </div>
         </div>
@@ -315,6 +355,33 @@ if (session_status() === PHP_SESSION_NONE) {
                     const props = arg.event.extendedProps;
                     const isList = arg.view.type.includes('list');
 
+                    if (props.isBloqueio) {
+                        if (isList) {
+                            return {
+                                html: `
+                                    <div class="fc-list-event-custom">
+                                        <div class="fc-list-event-main-info">
+                                            <span class="fc-list-event-client-name" style="color: #475569;"><i class="bi bi-slash-circle"></i> Horário Bloqueado</span>
+                                            <span class="fc-list-event-service-name" style="color: #64748b;">
+                                                Motivo: ${props.motivo}
+                                            </span>
+                                        </div>
+                                        <span class="status-badge" style="background-color: rgba(100,116,139,0.12); color: #64748b; border: 1px solid rgba(100,116,139,0.2);">Bloqueado</span>
+                                    </div>
+                                `
+                            };
+                        } else {
+                            return {
+                                html: `
+                                    <div class="fc-grid-event-custom" style="justify-content: center; align-items: center; text-align: center; height: 100%;">
+                                        <div style="font-weight: 800; font-size: 0.88rem; color: #475569; display: flex; align-items: center; gap: 4px;"><i class="bi bi-slash-circle"></i> Bloqueado</div>
+                                        <div style="font-size: 0.72rem; color: #64748b; font-weight: 600; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 100%;">${props.motivo}</div>
+                                    </div>
+                                `
+                            };
+                        }
+                    }
+
                     const status = props.status;
                     let statusLabel = status;
                     let statusClass = 'status-badge-marcado';
@@ -374,6 +441,43 @@ if (session_status() === PHP_SESSION_NONE) {
 
                 eventClick: function (info) {
                     const props = info.event.extendedProps;
+
+                    if (props.isBloqueio) {
+                        Swal.fire({
+                            title: 'Desbloquear Horário?',
+                            text: `Deseja liberar o horário bloqueado: "${props.motivo}"? Ele voltará a ficar disponível para novos agendamentos de clientes.`,
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonColor: '#dc3545',
+                            cancelButtonColor: '#6c757d',
+                            confirmButtonText: 'Confirmar e Liberar',
+                            cancelButtonText: 'Cancelar'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                const form = document.createElement('form');
+                                form.method = 'POST';
+                                form.action = '<?= BASE_URL ?>/funcionario/bloqueio/excluir';
+                                
+                                const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                                const inputCsrf = document.createElement('input');
+                                inputCsrf.type = 'hidden';
+                                inputCsrf.name = 'csrf_token';
+                                inputCsrf.value = csrfToken;
+                                form.appendChild(inputCsrf);
+
+                                const inputId = document.createElement('input');
+                                inputId.type = 'hidden';
+                                inputId.name = 'id_bloqueio';
+                                inputId.value = props.idBloqueio;
+                                form.appendChild(inputId);
+
+                                document.body.appendChild(form);
+                                form.submit();
+                            }
+                        });
+                        return;
+                    }
+
                     document.getElementById('detalhesCliente').textContent = props.cliente;
                     document.getElementById('detalhesServico').textContent = props.servico;
                     document.getElementById('detalhesProfissional').textContent = props.profissional;

@@ -64,20 +64,26 @@ class RelatorioController {
             $taxaAbsenteismo = $taxaCancelamento;
 
             // Cálculo proporcional dos salários contratuais para obter o faturamento líquido
-            $dias = (strtotime($dataFim) - strtotime($dataInicio)) / (86400) + 1;
+            $dtInicio = new DateTime($dataInicio);
+            $dtFim = new DateTime($dataFim);
+            $dias = (int) $dtInicio->diff($dtFim)->days + 1;
             if ($dias < 1) $dias = 1;
 
             if ($idFuncionario === 'todos') {
                 $custoTotal = 0;
                 foreach ($listaFuncionarios as $func) {
+                    // Pula funcionários inativos para não inflar as despesas salariais
+                    if (($func['status'] ?? '') === 'inativo') {
+                        continue;
+                    }
                     $sal = (float) ($func['salario'] ?? 0);
                     $custoTotal += ($sal / 30.0) * $dias;
                 }
-                $faturamentoLiquido = max(0, $faturamentoBruto - $custoTotal);
+                $faturamentoLiquido = $faturamentoBruto - $custoTotal;
             } else {
                 $sal = (float) ($funcionarioSelecionado['salario'] ?? 0);
                 $custo = ($sal / 30.0) * $dias;
-                $faturamentoLiquido = max(0, $faturamentoBruto - $custo);
+                $faturamentoLiquido = $faturamentoBruto - $custo;
             }
         }
 
