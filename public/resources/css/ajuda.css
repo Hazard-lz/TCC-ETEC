@@ -271,7 +271,7 @@
 .status-pill.pendente  { background: rgba(245, 158, 11, 0.1);  color: #d97706; }
 .status-pill.marcado   { background: rgba(139, 92, 246, 0.1);  color: var(--color-purple); }
 .status-pill.concluido { background: rgba(34, 197, 94, 0.1);   color: #16a34a; }
-.status-pill.cancelado { background: rgba(244, 91, 105, 0.1);  color: var(--color-pink); }
+.status-pill.cancelado { background: rgba(239, 68, 68, 0.1);  color: #ef4444; }
 
 /* ── Dark Mode: ajustes do accordion ── */
 [data-theme="dark"] .ajuda-item .accordion-button {

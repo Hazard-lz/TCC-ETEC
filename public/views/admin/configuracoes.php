@@ -71,10 +71,40 @@ $isAdmin = ($tipoLogado === 'admin');
             background: rgba(239, 68, 68, 0.05);
         }
         .status-option input[type="radio"] {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border-color, #e2e8f0);
+            border-radius: 50%;
+            outline: none;
             margin-top: 0.25rem;
-            accent-color: var(--color-primary, #8b5cf6);
-            width: 18px;
-            height: 18px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            background-color: var(--surface-color, #ffffff);
+            transition: border-color 0.2s ease, background-color 0.2s ease;
+        }
+        .status-option input[type="radio"]:hover {
+            border-color: var(--color-purple, #8b5cf6);
+        }
+        .status-option input[type="radio"]:checked {
+            border-color: var(--color-purple, #8b5cf6);
+        }
+        .status-option input[type="radio"]::before {
+            content: "";
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: var(--color-purple, #8b5cf6);
+            transform: scale(0);
+            transition: transform 0.2s ease-in-out;
+        }
+        .status-option input[type="radio"]:checked::before {
+            transform: scale(1);
         }
         .status-option-content h4 {
             margin: 0 0 0.25rem 0;
@@ -141,6 +171,37 @@ $isAdmin = ($tipoLogado === 'admin');
             filter: brightness(1.05);
             transform: translateY(-1px);
         }
+        
+        /* Estilização Premium para Color Pickers */
+        .color-picker-premium {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background: none !important;
+            border: 1.5px solid var(--border-color, #e2e8f0);
+            border-radius: 8px;
+            width: 45px;
+            height: 45px;
+            cursor: pointer;
+            padding: 0;
+            overflow: hidden;
+            transition: border-color 0.2s;
+        }
+        .color-picker-premium::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+        .color-picker-premium::-webkit-color-swatch {
+            border: none;
+            border-radius: 6px;
+        }
+        .color-picker-premium::-moz-color-swatch {
+            border: none;
+            border-radius: 6px;
+        }
+        .color-picker-premium:focus {
+            outline: none;
+            border-color: var(--color-purple, #8b5cf6);
+        }
     </style>
 </head>
 
@@ -173,7 +234,7 @@ $isAdmin = ($tipoLogado === 'admin');
         <!-- Card 1: Controle de Funcionamento -->
         <div class="config-card">
             <h3 style="margin-top: 0; margin-bottom: 1.5rem; font-size: 1.25rem; font-weight: 600; color: var(--text-main, #1e293b); display: flex; align-items: center; gap: 0.5rem;">
-                <i class="bi bi-power" style="color: var(--color-primary, #8b5cf6);"></i> Status de Funcionamento do Estabelecimento
+                <i class="bi bi-power" style="color: var(--color-purple, #8b5cf6);"></i> Status de Funcionamento do Estabelecimento
             </h3>
 
             <form action="<?= BASE_URL ?>/admin/configuracoes/salvar" method="POST" id="formConfig">
@@ -201,27 +262,58 @@ $isAdmin = ($tipoLogado === 'admin');
                     </div>
                 </label>
 
+                <!-- ══ REGRA DE CANCELAMENTO ══ -->
+                <div class="form-group" style="margin-top: 1.5rem; margin-bottom: 0.5rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-size: 0.95rem; font-weight: 600; color: var(--text-main, #1e293b);">
+                        <i class="bi bi-clock-history" style="color: var(--color-purple, #8b5cf6);"></i> Antecedência Mínima para Cancelamento / Remarcação (Horas)
+                    </label>
+                    <input type="number" name="antecedencia_cancelamento_horas" id="antecedencia_cancelamento_horas" value="<?= htmlspecialchars($antecedenciaCancelamento ?? '24') ?>" min="0" max="72" class="form-control" style="max-width: 150px; font-weight: 600;" required>
+                    <small style="color: var(--text-muted, #64748b); font-size: 0.85rem; display: block; margin-top: 0.25rem;">
+                        Define a antecedência mínima em horas exigida para clientes e funcionários comuns realizarem o cancelamento ou remarcação de agendamentos confirmados. Administradores/Subadministradores possuem bypass automático. Use 0 para desativar a restrição.
+                    </small>
+                </div>
+
+                <!-- ══ LIMITE DE AGENDAMENTO FUTURO ══ -->
+                <div class="form-group" style="margin-top: 1.5rem; margin-bottom: 0.5rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-size: 0.95rem; font-weight: 600; color: var(--text-main, #1e293b);">
+                        <i class="bi bi-calendar-range" style="color: var(--color-purple, #8b5cf6);"></i> Limite Máximo para Agendamentos Futuros (Clientes)
+                    </label>
+                    <select name="limite_agendamento_futuro_dias" id="limite_agendamento_futuro_dias" class="form-control" style="max-width: 250px; font-weight: 600; cursor: pointer;">
+                        <option value="sem_limite" <?= ($limiteAgendamentoFuturo ?? 'sem_limite') === 'sem_limite' ? 'selected' : '' ?>>Sem limite futuro</option>
+                        <option value="7" <?= ($limiteAgendamentoFuturo ?? 'sem_limite') === '7' ? 'selected' : '' ?>>1 semana (7 dias)</option>
+                        <option value="14" <?= ($limiteAgendamentoFuturo ?? 'sem_limite') === '14' ? 'selected' : '' ?>>2 semanas (14 dias)</option>
+                        <option value="21" <?= ($limiteAgendamentoFuturo ?? 'sem_limite') === '21' ? 'selected' : '' ?>>3 semanas (21 dias)</option>
+                        <option value="30" <?= ($limiteAgendamentoFuturo ?? 'sem_limite') === '30' ? 'selected' : '' ?>>1 mês (30 dias)</option>
+                        <option value="60" <?= ($limiteAgendamentoFuturo ?? 'sem_limite') === '60' ? 'selected' : '' ?>>2 meses (60 dias)</option>
+                        <option value="90" <?= ($limiteAgendamentoFuturo ?? 'sem_limite') === '90' ? 'selected' : '' ?>>3 meses (90 dias)</option>
+                        <option value="180" <?= ($limiteAgendamentoFuturo ?? 'sem_limite') === '180' ? 'selected' : '' ?>>6 meses (180 dias)</option>
+                    </select>
+                    <small style="color: var(--text-muted, #64748b); font-size: 0.85rem; display: block; margin-top: 0.25rem;">
+                        Restringe o período máximo no futuro em que um cliente final pode marcar ou remarcar um horário. Esta configuração afeta **apenas** agendamentos realizados pelo app do cliente; profissionais e administradores continuam com permissão para agendar livremente sem limite de data.
+                    </small>
+                </div>
+
                 <!-- ══ PERSONALIZAÇÃO VISUAL (WHITE-LABEL) ══ -->
                 <hr style="border: 0; border-top: 1px solid var(--border-color, #e2e8f0); margin: 2rem 0;">
 
                 <h3 style="margin-top: 0; margin-bottom: 1.5rem; font-size: 1.25rem; font-weight: 600; color: var(--text-main, #1e293b); display: flex; align-items: center; gap: 0.5rem;">
-                    <i class="bi bi-palette" style="color: var(--color-primary, #8b5cf6);"></i> Personalização da Marca (White-Label)
+                    <i class="bi bi-palette" style="color: var(--color-purple, #8b5cf6);"></i> Personalização da Marca (White-Label)
                 </h3>
 
                 <div style="display: flex; flex-wrap: wrap; gap: 1.5rem; margin-bottom: 1.5rem;">
                     <div class="form-group" style="flex: 1; min-width: 200px;">
                         <label style="display: block; margin-bottom: 0.5rem; font-size: 0.95rem; font-weight: 600; color: var(--text-muted, #64748b);">Cor Primária (Padrão Pink)</label>
                         <div style="display: flex; gap: 0.5rem; align-items: center;">
-                            <input type="color" id="cor_primaria_picker" value="<?= htmlspecialchars($corPrimaria ?? '#f45b69') ?>" oninput="document.getElementById('cor_primaria').value = this.value" style="width: 45px; height: 45px; border-radius: 8px; border: 1.5px solid var(--border-color, #e2e8f0); cursor: pointer; padding: 0; background: none;">
-                            <input type="text" name="cor_primaria" id="cor_primaria" value="<?= htmlspecialchars($corPrimaria ?? '#f45b69') ?>" oninput="document.getElementById('cor_primaria_picker').value = this.value" class="form-control" style="flex: 1;" placeholder="#f45b69">
+                            <input type="color" id="cor_primaria_picker" value="<?= htmlspecialchars(trim($corPrimaria ?? '#f45b69')) ?>" oninput="document.getElementById('cor_primaria').value = this.value" class="color-picker-premium">
+                            <input type="text" name="cor_primaria" id="cor_primaria" value="<?= htmlspecialchars(trim($corPrimaria ?? '#f45b69')) ?>" oninput="if(this.value.length === 7 && this.value[0] === '#') { document.getElementById('cor_primaria_picker').value = this.value; }" onchange="if(this.value.trim() === '' || this.value[0] !== '#') { this.value = '#f45b69'; document.getElementById('cor_primaria_picker').value = '#f45b69'; }" class="form-control" style="flex: 1;" placeholder="#f45b69">
                         </div>
                     </div>
 
                     <div class="form-group" style="flex: 1; min-width: 200px;">
                         <label style="display: block; margin-bottom: 0.5rem; font-size: 0.95rem; font-weight: 600; color: var(--text-muted, #64748b);">Cor Secundária (Padrão Roxo)</label>
                         <div style="display: flex; gap: 0.5rem; align-items: center;">
-                            <input type="color" id="cor_secundaria_picker" value="<?= htmlspecialchars($corSecundaria ?? '#8b5cf6') ?>" oninput="document.getElementById('cor_secundaria').value = this.value" style="width: 45px; height: 45px; border-radius: 8px; border: 1.5px solid var(--border-color, #e2e8f0); cursor: pointer; padding: 0; background: none;">
-                            <input type="text" name="cor_secundaria" id="cor_secundaria" value="<?= htmlspecialchars($corSecundaria ?? '#8b5cf6') ?>" oninput="document.getElementById('cor_secundaria_picker').value = this.value" class="form-control" style="flex: 1;" placeholder="#8b5cf6">
+                            <input type="color" id="cor_secundaria_picker" value="<?= htmlspecialchars(trim($corSecundaria ?? '#8b5cf6')) ?>" oninput="document.getElementById('cor_secundaria').value = this.value" class="color-picker-premium">
+                            <input type="text" name="cor_secundaria" id="cor_secundaria" value="<?= htmlspecialchars(trim($corSecundaria ?? '#8b5cf6')) ?>" oninput="if(this.value.length === 7 && this.value[0] === '#') { document.getElementById('cor_secundaria_picker').value = this.value; }" onchange="if(this.value.trim() === '' || this.value[0] !== '#') { this.value = '#8b5cf6'; document.getElementById('cor_secundaria_picker').value = '#8b5cf6'; }" class="form-control" style="flex: 1;" placeholder="#8b5cf6">
                         </div>
                     </div>
                 </div>

@@ -137,7 +137,7 @@
 .history-card.status-marcado  { border-left-color: var(--color-purple); }
 .history-card.status-pendente { border-left-color: #f59e0b; }
 .history-card.status-concluido { border-left-color: #22c55e; }
-.history-card.status-cancelado { border-left-color: var(--color-pink); }
+.history-card.status-cancelado { border-left-color: #ef4444; }
 .history-card.status-cancelado .history-body { opacity: 0.5; }
 
 /* Cabeçalho do Cartão */
@@ -168,7 +168,28 @@
 .badge-purple { background: rgba(139, 92, 246, 0.12); color: var(--color-purple); }
 .badge-green  { background: rgba(34, 197, 94, 0.12);  color: #22c55e; }
 .badge-orange { background: rgba(245, 158, 11, 0.12); color: #f59e0b; }
-.badge-pink   { background: rgba(244, 91, 105, 0.12); color: var(--color-pink); }
+.badge-pink   { background: rgba(239, 68, 68, 0.12); color: #ef4444; }
+
+/* --- Dark Mode Overrides for History Badges --- */
+[data-theme="dark"] .badge-purple {
+    background: color-mix(in srgb, var(--color-purple) 20%, transparent);
+    color: color-mix(in srgb, var(--color-purple) 85%, #ffffff);
+}
+
+[data-theme="dark"] .badge-green {
+    background: rgba(34, 197, 94, 0.2);
+    color: #4ade80;
+}
+
+[data-theme="dark"] .badge-orange {
+    background: rgba(245, 158, 11, 0.2);
+    color: #fbbf24;
+}
+
+[data-theme="dark"] .badge-pink {
+    background: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+}
 
 /* Corpo do Cartão */
 .history-body {

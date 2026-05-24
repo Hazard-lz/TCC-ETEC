@@ -48,18 +48,19 @@ $isGerencia = in_array($tipoUsuario, ['admin', 'subadmin']);
     </div>
     <?php endif; ?>
 
+    <?php 
+    $mostrarAnterioresAtivo = (!empty($_GET['data_inicio']) || !empty($_GET['data_fim']) || ($_GET['tab'] ?? '') === 'anteriores');
+    ?>
+
     <div class="tabs-container">
-        <button class="tab-btn aba-active" onclick="mudarAba('proximos', this)">
+        <button class="tab-btn <?= !$mostrarAnterioresAtivo ? 'active' : '' ?>" onclick="mudarAba('proximos', this)">
             <i class="bi bi-calendar-check"></i> Próximos
             <?php if (!empty($proximos)): ?>
                 <span class="tab-count"><?= count($proximos) ?></span>
             <?php endif; ?>
         </button>
-        <button class="tab-btn" onclick="mudarAba('anteriores', this)">
+        <button class="tab-btn <?= $mostrarAnterioresAtivo ? 'active' : '' ?>" onclick="mudarAba('anteriores', this)">
             <i class="bi bi-clock-history"></i> Histórico Passado
-            <?php if (!empty($anteriores)): ?>
-                <span class="tab-count"><?= count($anteriores) ?></span>
-            <?php endif; ?>
         </button>
     </div>
 
@@ -75,7 +76,7 @@ $isGerencia = in_array($tipoUsuario, ['admin', 'subadmin']);
     }
     ?>
 
-    <div id="aba-proximos" class="tab-content active history-grid">
+    <div id="aba-proximos" class="tab-content <?= !$mostrarAnterioresAtivo ? 'active' : '' ?> history-grid">
         <?php if (!empty($proximos)): ?>
             <?php foreach ($proximos as $ag): 
                 $estilo = getBadgeCss($ag['status']);
@@ -110,7 +111,32 @@ $isGerencia = in_array($tipoUsuario, ['admin', 'subadmin']);
         </div>
     </div> 
     
-    <div id="aba-anteriores" class="tab-content history-grid">
+    <div id="aba-anteriores" class="tab-content <?= $mostrarAnterioresAtivo ? 'active' : '' ?> history-grid">
+        <!-- Filtro de Data para Histórico Passado -->
+        <div class="filter-section" style="margin-bottom: 1.5rem; max-width: 100%; grid-column: 1 / -1; width: 100%;">
+            <form action="<?= BASE_URL ?>/funcionario/historico" method="GET" class="filter-form" style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap; justify-content: flex-start;">
+                <?php if (isset($_GET['id_funcionario'])): ?>
+                    <input type="hidden" name="id_funcionario" value="<?= htmlspecialchars($_GET['id_funcionario']) ?>">
+                <?php endif; ?>
+                <div class="filter-field" style="flex: 1; min-width: 150px; margin-bottom: 0;">
+                    <label for="data_inicio" style="font-weight: 600; font-size: 0.85rem;">De:</label>
+                    <input type="date" name="data_inicio" id="data_inicio" class="form-control" value="<?= htmlspecialchars($_GET['data_inicio'] ?? '') ?>" style="height: 38px;">
+                </div>
+                <div class="filter-field" style="flex: 1; min-width: 150px; margin-bottom: 0;">
+                    <label for="data_fim" style="font-weight: 600; font-size: 0.85rem;">Até:</label>
+                    <input type="date" name="data_fim" id="data_fim" class="form-control" value="<?= htmlspecialchars($_GET['data_fim'] ?? '') ?>" style="height: 38px;">
+                </div>
+                <button type="submit" class="btn-primary filter-btn" style="height: 38px; display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; padding: 0 1.25rem;"><i class="bi bi-filter"></i> Filtrar</button>
+                <?php if (!empty($_GET['data_inicio']) || !empty($_GET['data_fim'])): ?>
+                    <a href="<?= BASE_URL ?>/funcionario/historico?tab=anteriores<?= isset($_GET['id_funcionario']) ? '&id_funcionario=' . htmlspecialchars($_GET['id_funcionario']) : '' ?>" class="btn-secondary" style="height: 38px; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; padding: 0 1rem; border-radius: var(--radius-md); font-weight: 600; font-size: 0.9rem;">Limpar</a>
+                <?php endif; ?>
+            </form>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; width: 100%; grid-column: 1 / -1;">
+            <h4 style="margin: 0; color: var(--text-main); font-size: 1.1rem;">Total de Agendamentos Passados: <span style="font-weight: 700; color: var(--color-purple);"><?= count($anteriores) ?></span></h4>
+        </div>
+
         <?php if (!empty($anteriores)): ?>
             <?php foreach ($anteriores as $ag): 
                 $estilo = getBadgeCss($ag['status']);
@@ -153,8 +179,8 @@ $isGerencia = in_array($tipoUsuario, ['admin', 'subadmin']);
         let paginas = { proximos: 1, anteriores: 1 };
 
         function mudarAba(abaId, btnElement) {
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('aba-active'));
-            btnElement.classList.add('aba-active');
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            btnElement.classList.add('active');
             document.querySelectorAll('.tab-content').forEach(aba => aba.classList.remove('active'));
             document.getElementById('aba-' + abaId).classList.add('active');
             

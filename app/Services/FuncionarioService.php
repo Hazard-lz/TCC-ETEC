@@ -59,6 +59,20 @@ class FuncionarioService extends BaseService {
             return $this->erro("Você não pode rebaixar seu próprio cargo. Para deixar de ser administrador, transfira o cargo para outro funcionário.");
         }
 
+        // ═══ REGRA: SUBADMIN NÃO PODE ALTERAR E-MAIL OU REBAIXAR PARA COMUM ═══
+        if ($tipoLogado === 'subadmin') {
+            $usuarioModel = new Usuario();
+            $usuarioAtual = $usuarioModel->buscarPorId($id_usuario);
+            if ($usuarioAtual) {
+                if (!empty($email) && strtolower(trim($usuarioAtual['email'])) !== strtolower(trim($email))) {
+                    return $this->erro("Você não tem permissão para alterar o e-mail de funcionários.");
+                }
+                if ($usuarioAtual['tipo'] === 'subadmin' && $tipo === 'comum') {
+                    return $this->erro("Você não tem permissão para rebaixar um subadministrador para profissional comum.");
+                }
+            }
+        }
+
         try {
             if (!$this->conn->inTransaction()) { $this->conn->beginTransaction(); }
 

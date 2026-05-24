@@ -26,6 +26,7 @@ if (!isset($_SESSION['usuario_id'])) {
 
     <script>
         const BASE_URL = '<?= BASE_URL ?>';
+        const LIMITE_FUTURO_DIAS = '<?= htmlspecialchars($limiteFuturoDias ?? "sem_limite") ?>';
     </script>
     <?php require_once __DIR__ . '/../partials/onesignal.php'; ?>
 </head>

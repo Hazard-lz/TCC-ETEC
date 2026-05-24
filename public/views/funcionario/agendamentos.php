@@ -82,8 +82,8 @@ if (session_status() === PHP_SESSION_NONE) {
 
         <!-- Legenda de cores -->
         <div class="legenda-status">
-            <span class="legenda-item"><span class="legenda-dot" style="background:#8b5cf6;"></span> Marcado</span>
-            <span class="legenda-item"><span class="legenda-dot" style="background:#f45b69;"></span> Pendente</span>
+            <span class="legenda-item"><span class="legenda-dot" style="background: var(--color-purple);"></span> Marcado</span>
+            <span class="legenda-item"><span class="legenda-dot" style="background: #f59e0b;"></span> Pendente</span>
             <span class="legenda-item"><span class="legenda-dot" style="background:#2ecc71;"></span> Concluído</span>
             <span class="legenda-item"><span class="legenda-dot" style="background:#64748b;"></span> Bloqueado</span>
         </div>
@@ -234,7 +234,7 @@ if (session_status() === PHP_SESSION_NONE) {
                         <span style="font-size:1.2rem; width:24px; text-align:center;">🕐</span>
                         <div>
                             <div style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">Horário</div>
-                            <div style="font-weight:600; color:var(--color-purple);" id="detalhesHorario"></div>
+                            <div style="font-weight:600; color:var(--text-main);" id="detalhesHorario"></div>
                         </div>
                     </div>
                     <div style="display:flex; align-items:center; gap:0.75rem;">
@@ -308,6 +308,7 @@ if (session_status() === PHP_SESSION_NONE) {
             var calendar = new FullCalendar.Calendar(calendarEl, {
                 locale: 'pt-br',
                 initialView: window.innerWidth < 768 ? 'listWeek' : 'timeGridWeek',
+                initialDate: '<?= $dataFiltro ?>',
                 slotMinTime: '<?= $slotMinTime ?? "06:00:00" ?>',
                 slotMaxTime: '<?= $slotMaxTime ?? "23:59:00" ?>',
                 slotDuration: '00:15:00', // Grade de 15 em 15 min
@@ -486,16 +487,24 @@ if (session_status() === PHP_SESSION_NONE) {
 
                     // Badge de status colorido
                     const statusEl = document.getElementById('detalhesStatus');
+                    
+                    // Reseta classes anteriores e estilos inline para usar classes CSS puro
+                    statusEl.className = 'status-badge';
+                    statusEl.style.background = '';
+                    statusEl.style.color = '';
+                    statusEl.style.border = '';
+                    
                     const statusMap = {
-                        pendente:  { label: 'Pendente',  bg: 'rgba(244,91,105,0.15)', color: '#f45b69' },
-                        marcado:   { label: 'Marcado',   bg: 'rgba(139,92,246,0.15)', color: '#8b5cf6' },
-                        concluido: { label: 'Concluído', bg: 'rgba(46,204,113,0.15)', color: '#2ecc71' },
-                        cancelado: { label: 'Cancelado', bg: 'rgba(239,68,68,0.15)',  color: '#ef4444' }
+                        pendente:  { label: 'Pendente',  className: 'status-badge-pendente' },
+                        marcado:   { label: 'Marcado',   className: 'status-badge-marcado' },
+                        concluido: { label: 'Concluído', className: 'status-badge-concluido' },
+                        cancelado: { label: 'Cancelado', className: 'status-badge-cancelado' }
                     };
-                    const st = statusMap[props.status] || { label: props.status, bg: 'transparent', color: 'inherit' };
+                    const st = statusMap[props.status] || { label: props.status, className: '' };
                     statusEl.textContent = st.label;
-                    statusEl.style.background = st.bg;
-                    statusEl.style.color = st.color;
+                    if (st.className) {
+                        statusEl.classList.add(st.className);
+                    }
 
                     document.querySelectorAll('.inputIdAgendamento').forEach(input => input.value = info.event.id);
 
@@ -752,8 +761,12 @@ if (session_status() === PHP_SESSION_NONE) {
 
                     var statusEl = document.getElementById('detalhesStatus');
                     statusEl.textContent = 'Pendente';
-                    statusEl.style.background = 'rgba(244,91,105,0.15)';
-                    statusEl.style.color = '#f45b69';
+                    
+                    // Reseta estilos inline e define a classe CSS puro
+                    statusEl.className = 'status-badge status-badge-pendente';
+                    statusEl.style.background = '';
+                    statusEl.style.color = '';
+                    statusEl.style.border = '';
 
                     document.querySelectorAll('.inputIdAgendamento').forEach(function(input) { input.value = idAgendamento; });
 

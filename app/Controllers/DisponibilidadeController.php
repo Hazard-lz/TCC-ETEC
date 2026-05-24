@@ -199,6 +199,27 @@ class DisponibilidadeController
             exit;
         }
 
+        // Validação de limite futuro de agendamento se for usuário comum (cliente)
+        if (session_status() === PHP_SESSION_NONE) { session_start(); }
+        $tipoUsuario = $_SESSION['usuario_tipo'] ?? '';
+        if ($tipoUsuario === 'comum') {
+            require_once __DIR__ . '/../Models/Configuracao.php';
+            $configModel = new Configuracao();
+            $limiteDiasVal = $configModel->obterValor('limite_agendamento_futuro_dias', 'sem_limite');
+            if ($limiteDiasVal !== 'sem_limite' && is_numeric($limiteDiasVal)) {
+                $limiteDiasInt = (int)$limiteDiasVal;
+                $maxDataObj = new DateTime('now', new DateTimeZone('America/Sao_Paulo'));
+                $maxDataObj->modify("+{$limiteDiasInt} days");
+                $maxData = $maxDataObj->format('Y-m-d');
+                
+                if ($dataDesejada > $maxData) {
+                    http_response_code(400);
+                    echo json_encode(['sucesso' => false, 'mensagem' => 'A data selecionada excede o limite permitido para agendamentos futuros.']);
+                    exit;
+                }
+            }
+        }
+
         try {
             $horariosDisponiveis = $this->disponibilidadeService->calcularHorariosLivres(
                 $idFuncionario, $dataDesejada, $idServico, $idAgendamentoIgnorar

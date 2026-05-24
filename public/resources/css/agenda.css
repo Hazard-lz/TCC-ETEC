@@ -65,7 +65,7 @@
     border-left: 6px solid #2ecc71 !important;
 }
 .fc-event.evento-pendente {
-    border-left: 6px solid #f45b69 !important;
+    border-left: 6px solid #f59e0b !important;
 }
 .fc-event.evento-cancelado {
     border-left: 6px solid #ef4444 !important;
@@ -92,7 +92,7 @@
 /* Mantém o padrão linear original como fallback seguro para outros componentes (ex: legendas), excluindo elementos do calendário */
 .evento-marcado:not(.fc-event) { background: linear-gradient(135deg, #a78bfa, var(--color-purple)) !important; border: none !important; }
 .evento-concluido:not(.fc-event) { background: linear-gradient(135deg, #2ecc71, #27ae60) !important; border: none !important; }
-.evento-pendente:not(.fc-event) { background: linear-gradient(135deg, #f45b69, #e74c3c) !important; border: none !important; }
+.evento-pendente:not(.fc-event) { background: linear-gradient(135deg, #f59e0b, #f39c12) !important; border: none !important; }
 
 .fc-event:hover {
     cursor: pointer;
@@ -206,7 +206,7 @@
 /* Borda lateral colorida de indicação de status no card */
 .fc-list-event.evento-marcado   { border-left: 6px solid var(--color-purple) !important; }
 .fc-list-event.evento-concluido { border-left: 6px solid #2ecc71 !important; }
-.fc-list-event.evento-pendente  { border-left: 6px solid #f45b69 !important; }
+.fc-list-event.evento-pendente  { border-left: 6px solid #f59e0b !important; }
 .fc-list-event.evento-cancelado { border-left: 6px solid #ef4444 !important; }
 .fc-list-event.evento-bloqueado {
     border-left: 6px solid #64748b !important;
@@ -235,7 +235,7 @@
 /* Horário colorido com o status */
 .evento-marcado .fc-list-event-time   { color: var(--color-purple) !important; }
 .evento-concluido .fc-list-event-time { color: #2ecc71 !important; }
-.evento-pendente .fc-list-event-time  { color: #f45b69 !important; }
+.evento-pendente .fc-list-event-time  { color: #d97706 !important; }
 .evento-cancelado .fc-list-event-time { color: #ef4444 !important; }
 .evento-bloqueado .fc-list-event-time { color: #64748b !important; }
 
@@ -361,15 +361,15 @@
 }
 
 .status-badge-pendente {
-    background-color: rgba(244, 91, 105, 0.12);
-    color: #f45b69;
-    border: 1px solid rgba(244, 91, 105, 0.2);
+    background-color: rgba(245, 158, 11, 0.12);
+    color: #d97706;
+    border: 1px solid rgba(245, 158, 11, 0.2);
 }
 
 .status-badge-marcado {
-    background-color: rgba(139, 92, 246, 0.12);
+    background-color: color-mix(in srgb, var(--color-purple) 12%, transparent);
     color: var(--color-purple);
-    border: 1px solid rgba(139, 92, 246, 0.2);
+    border: 1px solid color-mix(in srgb, var(--color-purple) 20%, transparent);
 }
 
 .status-badge-concluido {
@@ -382,6 +382,31 @@
     background-color: rgba(239, 68, 68, 0.12);
     color: #ef4444;
     border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+/* --- Dark Mode Overrides for Status Badges --- */
+[data-theme="dark"] .status-badge-pendente {
+    background-color: rgba(245, 158, 11, 0.2);
+    color: #fbbf24;
+    border-color: rgba(245, 158, 11, 0.4);
+}
+
+[data-theme="dark"] .status-badge-marcado {
+    background-color: color-mix(in srgb, var(--color-purple) 20%, transparent);
+    color: color-mix(in srgb, var(--color-purple) 85%, #ffffff);
+    border-color: color-mix(in srgb, var(--color-purple) 45%, transparent);
+}
+
+[data-theme="dark"] .status-badge-concluido {
+    background-color: rgba(46, 204, 113, 0.2);
+    color: #4ade80;
+    border-color: rgba(46, 204, 113, 0.4);
+}
+
+[data-theme="dark"] .status-badge-cancelado {
+    background-color: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+    border-color: rgba(239, 68, 68, 0.4);
 }
 
 /* Badge específica compacta para o Grid */
@@ -985,13 +1010,13 @@
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
-    background: rgba(244, 91, 105, 0.12);
-    color: #f45b69;
+    background: rgba(245, 158, 11, 0.12);
+    color: #d97706;
     font-size: 0.82rem;
     font-weight: 700;
     padding: 0.3rem 0.75rem;
     border-radius: 9999px;
-    border: 1px solid rgba(244, 91, 105, 0.25);
+    border: 1px solid rgba(245, 158, 11, 0.25);
     cursor: pointer;
     animation: pendingPulse 2s ease-in-out infinite;
     transition: all 0.22s ease;
@@ -1000,9 +1025,9 @@
 }
 
 #alerta-pendentes:hover {
-    background: rgba(244, 91, 105, 0.2);
+    background: rgba(245, 158, 11, 0.2);
     transform: scale(1.05);
-    box-shadow: 0 4px 16px rgba(244, 91, 105, 0.25);
+    box-shadow: 0 4px 16px rgba(245, 158, 11, 0.25);
 }
 
 #alerta-pendentes i {
@@ -1012,10 +1037,10 @@
 
 @keyframes pendingPulse {
     0%, 100% {
-        box-shadow: 0 0 0 0 rgba(244, 91, 105, 0.3);
+        box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.3);
     }
     50% {
-        box-shadow: 0 0 0 8px rgba(244, 91, 105, 0);
+        box-shadow: 0 0 0 8px rgba(245, 158, 11, 0);
     }
 }
 
@@ -1055,7 +1080,7 @@
     align-items: center;
     background: var(--surface-color);
     border: 1px solid var(--border-color);
-    border-left: 5px solid #f45b69;
+    border-left: 5px solid #f59e0b;
     border-radius: var(--radius-md);
     padding: 0.85rem 1rem;
     cursor: pointer;
@@ -1065,8 +1090,8 @@
 
 .pendente-item-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 18px rgba(244, 91, 105, 0.12);
-    border-color: #f45b69;
+    box-shadow: 0 6px 18px rgba(245, 158, 11, 0.12);
+    border-color: #f59e0b;
     background: var(--bg-color);
 }
 
@@ -1091,7 +1116,7 @@
 }
 
 .pendente-item-cliente i {
-    color: #f45b69;
+    color: #d97706;
     font-size: 0.9rem;
     flex-shrink: 0;
 }
@@ -1148,12 +1173,12 @@
 [data-theme="dark"] .pendente-item-card {
     background: #384252;
     border-color: rgba(255, 255, 255, 0.08);
-    border-left-color: #f45b69;
+    border-left-color: #f59e0b;
 }
 
 [data-theme="dark"] .pendente-item-card:hover {
     background: #3e4b5e;
-    border-color: #f45b69;
+    border-color: #f59e0b;
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
 }
 

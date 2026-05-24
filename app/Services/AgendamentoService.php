@@ -32,6 +32,27 @@ class AgendamentoService extends BaseService
                 return ['sucesso' => false, 'mensagem' => 'Não é possível agendar em datas passadas.'];
             }
 
+            // 1.5 Validação de limite de agendamento futuro (para clientes comuns)
+            if ($idFuncionarioCriador === null) {
+                require_once __DIR__ . '/../Models/Configuracao.php';
+                $configModel = new Configuracao();
+                $limiteDiasVal = $configModel->obterValor('limite_agendamento_futuro_dias', 'sem_limite');
+                if ($limiteDiasVal !== 'sem_limite' && is_numeric($limiteDiasVal)) {
+                    $limiteDiasInt = (int)$limiteDiasVal;
+                    $maxDataObj = new DateTime('now', new DateTimeZone('America/Sao_Paulo'));
+                    $maxDataObj->modify("+{$limiteDiasInt} days");
+                    $maxData = $maxDataObj->format('Y-m-d');
+                    
+                    if ($data > $maxData) {
+                        $dataPt = date('d/m/Y', strtotime($maxData));
+                        return [
+                            'sucesso' => false,
+                            'mensagem' => "Não é possível realizar agendamentos com mais de " . $this->traduzirDiasParaTexto($limiteDiasInt) . " de antecedência (limite: $dataPt)."
+                        ];
+                    }
+                }
+            }
+
             // 2. Inicia Transação (Garante que agendamento e itens_agendamento sejam salvos juntos)
             if (!$this->conn->inTransaction()) { $this->conn->beginTransaction(); }
 
@@ -220,6 +241,43 @@ class AgendamentoService extends BaseService
             }
         }
 
+        // Regra de antecedência parametrizada para cancelamento de agendamentos confirmados (marcados)
+        if ($novoStatus === 'cancelado' && $agendamento['status'] === 'marcado') {
+            require_once __DIR__ . '/../Models/Configuracao.php';
+            $configModel = new Configuracao();
+            $antecedenciaHoras = (int)$configModel->obterValor('antecedencia_cancelamento_horas', '24');
+
+            if ($antecedenciaHoras > 0) {
+                date_default_timezone_set('America/Sao_Paulo');
+                $dataHoraAgendamento = new DateTime($agendamento['data_agendamento'] . ' ' . $agendamento['hora_inicio']);
+                $agora = new DateTime();
+
+                if ($dataHoraAgendamento > $agora) {
+                    $intervalo = $agora->diff($dataHoraAgendamento);
+                    $horasDiferenca = ($intervalo->days * 24) + $intervalo->h + ($intervalo->i / 60);
+
+                    if ($horasDiferenca < $antecedenciaHoras) {
+                        // Bypass automático para Administradores e Subadministradores (Gerência)
+                        $isGerencia = isset($_SESSION['usuario_tipo']) && in_array($_SESSION['usuario_tipo'], ['admin', 'subadmin']);
+                        if (!$isGerencia) {
+                            return [
+                                'sucesso' => false,
+                                'mensagem' => "Não é possível cancelar com menos de {$antecedenciaHoras} horas de antecedência."
+                            ];
+                        }
+                    }
+                } else {
+                    // Tentativa de cancelar agendamento retroativo (no passado)
+                    if ($origem === 'cliente') {
+                        return [
+                            'sucesso' => false,
+                            'mensagem' => "Não é possível cancelar agendamentos passados."
+                        ];
+                    }
+                }
+            }
+        }
+
         $atualizou = $this->agendamentoModel->atualizarStatus($idAgendamento, $novoStatus);
 
         if ($atualizou) {
@@ -324,6 +382,27 @@ class AgendamentoService extends BaseService
             // 1. Validação de data: impede remarcação em datas passadas
             if ($novaData < date('Y-m-d')) {
                 return ['sucesso' => false, 'mensagem' => 'Não é possível remarcar para datas passadas.'];
+            }
+
+            // 1.5 Validação de limite de agendamento futuro (para clientes comuns)
+            if ($origem === 'cliente') {
+                require_once __DIR__ . '/../Models/Configuracao.php';
+                $configModel = new Configuracao();
+                $limiteDiasVal = $configModel->obterValor('limite_agendamento_futuro_dias', 'sem_limite');
+                if ($limiteDiasVal !== 'sem_limite' && is_numeric($limiteDiasVal)) {
+                    $limiteDiasInt = (int)$limiteDiasVal;
+                    $maxDataObj = new DateTime('now', new DateTimeZone('America/Sao_Paulo'));
+                    $maxDataObj->modify("+{$limiteDiasInt} days");
+                    $maxData = $maxDataObj->format('Y-m-d');
+                    
+                    if ($novaData > $maxData) {
+                        $dataPt = date('d/m/Y', strtotime($maxData));
+                        return [
+                            'sucesso' => false,
+                            'mensagem' => "Não é possível remarcar agendamentos com mais de " . $this->traduzirDiasParaTexto($limiteDiasInt) . " de antecedência (limite: $dataPt)."
+                        ];
+                    }
+                }
             }
 
             // 2. Inicia Transação
@@ -479,5 +558,20 @@ class AgendamentoService extends BaseService
                 'mensagem' => $e->getMessage()
             ];
         }
+    }
+
+    /**
+     * Auxiliar para traduzir o limite de dias em um texto amigável para o usuário.
+     */
+    private function traduzirDiasParaTexto($dias)
+    {
+        if ($dias == 7) return "1 semana";
+        if ($dias == 14) return "2 semanas";
+        if ($dias == 21) return "3 semanas";
+        if ($dias == 30) return "1 mês";
+        if ($dias == 60) return "2 meses";
+        if ($dias == 90) return "3 meses";
+        if ($dias == 180) return "6 meses";
+        return "{$dias} dias";
     }
 }

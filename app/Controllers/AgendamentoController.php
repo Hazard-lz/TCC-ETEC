@@ -34,6 +34,11 @@ class AgendamentoController
         // Busca os dados ativos no banco
         $servicos = $servicoModel->listarPorStatus('ativo');
 
+        // Busca o limite futuro de agendamento (padrão 'sem_limite')
+        require_once __DIR__ . '/../Models/Configuracao.php';
+        $configModel = new Configuracao();
+        $limiteFuturoDias = $configModel->obterValor('limite_agendamento_futuro_dias', 'sem_limite');
+
         // Renderiza a View passando as variáveis $servicos e $profissionais
         require_once __DIR__ . '/../../public/views/cliente/agendar.php';
     }
@@ -189,10 +194,18 @@ class AgendamentoController
         $agendamentoModel->cancelarPendentesExpirados();
         $agendamentos = $agendamentoModel->listarPorCliente($cliente['id_cliente']);
 
+        // 3.5 Busca a antecedência mínima parametrizada para cancelamento e o limite futuro de agendamento
+        require_once __DIR__ . '/../Models/Configuracao.php';
+        $configModel = new Configuracao();
+        $antecedenciaHoras = (int)$configModel->obterValor('antecedencia_cancelamento_horas', '24');
+        $limiteFuturoDias = $configModel->obterValor('limite_agendamento_futuro_dias', 'sem_limite');
+
         // 4. Separação de Lógica e Formatação (Data Prep)
         // ARQUITETURA: O Controller mastiga os dados. A View apenas renderiza.
         $proximos = [];
         $anteriores = [];
+        $dataInicioFiltro = $_GET['data_inicio'] ?? null;
+        $dataFimFiltro = $_GET['data_fim'] ?? null;
 
         if ($agendamentos) {
             foreach ($agendamentos as $ag) {
@@ -206,10 +219,32 @@ class AgendamentoController
                 if (in_array($ag['status'], ['pendente', 'marcado'])) {
                     $proximos[] = $ag;
                 } else {
+                    // Aplica o filtro de data somente para agendamentos passados
+                    if (!empty($dataInicioFiltro)) {
+                        if ($ag['data_agendamento'] < $dataInicioFiltro) {
+                            continue;
+                        }
+                    }
+                    if (!empty($dataFimFiltro)) {
+                        if ($ag['data_agendamento'] > $dataFimFiltro) {
+                            continue;
+                        }
+                    }
                     // cancelado, concluido
                     $anteriores[] = $ag;
                 }
             }
+        }
+        // If ajax request, return JSON
+        if (isset($_GET['ajax'])) {
+            header('Content-Type: application/json');
+            echo json_encode([
+                'sucesso' => true,
+                'proximos' => $proximos,
+                'anteriores' => $anteriores,
+                'antecedenciaHoras' => $antecedenciaHoras
+            ]);
+            exit;
         }
 
         // 5. Injeta as variáveis no HTML
@@ -446,17 +481,6 @@ class AgendamentoController
             exit;
         }
 
-        // Regra de negócio: só pode cancelar até 1 dia antes (para agendamentos marcados/confirmados)
-        // Agendamentos ainda pendentes podem ser cancelados no mesmo dia.
-        $dataAgendamento = new DateTime($agendamento['data_agendamento']);
-        $hoje = new DateTime(date('Y-m-d'));
-
-        if ($agendamento['status'] === 'marcado' && $dataAgendamento <= $hoje) {
-            $_SESSION['flash_erro'] = "Não é possível cancelar um agendamento confirmado no mesmo dia. Cancelamentos apenas com 1 dia de antecedência.";
-            header('Location: ' . BASE_URL . '/historico');
-            exit;
-        }
-
         $resultado = $this->agendamentoService->alterarStatus($id_agendamento, 'cancelado', 'cliente');
 
         if ($resultado['sucesso']) {
@@ -503,15 +527,32 @@ class AgendamentoController
             exit;
         }
 
-        // Regra de negócio: só pode remarcar até 1 dia antes (para agendamentos marcados/confirmados)
-        // Agendamentos ainda pendentes podem ser remarcados no mesmo dia.
-        $dataAgendamento = new DateTime($agendamento['data_agendamento']);
-        $hoje = new DateTime(date('Y-m-d'));
+        // Regra de negócio: só pode remarcar respeitando a antecedência mínima parametrizada (para agendamentos marcados/confirmados)
+        if ($agendamento['status'] === 'marcado') {
+            require_once __DIR__ . '/../Models/Configuracao.php';
+            $configModel = new Configuracao();
+            $antecedenciaHoras = (int)$configModel->obterValor('antecedencia_cancelamento_horas', '24');
 
-        if ($agendamento['status'] === 'marcado' && $dataAgendamento <= $hoje) {
-            $_SESSION['flash_erro'] = "Não é possível remarcar um agendamento confirmado no mesmo dia. Remarcações apenas com no mínimo 1 dia de antecedência.";
-            header('Location: ' . BASE_URL . '/historico');
-            exit;
+            if ($antecedenciaHoras > 0) {
+                date_default_timezone_set('America/Sao_Paulo');
+                $dataHoraAgendamento = new DateTime($agendamento['data_agendamento'] . ' ' . $agendamento['hora_inicio']);
+                $agora = new DateTime();
+
+                if ($dataHoraAgendamento > $agora) {
+                    $intervalo = $agora->diff($dataHoraAgendamento);
+                    $horasDiferenca = ($intervalo->days * 24) + $intervalo->h + ($intervalo->i / 60);
+
+                    if ($horasDiferenca < $antecedenciaHoras) {
+                        $_SESSION['flash_erro'] = "Não é possível remarcar com menos de {$antecedenciaHoras} horas de antecedência.";
+                        header('Location: ' . BASE_URL . '/historico');
+                        exit;
+                    }
+                } else {
+                    $_SESSION['flash_erro'] = "Não é possível remarcar agendamentos que já ocorreram.";
+                    header('Location: ' . BASE_URL . '/historico');
+                    exit;
+                }
+            }
         }
 
         $resultado = $this->agendamentoService->remarcarAgendamento($id_agendamento, $nova_data, $nova_hora, 'cliente');
@@ -569,6 +610,8 @@ class AgendamentoController
         // Process data
         $proximos = [];
         $anteriores = [];
+        $dataInicioFiltro = $_GET['data_inicio'] ?? null;
+        $dataFimFiltro = $_GET['data_fim'] ?? null;
 
         if ($agendamentos) {
             foreach ($agendamentos as $ag) {
@@ -580,6 +623,17 @@ class AgendamentoController
                 if (in_array($ag['status'], ['pendente', 'marcado'])) {
                     $proximos[] = $ag;
                 } else {
+                    // Aplica o filtro de data somente para agendamentos passados
+                    if (!empty($dataInicioFiltro)) {
+                        if ($ag['data_agendamento'] < $dataInicioFiltro) {
+                            continue;
+                        }
+                    }
+                    if (!empty($dataFimFiltro)) {
+                        if ($ag['data_agendamento'] > $dataFimFiltro) {
+                            continue;
+                        }
+                    }
                     $anteriores[] = $ag;
                 }
             }

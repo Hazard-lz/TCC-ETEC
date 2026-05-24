@@ -71,20 +71,64 @@ function abrirEdicaoFuncionario(button) {
         inputEscondido.value = "admin";
         document.getElementById("formFuncionario").appendChild(inputEscondido);
 
+    } else if (typeof LOGGED_USER_TYPE !== 'undefined' && LOGGED_USER_TYPE === 'subadmin' && func.tipo === 'subadmin') {
+        // CASO 2: Subadmin editando a si mesmo ou outro subadmin → Campo trancado
+        selectTipo.style.display = "none";
+
+        const inputFalso = document.createElement("input");
+        inputFalso.type = "text";
+        inputFalso.id = "fake_tipo_lock";
+        inputFalso.className = "form-control";
+        inputFalso.value = "Subadministrador (Não é permitido rebaixar para profissional comum)";
+        inputFalso.readOnly = true;
+        inputFalso.style.backgroundColor = "var(--bg-disabled)";
+        inputFalso.style.cursor = "not-allowed";
+        inputFalso.style.color = "var(--text-muted)";
+        inputFalso.style.opacity = "0.8";
+        inputFalso.title = "Subadministradores não podem rebaixar a si mesmos ou outros subadministradores.";
+        
+        selectTipo.parentNode.insertBefore(inputFalso, selectTipo.nextSibling);
+
+        // Input hidden para manter o tipo subadmin no envio do form
+        const inputEscondido = document.createElement("input");
+        inputEscondido.type = "hidden";
+        inputEscondido.id = "hidden_tipo_lock";
+        inputEscondido.name = "tipo";
+        inputEscondido.value = "subadmin";
+        document.getElementById("formFuncionario").appendChild(inputEscondido);
+
     } else {
-        // CASO 2: Admin editando OUTRO funcionário → Mostra select normalmente
+        // CASO 3: Admin editando OUTRO funcionário OU Subadmin editando um funcionário Comum → Mostra select normalmente
         selectTipo.style.display = "block";
         selectTipo.value = func.tipo || "comum";
 
         // Mostra a opção "Transferir Admin" apenas se o logado for admin
         if (optionAdmin) {
-            optionAdmin.style.display = "block";
+            if (typeof LOGGED_USER_TYPE !== 'undefined' && LOGGED_USER_TYPE === 'subadmin') {
+                optionAdmin.style.display = "none";
+            } else {
+                optionAdmin.style.display = "block";
+            }
         }
     }
 
-    // Libera a edição do e-mail
+    // Libera a edição do e-mail para administradores, mas tranca para subadministradores
     const emailInput = document.getElementById("email");
-    emailInput.removeAttribute("readonly");
+    if (typeof LOGGED_USER_TYPE !== 'undefined' && LOGGED_USER_TYPE === 'subadmin') {
+        emailInput.setAttribute("readonly", "true");
+        emailInput.style.backgroundColor = "var(--bg-disabled)";
+        emailInput.style.cursor = "not-allowed";
+        emailInput.style.color = "var(--text-muted)";
+        emailInput.style.opacity = "0.8";
+        emailInput.title = "Subadministradores não podem alterar o e-mail de funcionários.";
+    } else {
+        emailInput.removeAttribute("readonly");
+        emailInput.style.backgroundColor = "";
+        emailInput.style.cursor = "";
+        emailInput.style.color = "";
+        emailInput.style.opacity = "";
+        emailInput.title = "";
+    }
     emailInput.setAttribute("data-original", func.email);
 }
 
@@ -97,6 +141,11 @@ function limparModalFuncionario() {
     const emailInput = document.getElementById("email");
     emailInput.removeAttribute("readonly");
     emailInput.removeAttribute("data-original");
+    emailInput.style.backgroundColor = "";
+    emailInput.style.cursor = "";
+    emailInput.style.color = "";
+    emailInput.style.opacity = "";
+    emailInput.title = "";
 
     // Restaura o Select para a criação de um novo funcionário
     const selectTipo = document.getElementById("tipo");

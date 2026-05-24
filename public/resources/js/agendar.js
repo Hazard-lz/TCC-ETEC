@@ -123,6 +123,7 @@ function irParaPasso(passoAtual, proximoPasso) {
 }
 
 function voltarPasso(passoAnterior) {
+  limparSelecoesAPartirDoPasso(passoAnterior);
   const passoAtual = passoAnterior + 1;
   document.getElementById(`step-${passoAtual}`).classList.remove('active');
   document.getElementById(`step-${passoAnterior}`).classList.add('active');
@@ -167,14 +168,9 @@ document.getElementById('btn-continuar-global').addEventListener('click', () => 
   }
 
   if (atual === 2) {
-    // Avança para passo 3 e configura data mínima
+    // Avança para passo 3 e configura data mínima e máxima
     irParaPasso(2, 3);
-    const dataLocal = new Date();
-    const ano = dataLocal.getFullYear();
-    const mes = String(dataLocal.getMonth() + 1).padStart(2, '0');
-    const dia = String(dataLocal.getDate()).padStart(2, '0');
-    const hoje = `${ano}-${mes}-${dia}`;
-    document.getElementById('data_agendamento').setAttribute('min', hoje);
+    configurarLimitesData();
     return;
   }
 
@@ -202,6 +198,7 @@ if (btnVoltarGlobal) {
  * @param {Element} elemento - Card clicado
  */
 function selecionarServico(id, nome, preco, elemento) {
+  limparSelecoesAPartirDoPasso(1);
   document.getElementById('servico_id').value = id;
   document.getElementById('servico_nome').value = nome;
   document.getElementById('servico_preco').value = preco;
@@ -314,6 +311,7 @@ document.getElementById('btn-next-1').addEventListener('click', () => irParaPass
 // ─── PASSO 2: PROFISSIONAIS ───────────────────────────────────────────────────
 
 function selecionarProfissional(id, nome, elemento) {
+  limparSelecoesAPartirDoPasso(2);
   document.getElementById('funcionario_id').value = id;
   document.getElementById('funcionario_nome').value = nome;
 
@@ -327,25 +325,41 @@ function selecionarProfissional(id, nome, elemento) {
   // ARQUITETURA UX: Avanço automático após 300ms de delay para a micro-animação rodar
   setTimeout(() => {
     irParaPasso(2, 3);
-    const dataLocal = new Date();
-    const ano = dataLocal.getFullYear();
-    const mes = String(dataLocal.getMonth() + 1).padStart(2, '0');
-    const dia = String(dataLocal.getDate()).padStart(2, '0');
-    const hoje = `${ano}-${mes}-${dia}`;
-    document.getElementById('data_agendamento').setAttribute('min', hoje);
+    configurarLimitesData();
   }, 300);
 }
 
 // Listener do botão mobile do passo 2
 document.getElementById('btn-next-2').addEventListener('click', () => {
   irParaPasso(2, 3);
+  configurarLimitesData();
+});
+
+/** Configura os limites min e max da data de agendamento de acordo com as regras */
+function configurarLimitesData() {
+  const elData = document.getElementById('data_agendamento');
+  if (!elData) return;
+
   const dataLocal = new Date();
   const ano = dataLocal.getFullYear();
   const mes = String(dataLocal.getMonth() + 1).padStart(2, '0');
   const dia = String(dataLocal.getDate()).padStart(2, '0');
   const hoje = `${ano}-${mes}-${dia}`;
-  document.getElementById('data_agendamento').setAttribute('min', hoje);
-});
+  elData.setAttribute('min', hoje);
+
+  if (typeof LIMITE_FUTURO_DIAS !== 'undefined' && LIMITE_FUTURO_DIAS !== 'sem_limite') {
+    const limiteDias = parseInt(LIMITE_FUTURO_DIAS, 10);
+    if (!isNaN(limiteDias)) {
+      const dataMax = new Date();
+      dataMax.setDate(dataMax.getDate() + limiteDias);
+      const maxAno = dataMax.getFullYear();
+      const maxMes = String(dataMax.getMonth() + 1).padStart(2, '0');
+      const maxDia = String(dataMax.getDate()).padStart(2, '0');
+      const maxDataStr = `${maxAno}-${maxMes}-${maxDia}`;
+      elData.setAttribute('max', maxDataStr);
+    }
+  }
+}
 
 // ─── PASSO 3: DATA E HORA ─────────────────────────────────────────────────────
 
@@ -374,6 +388,20 @@ async function liberarHorarios() {
     return;
   }
 
+  // Validação de limite futuro no frontend: bloqueia datas além do limite configurado
+  if (typeof LIMITE_FUTURO_DIAS !== 'undefined' && LIMITE_FUTURO_DIAS !== 'sem_limite') {
+    const limiteDias = parseInt(LIMITE_FUTURO_DIAS, 10);
+    if (!isNaN(limiteDias)) {
+      const dataMax = new Date();
+      dataMax.setDate(dataMax.getDate() + limiteDias);
+      dataMax.setHours(0, 0, 0, 0);
+      if (dataSel > dataMax) {
+        containerHorarios.innerHTML = '<p style="color: red; grid-column: 1/-1; text-align: center;">A data selecionada excede o limite permitido para agendamentos futuros.</p>';
+        return;
+      }
+    }
+  }
+
   try {
     const response = await fetch(BASE_URL + '/api/horarios-livres', {
       method: 'POST',
@@ -393,7 +421,8 @@ async function liberarHorarios() {
         containerHorarios.appendChild(div);
       });
     } else {
-      containerHorarios.innerHTML = '<p style="color: red;">Nenhum horário disponível nesta data.</p>';
+      const msg = data.mensagem || 'Nenhum horário disponível nesta data.';
+      containerHorarios.innerHTML = `<p style="color: red; grid-column: 1/-1; text-align: center;">${msg}</p>`;
     }
   } catch (error) {
     console.error('Erro na API de Disponibilidade:', error);
@@ -472,6 +501,8 @@ document.querySelectorAll('.step-indicator[data-passo]').forEach((indicador) => 
     // Só permite navegar para passos já concluídos (não para frente)
     if (destino >= atual) return;
 
+    limparSelecoesAPartirDoPasso(destino);
+
     // Esconde o passo atual e mostra o destino
     document.getElementById(`step-${atual}`).classList.remove('active');
     document.getElementById(`step-${destino}`).classList.add('active');
@@ -536,4 +567,65 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+
+/** Limpa as seleções feitas a partir de um determinado passo (inclusive ele mesmo, para sincronizar com o resumo lateral) */
+function limparSelecoesAPartirDoPasso(passo) {
+  if (passo === 1) {
+    // Limpa Passo 1
+    document.getElementById('servico_id').value = '';
+    document.getElementById('servico_nome').value = '';
+    document.getElementById('servico_preco').value = '';
+    atualizarResumo('lat-servico', null);
+    const elPreco = document.getElementById('lat-preco');
+    if (elPreco) elPreco.textContent = 'R$ --';
+    document.querySelectorAll('#step-1 .selectable-card').forEach(c => c.classList.remove('selected'));
+    setBotoesPasso(1, false);
+
+    // Limpa Passo 2
+    document.getElementById('funcionario_id').value = '';
+    document.getElementById('funcionario_nome').value = '';
+    atualizarResumo('lat-profissional', null);
+    document.querySelectorAll('#step-2 .selectable-card').forEach(c => c.classList.remove('selected'));
+    setBotoesPasso(2, false);
+
+    // Limpa Passo 3
+    document.getElementById('horario_selecionado').value = '';
+    document.getElementById('data_agendamento').value = '';
+    const remarcarHora = document.getElementById('remarcar-hora-selecionada');
+    if (remarcarHora) remarcarHora.value = '';
+    atualizarResumo('lat-datahora', null);
+    document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+    const containerHorarios = document.getElementById('container-horarios-dinamicos');
+    if (containerHorarios) containerHorarios.innerHTML = '';
+    const boxHorarios = document.getElementById('box-horarios');
+    if (boxHorarios) boxHorarios.style.display = 'none';
+    setBotoesPasso(3, false);
+  } else if (passo === 2) {
+    // Limpa Passo 2
+    document.getElementById('funcionario_id').value = '';
+    document.getElementById('funcionario_nome').value = '';
+    atualizarResumo('lat-profissional', null);
+    document.querySelectorAll('#step-2 .selectable-card').forEach(c => c.classList.remove('selected'));
+    setBotoesPasso(2, false);
+
+    // Limpa Passo 3
+    document.getElementById('horario_selecionado').value = '';
+    document.getElementById('data_agendamento').value = '';
+    const remarcarHora = document.getElementById('remarcar-hora-selecionada');
+    if (remarcarHora) remarcarHora.value = '';
+    atualizarResumo('lat-datahora', null);
+    document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+    const containerHorarios = document.getElementById('container-horarios-dinamicos');
+    if (containerHorarios) containerHorarios.innerHTML = '';
+    const boxHorarios = document.getElementById('box-horarios');
+    if (boxHorarios) boxHorarios.style.display = 'none';
+    setBotoesPasso(3, false);
+  } else if (passo === 3) {
+    // Limpa Passo 3 (vindo de volta do Passo 4)
+    document.getElementById('horario_selecionado').value = '';
+    atualizarResumo('lat-datahora', null);
+    document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+    setBotoesPasso(3, false);
+  }
+}
 

@@ -87,7 +87,7 @@ foreach ($proximosAgendamentos as $ag) {
                 </div>
             </div>
             <div class="summary-card">
-                <div class="card-icon" style="background-color: rgba(244, 91, 105, 0.1); color: var(--color-pink);">⏳</div>
+                <div class="card-icon" style="background-color: rgba(245, 158, 11, 0.1); color: #d97706;">⏳</div>
                 <div class="card-info">
                     <h4>Pendentes</h4><span class="card-value"><?= $qtdPendentes ?></span><span
                         class="card-label">aguardando ação</span>
@@ -142,7 +142,7 @@ foreach ($proximosAgendamentos as $ag) {
                             <tr class="<?= $classeRow ?>">
                                 <td style="color: var(--text-muted);"><?= date('d/m/Y', strtotime($ag['data_agendamento'])) ?>
                                 </td>
-                                <td style="font-weight: bold; color: var(--color-purple);"><?= $horaFormatada ?></td>
+                                <td style="font-weight: bold; color: var(--text-main);"><?= $horaFormatada ?></td>
                                 <td><?= htmlspecialchars($ag['cliente_nome']) ?></td>
                                 <td><?= htmlspecialchars($ag['nome_servico']) ?></td>
                                 <td><span class="badge <?= $classeBadge ?>"><?= ucfirst($ag['status']) ?></span></td>
@@ -150,7 +150,7 @@ foreach ($proximosAgendamentos as $ag) {
                                 <?php if ($isGerencia): ?>
                                     <td>
                                         <div class="action-buttons">
-                                            <button onclick="window.location.href='<?= BASE_URL ?>/funcionario/agenda'"
+                                            <button onclick="window.location.href='<?= BASE_URL ?>/funcionario/agenda?data=<?= $ag['data_agendamento'] ?>'"
                                                 class="btn-action btn-edit" title="Ver na Agenda">📅</button>
                                         </div>
                                     </td>

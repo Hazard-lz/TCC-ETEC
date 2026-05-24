@@ -4,6 +4,7 @@ if (!isset($_SESSION['usuario_id'])) {
     header("Location: " . BASE_URL . "/login");
     exit;
 }
+$mostrarAnterioresAtivo = (!empty($_GET['data_inicio']) || !empty($_GET['data_fim']) || ($_GET['tab'] ?? '') === 'anteriores');
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -27,6 +28,7 @@ if (!isset($_SESSION['usuario_id'])) {
 
     <script>
         const BASE_URL = '<?= BASE_URL ?>';
+        const LIMITE_FUTURO_DIAS = '<?= htmlspecialchars($limiteFuturoDias ?? "sem_limite") ?>';
     </script>
     <?php require_once __DIR__ . '/../partials/onesignal.php'; ?>
 </head>
@@ -43,8 +45,8 @@ if (!isset($_SESSION['usuario_id'])) {
             <main class="app-content">
 
                 <div class="tabs-container">
-                    <button class="tab-btn active" onclick="mudarAba('proximos', this)">Próximos</button>
-                    <button class="tab-btn" onclick="mudarAba('anteriores', this)">Anteriores</button>
+                    <button class="tab-btn <?= !$mostrarAnterioresAtivo ? 'active' : '' ?>" onclick="mudarAba('proximos', this)">Próximos</button>
+                    <button class="tab-btn <?= $mostrarAnterioresAtivo ? 'active' : '' ?>" onclick="mudarAba('anteriores', this)">Anteriores</button>
                 </div>
 
                 <?php
@@ -61,76 +63,115 @@ if (!isset($_SESSION['usuario_id'])) {
                 }
                 ?>
 
-                <div id="aba-proximos" class="tab-content active history-grid">
-                    <?php if (!empty($proximos)): ?>
-                        <?php foreach ($proximos as $ag):
-                            $estilo = getBadgeCss($ag['status']);
-                            $podeCancelar = false;
-                            $dataAgendamento = new DateTime($ag['data_agendamento']);
-                            $hoje = new DateTime(date('Y-m-d'));
-                            if ($ag['status'] === 'pendente' || ($dataAgendamento > $hoje && $ag['status'] === 'marcado')) {
-                                $podeCancelar = true;
-                            }
-                            ?>
-                            <div class="history-card <?= $estilo['card'] ?>">
-                                <div class="history-header">
-                                    <span class="history-date">📅 <?= $ag['data_formatada'] ?> às
-                                        <?= $ag['hora_formatada'] ?></span>
-                                    <span class="history-badge <?= $estilo['badge'] ?>"><?= $estilo['label'] ?></span>
-                                </div>
-                                <div class="history-body">
-                                    <div>
-                                        <div class="history-service"><?= htmlspecialchars($ag['nome_servico']) ?></div>
-                                        <div class="history-pro">com <?= htmlspecialchars($ag['funcionario_nome']) ?></div>
+                <div id="aba-proximos" class="tab-content <?= !$mostrarAnterioresAtivo ? 'active' : '' ?> history-grid">
+                    <div id="proximos-cards-list" style="display: contents;">
+                        <?php if (!empty($proximos)): ?>
+                            <?php foreach ($proximos as $ag):
+                                $estilo = getBadgeCss($ag['status']);
+                                $podeCancelar = false;
+                                if ($ag['status'] === 'pendente') {
+                                    $podeCancelar = true;
+                                } elseif ($ag['status'] === 'marcado') {
+                                    date_default_timezone_set('America/Sao_Paulo');
+                                    $dataHoraAgendamento = new DateTime($ag['data_agendamento'] . ' ' . $ag['hora_inicio']);
+                                    $agora = new DateTime();
+                                    if ($dataHoraAgendamento > $agora) {
+                                        $intervalo = $agora->diff($dataHoraAgendamento);
+                                        $horasDiferenca = ($intervalo->days * 24) + $intervalo->h + ($intervalo->i / 60);
+                                        if ($horasDiferenca >= $antecedenciaHoras) {
+                                            $podeCancelar = true;
+                                        }
+                                    }
+                                }
+                                ?>
+                                <div class="history-card <?= $estilo['card'] ?>">
+                                    <div class="history-header">
+                                        <span class="history-date">📅 <?= $ag['data_formatada'] ?> às
+                                            <?= $ag['hora_formatada'] ?></span>
+                                        <span class="history-badge <?= $estilo['badge'] ?>"><?= $estilo['label'] ?></span>
                                     </div>
-                                    <div class="history-price">R$ <?= $ag['preco_formatado'] ?></div>
-                                </div>
-                                <?php if ($podeCancelar): ?>
-                                    <div style="margin-top: 15px; border-top: 1px solid var(--border-color); padding-top: 10px; display: flex; gap: 10px;">
-                                        <form id="form-cancelar-<?= $ag['id_agendamento'] ?>" action="<?= BASE_URL ?>/historico/cancelar" method="POST" style="flex: 1;">
-                                            <?= CsrfGuard::campoHidden() ?>
-                                            <input type="hidden" name="id_agendamento" value="<?= $ag['id_agendamento'] ?>">
+                                    <div class="history-body">
+                                        <div>
+                                            <div class="history-service"><?= htmlspecialchars($ag['nome_servico']) ?></div>
+                                            <div class="history-pro">com <?= htmlspecialchars($ag['funcionario_nome']) ?></div>
+                                        </div>
+                                        <div class="history-price">R$ <?= $ag['preco_formatado'] ?></div>
+                                    </div>
+                                    <?php if ($podeCancelar): ?>
+                                        <div style="margin-top: 15px; border-top: 1px solid var(--border-color); padding-top: 10px; display: flex; gap: 10px;">
+                                            <form id="form-cancelar-<?= $ag['id_agendamento'] ?>" action="<?= BASE_URL ?>/historico/cancelar" method="POST" style="flex: 1;">
+                                                <?= CsrfGuard::campoHidden() ?>
+                                                <input type="hidden" name="id_agendamento" value="<?= $ag['id_agendamento'] ?>">
+                                                <button type="button"
+                                                    onclick="cancelarAgendamento(<?= $ag['id_agendamento'] ?>)"
+                                                    style="width: 100%; padding: 10px; border-radius: 8px; background-color: #ef4444; color: white; border: none; cursor: pointer; font-weight: 600; font-size: 0.85rem;">Cancelar</button>
+                                            </form>
                                             <button type="button"
-                                                onclick="cancelarAgendamento(<?= $ag['id_agendamento'] ?>)"
-                                                style="width: 100%; padding: 10px; border-radius: 8px; background-color: var(--color-pink); color: white; border: none; cursor: pointer; font-weight: 600; font-size: 0.85rem;">Cancelar</button>
-                                        </form>
-                                        <button type="button"
-                                            onclick="abrirModalRemarcar(<?= $ag['id_agendamento'] ?>, '<?= htmlspecialchars($ag['nome_servico'], ENT_QUOTES) ?>', '<?= htmlspecialchars($ag['funcionario_nome'], ENT_QUOTES) ?>', <?= $ag['cod_funcionario'] ?>, <?= $ag['id_servico'] ?>, '<?= $ag['status'] ?>')"
-                                            style="flex: 1; padding: 10px; border-radius: 8px; background-color: var(--color-purple); color: white; border: none; cursor: pointer; font-weight: 600; font-size: 0.85rem;">Remarcar</button>
-                                    </div>
-                                <?php endif; ?>
-                            </div>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <p style="text-align: center; color: var(--text-muted); margin-top: 2rem;">Não tem agendamentos
-                            futuros.</p>
-                    <?php endif; ?>
+                                                onclick="abrirModalRemarcar(<?= $ag['id_agendamento'] ?>, '<?= htmlspecialchars($ag['nome_servico'], ENT_QUOTES) ?>', '<?= htmlspecialchars($ag['funcionario_nome'], ENT_QUOTES) ?>', <?= $ag['cod_funcionario'] ?>, <?= $ag['id_servico'] ?>, '<?= $ag['status'] ?>')"
+                                                style="flex: 1; padding: 10px; border-radius: 8px; background-color: var(--color-purple); color: white; border: none; cursor: pointer; font-weight: 600; font-size: 0.85rem;">Remarcar</button>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <p style="text-align: center; color: var(--text-muted); margin-top: 2rem; grid-column: 1 / -1; width: 100%;">Não tem agendamentos futuros.</p>
+                        <?php endif; ?>
+                    </div>
                 </div>
-
-                <div id="aba-anteriores" class="tab-content history-grid">
-                    <?php if (!empty($anteriores)): ?>
-                        <?php foreach ($anteriores as $ag):
-                            $estilo = getBadgeCss($ag['status']);
-                            ?>
-                            <div class="history-card <?= $estilo['card'] ?>">
-                                <div class="history-header">
-                                    <span class="history-date">📅 <?= $ag['data_formatada'] ?> às
-                                        <?= $ag['hora_formatada'] ?></span>
-                                    <span class="history-badge <?= $estilo['badge'] ?>"><?= $estilo['label'] ?></span>
-                                </div>
-                                <div class="history-body">
-                                    <div>
-                                        <div class="history-service"><?= htmlspecialchars($ag['nome_servico']) ?></div>
-                                        <div class="history-pro">com <?= htmlspecialchars($ag['funcionario_nome']) ?></div>
-                                    </div>
-                                    <div class="history-price">R$ <?= $ag['preco_formatado'] ?></div>
-                                </div>
+                <div id="aba-anteriores" class="tab-content <?= $mostrarAnterioresAtivo ? 'active' : '' ?> history-grid">
+                    <!-- Filtro de Data para Histórico Passado -->
+                    <div class="filter-section" style="margin-bottom: 1.5rem; max-width: 100%; grid-column: 1 / -1; width: 100%;">
+                        <form action="<?= BASE_URL ?>/historico" method="GET" class="filter-form" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.8rem; width: 100%;">
+                            <!-- De: -->
+                            <div class="filter-field" style="display: flex; flex-direction: column; gap: 0.3rem; margin-bottom: 0;">
+                                <label for="data_inicio" style="font-weight: 600; font-size: 0.85rem; color: var(--text-main);">De:</label>
+                                <input type="date" name="data_inicio" id="data_inicio" class="form-control" value="<?= htmlspecialchars($_GET['data_inicio'] ?? '') ?>" style="height: 38px; border-radius: 8px; border: 1px solid var(--border-color); padding: 0.5rem; font-family: inherit; font-size: 0.9rem; background: var(--surface-color); color: var(--text-main); width: 100%;">
                             </div>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <p style="text-align: center; color: var(--text-muted); margin-top: 2rem;">Ainda não tens histórico
-                            de visitas.</p>
-                    <?php endif; ?>
+                            <!-- Até: -->
+                            <div class="filter-field" style="display: flex; flex-direction: column; gap: 0.3rem; margin-bottom: 0;">
+                                <label for="data_fim" style="font-weight: 600; font-size: 0.85rem; color: var(--text-main);">Até:</label>
+                                <input type="date" name="data_fim" id="data_fim" class="form-control" value="<?= htmlspecialchars($_GET['data_fim'] ?? '') ?>" style="height: 38px; border-radius: 8px; border: 1px solid var(--border-color); padding: 0.5rem; font-family: inherit; font-size: 0.9rem; background: var(--surface-color); color: var(--text-main); width: 100%;">
+                            </div>
+                            
+                            <!-- Botão Filtrar -->
+                            <?php $hasFilter = (!empty($_GET['data_inicio']) || !empty($_GET['data_fim'])); ?>
+                            <button type="submit" class="btn-primary filter-btn" style="height: 38px; display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; font-weight: 600; font-size: 0.9rem; border-radius: 8px; border: none; background: var(--gradient-brand, linear-gradient(135deg, #8b5cf6, #ec4899)); color: white; padding: 0; width: 100%; <?= !$hasFilter ? 'grid-column: span 2;' : '' ?>"><i class="bi bi-filter"></i> Filtrar</button>
+                            
+                            <!-- Botão Limpar -->
+                            <?php if ($hasFilter): ?>
+                                <a href="<?= BASE_URL ?>/historico?tab=anteriores" class="btn-secondary" style="height: 38px; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 0.9rem; border: 1px solid var(--border-color); background: var(--surface-color); color: var(--text-main); padding: 0; width: 100%;">Limpar</a>
+                            <?php endif; ?>
+                        </form>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; width: 100%; grid-column: 1 / -1;">
+                        <h4 style="margin: 0; color: var(--text-main); font-size: 0.95rem; font-weight: 600;">Total: <span id="total-anteriores-count" style="font-weight: 700; color: var(--color-purple);"><?= count($anteriores) ?> agendamentos</span></h4>
+                    </div>
+
+                    <div id="anteriores-cards-list" style="display: contents;">
+                        <?php if (!empty($anteriores)): ?>
+                            <?php foreach ($anteriores as $ag):
+                                $estilo = getBadgeCss($ag['status']);
+                                ?>
+                                <div class="history-card <?= $estilo['card'] ?>">
+                                    <div class="history-header">
+                                        <span class="history-date">📅 <?= $ag['data_formatada'] ?> às
+                                            <?= $ag['hora_formatada'] ?></span>
+                                        <span class="history-badge <?= $estilo['badge'] ?>"><?= $estilo['label'] ?></span>
+                                    </div>
+                                    <div class="history-body">
+                                        <div>
+                                            <div class="history-service"><?= htmlspecialchars($ag['nome_servico']) ?></div>
+                                            <div class="history-pro">com <?= htmlspecialchars($ag['funcionario_nome']) ?></div>
+                                        </div>
+                                        <div class="history-price">R$ <?= $ag['preco_formatado'] ?></div>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <p style="text-align: center; color: var(--text-muted); margin-top: 2rem; grid-column: 1 / -1; width: 100%;">Ainda não tens histórico de visitas.</p>
+                        <?php endif; ?>
+                    </div>
                 </div>
             </main>
 
@@ -233,19 +274,16 @@ if (!isset($_SESSION['usuario_id'])) {
                 });
             <?php endif; ?>
 
-            // ─── Refresh Dinâmico (Polling) ───
-            // Se houver agendamentos próximos, verifica atualizações a cada 30 segundos
-            <?php if (!empty($proximos)): ?>
-                setInterval(() => {
-                    // Só recarrega se a página estiver visível E o modal de remarcação não estiver aberto
-                    const modalRemarcar = document.getElementById('modalRemarcar');
-                    const isModalAberto = modalRemarcar && modalRemarcar.classList.contains('active');
-                    
-                    if (!document.hidden && !isModalAberto) {
-                        window.location.reload();
-                    }
-                }, 30000);
-            <?php endif; ?>
+            // ─── Refresh Dinâmico por AJAX (Polling) ───
+            // Atualiza os dados a cada 30 segundos sem recarregar a página
+            setInterval(() => {
+                const modalRemarcar = document.getElementById('modalRemarcar');
+                const isModalAberto = modalRemarcar && modalRemarcar.classList.contains('active');
+                
+                if (!document.hidden && !isModalAberto && typeof atualizarHistoricoPorAjax === 'function') {
+                    atualizarHistoricoPorAjax();
+                }
+            }, 30000);
         });
     </script>
 

@@ -302,6 +302,9 @@ $totalAdmins = $usuarioModel->contarAdminsAtivos();
 
 
 
+    <script>
+        const LOGGED_USER_TYPE = '<?= $_SESSION['usuario_tipo'] ?? '' ?>';
+    </script>
     <script src="<?= BASE_URL ?? '' ?>/public/resources/js/admin.js"></script>
     <script src="<?= BASE_URL ?? '' ?>/public/resources/js/modal.js"></script>
     <script src="<?= BASE_URL ?? '' ?>/public/resources/js/funcionario.js"></script>

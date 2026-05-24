@@ -334,7 +334,7 @@ body {
 
 /* ── Botão de ação destrutiva (cancelar, excluir) — vermelho/rosa da marca ── */
 .swal-belezou-btn-danger {
-  background: var(--color-pink, #f45b69) !important;
+  background: #ef4444 !important;
   color: #ffffff !important;
   border: none !important;
   border-radius: var(--radius-md) !important;
@@ -342,17 +342,17 @@ body {
   font-size: 0.95rem !important;
   font-weight: 600 !important;
   cursor: pointer !important;
-  box-shadow: 0 4px 15px rgba(244, 91, 105, 0.35) !important;
+  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.35) !important;
   transition: all var(--transition-default) !important;
 }
 .swal-belezou-btn-danger:hover {
   opacity: 0.9 !important;
   transform: translateY(-2px) !important;
-  box-shadow: 0 6px 20px rgba(244, 91, 105, 0.5) !important;
+  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.5) !important;
 }
 .swal-belezou-btn-danger:focus {
   outline: none !important;
-  box-shadow: 0 0 0 4px rgba(244, 91, 105, 0.25) !important;
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.25) !important;
 }
 
 

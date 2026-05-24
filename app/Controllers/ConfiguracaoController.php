@@ -29,6 +29,22 @@ class ConfiguracaoController {
         $corSecundaria = $this->configModel->obterValor('cor_secundaria', '#8b5cf6');
         $logoUrl = $this->configModel->obterValor('logo_url', '');
 
+        // Trata strings vazias ou inválidas que porventura estejam no banco de dados
+        $corPrimaria = trim($corPrimaria ?? '');
+        if (empty($corPrimaria) || $corPrimaria[0] !== '#') {
+            $corPrimaria = '#f45b69';
+        }
+        $corSecundaria = trim($corSecundaria ?? '');
+        if (empty($corSecundaria) || $corSecundaria[0] !== '#') {
+            $corSecundaria = '#8b5cf6';
+        }
+
+        // Recupera a antecedência mínima de cancelamento (padrão '24' horas)
+        $antecedenciaCancelamento = $this->configModel->obterValor('antecedencia_cancelamento_horas', '24');
+
+        // Recupera o limite futuro de agendamento (padrão 'sem_limite')
+        $limiteAgendamentoFuturo = $this->configModel->obterValor('limite_agendamento_futuro_dias', 'sem_limite');
+
         require_once __DIR__ . '/../../public/views/admin/configuracoes.php';
     }
 
@@ -52,17 +68,31 @@ class ConfiguracaoController {
             $status = 'ativo';
         }
 
-        $corPrimaria = $_POST['cor_primaria'] ?? '#f45b69';
-        $corSecundaria = $_POST['cor_secundaria'] ?? '#8b5cf6';
+        $corPrimaria = trim($_POST['cor_primaria'] ?? '');
+        if (empty($corPrimaria) || $corPrimaria[0] !== '#') {
+            $corPrimaria = '#f45b69';
+        }
+
+        $corSecundaria = trim($_POST['cor_secundaria'] ?? '');
+        if (empty($corSecundaria) || $corSecundaria[0] !== '#') {
+            $corSecundaria = '#8b5cf6';
+        }
         $logoUrl = $_POST['logo_url'] ?? '';
+        $antecedencia = $_POST['antecedencia_cancelamento_horas'] ?? '24';
+        $limiteFuturo = $_POST['limite_agendamento_futuro_dias'] ?? 'sem_limite';
+        if (!in_array($limiteFuturo, ['sem_limite', '7', '14', '21', '30', '60', '90', '180'])) {
+            $limiteFuturo = 'sem_limite';
+        }
 
         // Tenta salvar todas as configurações
         $sucessoStatus = $this->configModel->salvar('status_funcionamento', $status);
         $sucessoCorPrim = $this->configModel->salvar('cor_primaria', $corPrimaria);
         $sucessoCorSec = $this->configModel->salvar('cor_secundaria', $corSecundaria);
         $sucessoLogo = $this->configModel->salvar('logo_url', $logoUrl);
+        $sucessoAntecedencia = $this->configModel->salvar('antecedencia_cancelamento_horas', $antecedencia);
+        $sucessoLimiteFuturo = $this->configModel->salvar('limite_agendamento_futuro_dias', $limiteFuturo);
 
-        if ($sucessoStatus || $sucessoCorPrim || $sucessoCorSec || $sucessoLogo) {
+        if ($sucessoStatus || $sucessoCorPrim || $sucessoCorSec || $sucessoLogo || $sucessoAntecedencia || $sucessoLimiteFuturo) {
             $_SESSION['flash_sucesso'] = "Configurações e identidade visual atualizadas com sucesso!";
         } else {
             $_SESSION['flash_erro'] = "Nenhuma alteração foi realizada ou erro ao salvar no banco.";

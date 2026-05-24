@@ -303,9 +303,9 @@ $isAdmin = ($_SESSION['usuario_tipo'] ?? '') === 'admin';
 
         <!-- Rodapé -->
         <div class="ajuda-footer-card" style="margin-top: 2rem;">
-            <p><i class="bi bi-terminal" style="color: var(--color-purple); font-size: 1.5rem;"></i></p>
-            <strong>Problema técnico crítico?</strong>
-            <p style="margin-top:0.3rem;">Verifique os logs do servidor (XAMPP/Apache) ou entre em contato com o desenvolvedor responsável.</p>
+            <p><i class="bi bi-shield-exclamation" style="color: var(--color-purple); font-size: 1.5rem;"></i></p>
+            <strong>Problema técnico ou de funcionamento?</strong>
+            <p style="margin-top:0.3rem;">Entre em contato com a equipe de suporte ou com o desenvolvedor responsável para obter auxílio.</p>
         </div>
 
     </div>
