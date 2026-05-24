@@ -107,6 +107,14 @@ class UsuarioService extends BaseService
             return $this->erro('Este e-mail já está cadastrado no sistema.');
         }
 
+        // Higienização do telefone: remove qualquer caractere que não seja número
+        if ($telefone !== null) {
+            $telefone = preg_replace('/[^0-9]/', '', $telefone);
+            if (empty($telefone)) {
+                $telefone = null;
+            }
+        }
+
         $idNovoUsuario = $this->usuarioModel->cadastrar($nome, $email, null, $tipo, $telefone);
 
         if ($idNovoUsuario) {
@@ -309,6 +317,14 @@ class UsuarioService extends BaseService
     {
         $telefone = !empty(trim($telefone)) ? trim($telefone) : null;
         $email = !empty(trim($email)) ? trim($email) : null;
+
+        // Higienização do telefone: remove qualquer caractere que não seja número
+        if ($telefone !== null) {
+            $telefone = preg_replace('/[^0-9]/', '', $telefone);
+            if (empty($telefone)) {
+                $telefone = null;
+            }
+        }
 
         if ($telefone) {
             $existente = $this->usuarioModel->buscarPorTelefoneDiferenteDe($telefone, $id_usuario);

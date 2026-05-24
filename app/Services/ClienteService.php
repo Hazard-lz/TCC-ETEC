@@ -123,6 +123,14 @@ class ClienteService extends BaseService {
             return $this->erro('Nome e telefone são obrigatórios para agendamentos manuais.');
         }
 
+        // Higienização do telefone: remove qualquer caractere que não seja número
+        if ($telefone !== null) {
+            $telefone = preg_replace('/[^0-9]/', '', $telefone);
+            if (empty($telefone)) {
+                $telefone = null;
+            }
+        }
+
         try {
             if (!$this->conn->inTransaction()) { $this->conn->beginTransaction(); }
 

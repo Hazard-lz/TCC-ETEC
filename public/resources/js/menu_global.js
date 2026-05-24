@@ -20,6 +20,11 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function renderizarLayoutGlobal(usuario) {
+    // Evita a duplicação do layout se ele já estiver renderizado na página
+    if (document.getElementById('sidebar-global')) {
+        return;
+    }
+
     const isAdmin = usuario.tipo === 'admin';
     const isSubadmin = usuario.tipo === 'subadmin';
     const isGerencia = isAdmin || isSubadmin;
@@ -57,7 +62,7 @@ function renderizarLayoutGlobal(usuario) {
         <div class="sidebar" id="sidebar-global">
             <div class="sidebar-header">
                 <a href="${BASE_URL}/funcionario/dashboard">
-                    <img src="${BASE_URL}/public/resources/images/Belezou.png" alt="Belezou App Logo" class="sidebar-logo" onerror="this.style.display='none'">
+                    <img src="${BASE_URL}/public/resources/images/Belezou.png?v=2" alt="Belezou App Logo" class="sidebar-logo" onerror="this.style.display='none'">
                 </a>
             </div>
             

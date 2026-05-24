@@ -287,7 +287,7 @@ class AgendamentoController
         $servicos = $servicoModel->listarPorStatus('ativo');
 
         $clientes = $this->clienteModel->listarTodos();
-        $profissionais = $this->funcionarioModel->listarTodos();
+        $profissionais = $this->funcionarioModel->listarAtivos();
 
         // 3. Limites de horário do calendário baseados na disponibilidade
         $disponibilidadeModel = new Disponibilidade();

@@ -2,6 +2,23 @@
    FUNCIONARIO.JS - REGRAS DE FUNCIONÁRIOS (Admin Único)
 */
 
+// Função para aplicar a Máscara de Telefone Brasileira
+function aplicarMascaraTelefone(valor) {
+    if (!valor) return "";
+
+    valor = valor.replace(/\D/g, "").slice(0, 11);
+
+    if (valor.length <= 10) {
+        valor = valor.replace(/(\d{2})(\d)/, "($1) $2");
+        valor = valor.replace(/(\d{4})(\d{1,4})$/, "$1-$2");
+    } else {
+        valor = valor.replace(/(\d{2})(\d)/, "($1) $2");
+        valor = valor.replace(/(\d{5})(\d{1,4})$/, "$1-$2");
+    }
+
+    return valor;
+}
+
 function confirmarExclusaoFuncionario(id, nome) {
     Swal.fire({
         title: 'Atenção',
@@ -20,15 +37,18 @@ function confirmarExclusaoFuncionario(id, nome) {
 }
 
 function abrirEdicaoFuncionario(button) {
-
     const func = JSON.parse(button.getAttribute("data-funcionario"));
     const isLogado = button.getAttribute("data-is-logado") === "true";
 
     document.getElementById("modalTitleFunc").textContent = "Editar Funcionário: " + func.nome;
+    const submitBtn = document.getElementById("btnSalvarFuncionario");
+    if (submitBtn) {
+        submitBtn.textContent = "Salvar Alterações";
+    }
 
     document.getElementById("id_funcionario").value = func.id_funcionario;
     document.getElementById("nome").value = func.nome;
-    document.getElementById("telefone").value = func.telefone || "";
+    document.getElementById("telefone").value = aplicarMascaraTelefone(func.telefone || "");
     document.getElementById("email").value = func.email;
     document.getElementById("especialidade").value = func.especialidade;
     document.getElementById("salario").value = func.salario;
@@ -134,6 +154,10 @@ function abrirEdicaoFuncionario(button) {
 
 function limparModalFuncionario() {
     document.getElementById("modalTitleFunc").textContent = "Cadastrar Novo Funcionário";
+    const submitBtn = document.getElementById("btnSalvarFuncionario");
+    if (submitBtn) {
+        submitBtn.textContent = "Cadastrar Funcionário";
+    }
     document.getElementById("formFuncionario").reset();
     document.getElementById("id_funcionario").value = "";
 
@@ -170,6 +194,16 @@ function limparModalFuncionario() {
 document.addEventListener("DOMContentLoaded", () => {
     const formFuncionario = document.getElementById("formFuncionario");
     const errorMsg = document.getElementById("funcionarioError");
+
+    // --- APLICAÇÃO DA MÁSCARA DE TELEFONE ---
+    const inputTelefone = document.getElementById("telefone");
+    if (inputTelefone) {
+        inputTelefone.addEventListener("input", function (e) {
+            e.target.value = aplicarMascaraTelefone(e.target.value);
+        });
+        // Formata logo de início caso já tenha valor preenchido ou carregado
+        inputTelefone.value = aplicarMascaraTelefone(inputTelefone.value);
+    }
 
     if (formFuncionario) {
         formFuncionario.addEventListener("submit", function (event) {

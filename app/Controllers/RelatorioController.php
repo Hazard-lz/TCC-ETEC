@@ -63,26 +63,35 @@ class RelatorioController {
             $taxaConversao = ($totalGeral > 0) ? ($totalConcluidos / $totalGeral) * 100 : 0;
             $taxaAbsenteismo = $taxaCancelamento;
 
-            // Cálculo proporcional dos salários contratuais para obter o faturamento líquido
+            // Cálculo proporcional preciso dos salários contratuais baseado nos dias reais de cada mês
             $dtInicio = new DateTime($dataInicio);
             $dtFim = new DateTime($dataFim);
-            $dias = (int) $dtInicio->diff($dtFim)->days + 1;
-            if ($dias < 1) $dias = 1;
+            
+            // Loop dia a dia no período selecionado
+            $interval = new DateInterval('P1D');
+            $period = new DatePeriod($dtInicio, $interval, (clone $dtFim)->modify('+1 day'));
 
             if ($idFuncionario === 'todos') {
                 $custoTotal = 0;
-                foreach ($listaFuncionarios as $func) {
-                    // Pula funcionários inativos para não inflar as despesas salariais
-                    if (($func['status'] ?? '') === 'inativo') {
-                        continue;
+                $funcionariosAtivos = array_filter($listaFuncionarios, function($f) {
+                    return ($f['status'] ?? '') !== 'inativo';
+                });
+                
+                foreach ($period as $date) {
+                    $diasNoMes = (int) $date->format('t'); // Retorna a quantidade de dias no mês da data (28 a 31)
+                    foreach ($funcionariosAtivos as $func) {
+                        $sal = (float) ($func['salario'] ?? 0);
+                        $custoTotal += $sal / $diasNoMes;
                     }
-                    $sal = (float) ($func['salario'] ?? 0);
-                    $custoTotal += ($sal / 30.0) * $dias;
                 }
                 $faturamentoLiquido = $faturamentoBruto - $custoTotal;
             } else {
                 $sal = (float) ($funcionarioSelecionado['salario'] ?? 0);
-                $custo = ($sal / 30.0) * $dias;
+                $custo = 0;
+                foreach ($period as $date) {
+                    $diasNoMes = (int) $date->format('t');
+                    $custo += $sal / $diasNoMes;
+                }
                 $faturamentoLiquido = $faturamentoBruto - $custo;
             }
         }

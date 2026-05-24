@@ -5,10 +5,17 @@
 // Função para aplicar a Máscara de Telefone Brasileira
 function aplicarMascaraTelefone(valor) {
     if (!valor) return "";
-    valor = valor.replace(/\D/g, ""); // Remove tudo o que não é dígito
-    valor = valor.replace(/(\d{2})(\d)/, "($1) $2"); // Coloca parênteses em volta do DDD
-    valor = valor.replace(/(\d)(\d{4})$/, "$1-$2"); // Coloca hífen entre o quarto e o quinto dígitos
-    valor = valor.substring(0, 15); // Limita a 15 caracteres
+
+    valor = valor.replace(/\D/g, "").slice(0, 11);
+
+    if (valor.length <= 10) {
+        valor = valor.replace(/(\d{2})(\d)/, "($1) $2");
+        valor = valor.replace(/(\d{4})(\d{1,4})$/, "$1-$2");
+    } else {
+        valor = valor.replace(/(\d{2})(\d)/, "($1) $2");
+        valor = valor.replace(/(\d{5})(\d{1,4})$/, "$1-$2");
+    }
+
     return valor;
 }
 

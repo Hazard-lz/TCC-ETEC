@@ -250,7 +250,7 @@ $totalAdmins = $usuarioModel->contarAdminsAtivos();
                         </div>
                         <div class="form-group">
                             <label for="telefone">Telefone / WhatsApp</label>
-                            <input type="tel" id="telefone" name="telefone" class="form-control">
+                            <input type="tel" id="telefone" name="telefone" class="form-control" placeholder="Ex: (11) 98765-4321">
                         </div>
                     </div>
 
@@ -290,7 +290,7 @@ $totalAdmins = $usuarioModel->contarAdminsAtivos();
                     <div id="funcionarioError" class="error-message">Verifique os campos preenchidos.</div>
 
                     <div class="modal-actions">
-                        <button type="submit" class="btn-primary">Salvar Funcionário</button>
+                        <button type="submit" id="btnSalvarFuncionario" class="btn-primary">Cadastrar Funcionário</button>
                         <button type="button" data-close-modal class="btn-secondary">Cancelar</button>
                     </div>
                 </form>

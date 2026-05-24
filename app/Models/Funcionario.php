@@ -38,6 +38,16 @@ class Funcionario extends BaseModel {
         return $this->executarQuery($sql, [], 'todos');
     }
 
+    public function listarAtivos() {
+        $sql = "SELECT f.id_funcionario, f.cod_usuario, f.especialidade, f.salario, 
+                       u.nome, u.email, u.telefone, u.status, u.data_criacao, u.tipo, u.email_verificado
+                FROM funcionarios f
+                INNER JOIN usuarios u ON f.cod_usuario = u.id_usuario
+                WHERE u.status = 'ativo'
+                ORDER BY u.nome ASC";
+        return $this->executarQuery($sql, [], 'todos');
+    }
+
     public function buscarPorId($id_funcionario) {
         // Adicionado u.tipo no SELECT
         $sql = "SELECT f.*, u.nome, u.email, u.telefone, u.status, u.tipo 
