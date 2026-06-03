@@ -226,7 +226,11 @@ function selecionarServico(id, nome, preco, elemento) {
 
 async function buscarProfissionais(idServico) {
   const container = document.getElementById('container-profissionais');
-  container.innerHTML = '<p style="color: var(--text-muted); text-align: center;">A buscar especialistas...</p>';
+  container.innerHTML = `
+    <div class="skeleton-card"><div class="skeleton-line skeleton-line-title"></div><div class="skeleton-line skeleton-line-subtitle"></div></div>
+    <div class="skeleton-card"><div class="skeleton-line skeleton-line-title"></div><div class="skeleton-line skeleton-line-subtitle"></div></div>
+    <div class="skeleton-card"><div class="skeleton-line skeleton-line-title"></div><div class="skeleton-line skeleton-line-subtitle"></div></div>
+  `;
 
   try {
     const response = await fetch(`${BASE_URL}/api/profissionais-por-servico?id_servico=${idServico}`);
@@ -245,6 +249,7 @@ async function buscarProfissionais(idServico) {
         const especialidade = prof.especialidade || 'Profissional';
         const div = document.createElement('div');
         div.className = 'base-card selectable-card';
+        div.setAttribute('data-id-funcionario', prof.id_funcionario);
         div.style.cssText = 'padding: 1rem; margin-bottom: 0.8rem; cursor: pointer;';
         div.onclick = function () { selecionarProfissional(prof.id_funcionario, prof.nome, this); };
         div.innerHTML = `
@@ -375,7 +380,14 @@ async function liberarHorarios() {
   document.getElementById('horario_selecionado').value = '';
   setBotoesPasso(3, false); // Bloqueia enquanto escolhe o horário
 
-  containerHorarios.innerHTML = '<p>Calculando horários disponíveis...</p>';
+  containerHorarios.innerHTML = `
+    <div class="skeleton-slot"></div>
+    <div class="skeleton-slot"></div>
+    <div class="skeleton-slot"></div>
+    <div class="skeleton-slot"></div>
+    <div class="skeleton-slot"></div>
+    <div class="skeleton-slot"></div>
+  `;
 
   if (!dataSelecionada || !idServico || !idFuncionario) return;
 
@@ -565,6 +577,52 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       });
     });
+  }
+
+  // ─── AUTO-SELEÇÃO VIA URL (Agendar Novamente) ───
+  const urlParams = new URLSearchParams(window.location.search);
+  const paramServico = urlParams.get('id_servico');
+  const paramFuncionario = urlParams.get('id_funcionario');
+
+  if (paramServico) {
+    const cardServico = document.querySelector(`[data-id-servico="${paramServico}"]`);
+    if (cardServico) {
+      const nome = cardServico.querySelector('h4').textContent;
+      const preco = parseFloat(cardServico.getAttribute('data-preco') || 0);
+      
+      document.getElementById('servico_id').value = paramServico;
+      document.getElementById('servico_nome').value = nome;
+      document.getElementById('servico_preco').value = preco;
+
+      atualizarResumo('lat-servico', nome);
+      const elPreco = document.getElementById('lat-preco');
+      if (elPreco) elPreco.textContent = formatarPreco(preco);
+      cardServico.classList.add('selected');
+      setBotoesPasso(1, true);
+
+      buscarProfissionais(paramServico).then(() => {
+        if (paramFuncionario) {
+          const cardProf = document.querySelector(`[data-id-funcionario="${paramFuncionario}"]`);
+          if (cardProf) {
+            const profNome = cardProf.querySelector('h4').textContent;
+            document.getElementById('funcionario_id').value = paramFuncionario;
+            document.getElementById('funcionario_nome').value = profNome;
+            
+            atualizarResumo('lat-profissional', profNome);
+            cardProf.classList.add('selected');
+            setBotoesPasso(2, true);
+
+            irParaPasso(1, 3);
+            document.getElementById('ind-2').classList.add('completed');
+            configurarLimitesData();
+          } else {
+            irParaPasso(1, 2);
+          }
+        } else {
+          irParaPasso(1, 2);
+        }
+      });
+    }
   }
 });
 

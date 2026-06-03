@@ -98,6 +98,7 @@ if (!isset($_SESSION['usuario_id'])) {
                                     <?php foreach ($servicos as $svc): ?>
                                         <div class="base-card selectable-card"
                                              style="padding: 1rem; margin-bottom: 0.8rem;"
+                                             data-id-servico="<?= $svc['id_servico'] ?>"
                                              data-preco="<?= $svc['preco'] ?>"
                                              onclick="selecionarServico('<?= $svc['id_servico'] ?>', '<?= htmlspecialchars($svc['nome_servico'], ENT_QUOTES) ?>', <?= $svc['preco'] ?>, this)">
                                             <h4 style="color: var(--text-main); font-size: 1.1rem; margin-bottom: 0.3rem;"><?= htmlspecialchars($svc['nome_servico']) ?></h4>

@@ -1,4 +1,13 @@
 <?php
+// =========================================================================
+// SERVICE DE AGENDAMENTO (AgendamentoService.php)
+// =========================================================================
+// Este serviço concentra as regras de negócio mais importantes do sistema:
+// validação de datas, prevenção de overbooking (conflitos de horário),
+// controle de transações no banco, políticas de cancelamento e disparos
+// automatizados de push notifications e e-mails de confirmação.
+// =========================================================================
+
 require_once __DIR__ . '/BaseService.php';
 require_once __DIR__ . '/../Models/Agendamento.php';
 require_once __DIR__ . '/../Models/Servico.php';
@@ -8,11 +17,13 @@ require_once __DIR__ . '/EmailService.php';
 
 class AgendamentoService extends BaseService
 {
-
     private $agendamentoModel;
     private $servicoModel;
     private $conn;
 
+    /**
+     * Construtor do serviço: instancia os modelos e obtém a conexão PDO singleton
+     */
     public function __construct()
     {
         $this->agendamentoModel = new Agendamento();
@@ -21,18 +32,26 @@ class AgendamentoService extends BaseService
     }
 
     /**
-     * Orquestra a criação do agendamento validando os tempos e valores no backend.
-     * $idCliente e $idFuncionario devem ser os IDs das tabelas `clientes` e `funcionarios`, e não de `usuarios`.
+     * Orquestra a criação segura de um novo agendamento no sistema.
+     * 
+     * @param int $idCliente ID da tabela 'clientes' (não do 'usuarios')
+     * @param int $idFuncionario ID da tabela 'funcionarios' (não do 'usuarios')
+     * @param int $idServico ID da tabela 'servicos'
+     * @param string $data Data do agendamento (YYYY-MM-DD)
+     * @param string $horaInicio Hora de início do atendimento (HH:MM:SS)
+     * @param int|null $idFuncionarioCriador ID do funcionário que está agendando via balcão (null se for o cliente)
+     * @return array Resposta padronizada de sucesso ou falha
      */
     public function realizarAgendamento($idCliente, $idFuncionario, $idServico, $data, $horaInicio, $idFuncionarioCriador = null)
     {
         try {
-            // 1. Validação de data: impede agendamentos no passado
+            // 1. Validação de data: impede a criação de agendamentos retroativos
             if ($data < date('Y-m-d')) {
                 return ['sucesso' => false, 'mensagem' => 'Não é possível agendar em datas passadas.'];
             }
 
-            // 1.5 Validação de limite de agendamento futuro (para clientes comuns)
+            // 1.5 Validação do limite de agendamento futuro
+            // Se quem está criando é o próprio cliente, valida as restrições de antecedência máxima configuradas
             if ($idFuncionarioCriador === null) {
                 require_once __DIR__ . '/../Models/Configuracao.php';
                 $configModel = new Configuracao();
@@ -53,10 +72,13 @@ class AgendamentoService extends BaseService
                 }
             }
 
-            // 2. Inicia Transação (Garante que agendamento e itens_agendamento sejam salvos juntos)
-            if (!$this->conn->inTransaction()) { $this->conn->beginTransaction(); }
+            // 2. Inicia uma Transação de Banco de Dados
+            // Isso garante que se houver falha ao inserir os itens de serviço, a capa do agendamento não fique órfã (Rollback automático)
+            if (!$this->conn->inTransaction()) { 
+                $this->conn->beginTransaction(); 
+            }
 
-            // 3. Busca do serviço: usa os nomes reais do schema (preco e duracao)
+            // 3. Recupera os detalhes do serviço (Preço e Duração)
             $servico = $this->servicoModel->buscarPorId($idServico);
             if (!$servico) {
                 throw new Exception("O serviço selecionado não existe ou está inativo.");
@@ -66,27 +88,29 @@ class AgendamentoService extends BaseService
             $preco = (float) $servico['preco'];
             $nomeServico = $servico['nome_servico'];
 
-
-            // 3. Cálculos de Tempo: Evita falhas usando a classe nativa do PHP
+            // 3.5 Calcula a hora de término baseada na duração do serviço
             $horaFimObj = new DateTime($horaInicio);
             $horaFimObj->modify("+{$duracao} minutes");
-            $horaFim = $horaFimObj->format('H:i:s'); // TIME format do MySQL
+            $horaFim = $horaFimObj->format('H:i:s'); // Converte para o tipo TIME do MySQL
 
-            // 4. Verificação de Overbooking
+            // 4. Prevenção de Overbooking (Conflito de Horários)
+            // Impede que um profissional seja agendado em um horário onde ele já tem um compromisso marcado
             $conflito = $this->agendamentoModel->verificarConflitoHorario($idFuncionario, $data, $horaInicio, $horaFim);
             if ($conflito) {
                 throw new Exception("O profissional já possui um agendamento neste horário.");
             }
 
-            // 5. Verificação da tabela associativa (funcionario_servicos)
+            // 5. Verifica se o profissional de fato atende a esse serviço (Integridade Referencial)
             $vinculo = $this->agendamentoModel->buscarVinculoFuncionarioServico($idFuncionario, $idServico);
             if (!$vinculo) {
                 throw new Exception("Este profissional não está vinculado para realizar este serviço.");
             }
 
-            // Se não houver idFuncionarioCriador, significa que foi o próprio cliente no site
+            // Se foi o cliente quem agendou, o status inicial é 'pendente' (aguardando aprovação).
+            // Se foi criado pela gerência/balcão, o status já nasce confirmado como 'marcado'.
             $statusInicial = ($idFuncionarioCriador === null) ? 'pendente' : 'marcado';
-            // 6. Insere na tabela 'agendamentos' (Capa)
+            
+            // 6. Cadastra os dados principais na tabela 'agendamentos' (Capa)
             $idAgendamento = $this->agendamentoModel->cadastrarAgendamento(
                 $idCliente,
                 $idFuncionarioCriador,
@@ -98,7 +122,7 @@ class AgendamentoService extends BaseService
                 throw new Exception("Falha ao registrar os dados principais do agendamento.");
             }
 
-            // 7. Insere na tabela 'itens_agendamento'
+            // 7. Cadastra a especificação do atendimento na tabela 'itens_agendamento'
             $itemInserido = $this->agendamentoModel->cadastrarItem(
                 $idAgendamento,
                 $vinculo['id_sv_funcionario'],
@@ -113,12 +137,12 @@ class AgendamentoService extends BaseService
                 throw new Exception("Falha ao registrar o serviço no agendamento.");
             }
 
-            // 8. Efetiva a gravação no banco de dados
+            // 8. Efetiva as alterações gravando tudo definitivamente no banco
             $this->conn->commit();
 
-            // ==========================================
-            // INTEGRAÇÃO ONESIGNAL / EMAIL (Novo Agendamento)
-            // ==========================================
+            // =================================================================
+            // DISPARO DE NOTIFICAÇÕES (Em segundo plano)
+            // =================================================================
             try {
                 $agendamentoCompleto = $this->agendamentoModel->buscarPorId($idAgendamento);
                 if ($agendamentoCompleto) {
@@ -133,10 +157,9 @@ class AgendamentoService extends BaseService
                     $horaPt = substr($agendamentoCompleto['hora_inicio'], 0, 5);
 
                     if ($idFuncionarioCriador === null) {
-                        // Criado pelo CLIENTE -> Avisa o FUNCIONÁRIO
+                        // Agendado pelo CLIENTE -> Notifica o profissional
                         if (!empty($agendamentoCompleto['funcionario_cod_usuario'])) {
                             $msg = "📅 Novo Agendamento: {$agendamentoCompleto['cliente_nome']} solicitou {$agendamentoCompleto['nome_servico']} para o dia $dataPt às $horaPt.";
-                            
                             $oneSignal->enviarNotificacao(
                                 $agendamentoCompleto['funcionario_cod_usuario'], 
                                 $msg, 
@@ -157,10 +180,9 @@ class AgendamentoService extends BaseService
                             $emailService->enviar($agendamentoCompleto['funcionario_email'], $agendamentoCompleto['funcionario_nome'], $assunto, $corpoHtml);
                         }
                     } else {
-                        // Criado pelo FUNCIONÁRIO -> Avisa o CLIENTE
+                        // Agendado pelo FUNCIONÁRIO/BALCÃO -> Notifica o cliente
                         if (!empty($agendamentoCompleto['cliente_cod_usuario'])) {
                             $msg = "✨ Agendamento Marcado: Um novo horário de {$agendamentoCompleto['nome_servico']} foi reservado para você no dia $dataPt às $horaPt.";
-                            
                             $oneSignal->enviarNotificacao(
                                 $agendamentoCompleto['cliente_cod_usuario'], 
                                 $msg, 
@@ -183,6 +205,7 @@ class AgendamentoService extends BaseService
                     }
                 }
             } catch (Exception $e) {
+                // Notificações falharem não deve reverter o agendamento já persistido
                 error_log("Aviso: Falha ao enviar notificação de novo agendamento: " . $e->getMessage());
             }
 
@@ -192,11 +215,11 @@ class AgendamentoService extends BaseService
                 'id_agendamento' => $idAgendamento
             ];
         } catch (Exception $e) {
+            // Desfaz qualquer operação no banco caso ocorra algum erro durante o processo
             if ($this->conn->inTransaction()) {
                 $this->conn->rollBack();
             }
 
-            // Log discreto no servidor para análise futura
             error_log("Erro no AgendamentoService: " . $e->getMessage());
 
             return [
@@ -207,7 +230,12 @@ class AgendamentoService extends BaseService
     }
 
     /**
-     * Altera o status verificando a integridade com o ENUM do Schema.
+     * Transiciona o status de um agendamento (Confirmar, Recusar ou Cancelar).
+     * 
+     * @param int $idAgendamento ID do agendamento
+     * @param string $novoStatus Novo status ('pendente', 'concluido', 'cancelado', 'marcado')
+     * @param string $origem Quem solicitou a alteração ('cliente' ou 'funcionario')
+     * @return array Resposta de sucesso ou falha
      */
     public function alterarStatus($idAgendamento, $novoStatus, $origem = 'funcionario')
     {
@@ -217,7 +245,7 @@ class AgendamentoService extends BaseService
             return ['sucesso' => false, 'mensagem' => 'Status inválido.'];
         }
 
-        // Validação de transição de estado: status finalizados não podem regredir
+        // Validação da transição de estados: agendamentos finalizados (concluídos ou cancelados) são imutáveis
         $agendamento = $this->agendamentoModel->buscarPorId($idAgendamento);
         if (!$agendamento) {
             return ['sucesso' => false, 'mensagem' => 'Agendamento não encontrado.'];
@@ -227,7 +255,7 @@ class AgendamentoService extends BaseService
             return ['sucesso' => false, 'mensagem' => 'Não é possível alterar um agendamento que já foi ' . $agendamento['status'] . '.'];
         }
 
-        // Validar conflito de horários (overbooking) ao transitar de pendente para marcado
+        // Validação de colisão de horário ao transitar o agendamento de Pendente para Marcado (Confirmado)
         if ($novoStatus === 'marcado' && $agendamento['status'] !== 'marcado') {
             $conflito = $this->agendamentoModel->verificarConflitoHorario(
                 $agendamento['cod_funcionario'],
@@ -241,7 +269,7 @@ class AgendamentoService extends BaseService
             }
         }
 
-        // Regra de antecedência parametrizada para cancelamento de agendamentos confirmados (marcados)
+        // Verificação das regras de antecedência mínima para cancelamento (Exemplo: limite de 24h)
         if ($novoStatus === 'cancelado' && $agendamento['status'] === 'marcado') {
             require_once __DIR__ . '/../Models/Configuracao.php';
             $configModel = new Configuracao();
@@ -257,7 +285,7 @@ class AgendamentoService extends BaseService
                     $horasDiferenca = ($intervalo->days * 24) + $intervalo->h + ($intervalo->i / 60);
 
                     if ($horasDiferenca < $antecedenciaHoras) {
-                        // Bypass automático para Administradores e Subadministradores (Gerência)
+                        // Administradores e Subadministradores têm permissão para cancelar sem restrição de tempo
                         $isGerencia = isset($_SESSION['usuario_tipo']) && in_array($_SESSION['usuario_tipo'], ['admin', 'subadmin']);
                         if (!$isGerencia) {
                             return [
@@ -267,7 +295,7 @@ class AgendamentoService extends BaseService
                         }
                     }
                 } else {
-                    // Tentativa de cancelar agendamento retroativo (no passado)
+                    // Impede o cliente de cancelar agendamentos passados
                     if ($origem === 'cliente') {
                         return [
                             'sucesso' => false,
@@ -278,19 +306,19 @@ class AgendamentoService extends BaseService
             }
         }
 
+        // Atualiza fisicamente o status no banco de dados
         $atualizou = $this->agendamentoModel->atualizarStatus($idAgendamento, $novoStatus);
 
         if ($atualizou) {
-            // ==========================================
-            // INTEGRAÇÃO ONESIGNAL / EMAIL
-            // ==========================================
+            // =================================================================
+            // DISPARO DE ALERTAS PÓS ALTERAÇÃO DE STATUS
+            // =================================================================
             try {
                 $agendamentoAtualizado = $this->agendamentoModel->buscarPorId($idAgendamento);
                 if ($agendamentoAtualizado) {
                     $oneSignal = new OneSignalService();
                     $emailService = new EmailService();
                     
-                    // Monta a URL base dinamicamente (para funcionar tanto local quanto na Hostinger)
                     $protocolo = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? "https" : "http";
                     $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
                     $urlBase = "$protocolo://$host" . BASE_URL;
@@ -299,10 +327,9 @@ class AgendamentoService extends BaseService
                     $horaPt = substr($agendamentoAtualizado['hora_inicio'], 0, 5);
 
                     if ($origem === 'cliente' && $novoStatus === 'cancelado') {
-                        // O cliente cancelou, avisa o funcionário
+                        // Cliente cancelou -> Notifica o profissional
                         if (!empty($agendamentoAtualizado['funcionario_cod_usuario'])) {
                             $msg = "⚠️ Cancelamento: {$agendamentoAtualizado['cliente_nome']} cancelou o agendamento de {$agendamentoAtualizado['nome_servico']} para o dia $dataPt às {$agendamentoAtualizado['hora_inicio']}.";
-                            
                             $oneSignal->enviarNotificacao(
                                 $agendamentoAtualizado['funcionario_cod_usuario'], 
                                 $msg, 
@@ -323,7 +350,7 @@ class AgendamentoService extends BaseService
                             $emailService->enviar($agendamentoAtualizado['funcionario_email'], $agendamentoAtualizado['funcionario_nome'], $assunto, $corpoHtml);
                         }
                     } else {
-                        // O funcionário/admin alterou, avisa o cliente
+                        // Funcionário/Admin confirmou ou cancelou -> Notifica o cliente
                         if (($novoStatus === 'marcado' || $novoStatus === 'cancelado') && !empty($agendamentoAtualizado['cliente_cod_usuario'])) {
                             $msg = ($novoStatus === 'marcado') 
                                 ? "✅ Seu agendamento de {$agendamentoAtualizado['nome_servico']} foi confirmado!" 
@@ -374,21 +401,28 @@ class AgendamentoService extends BaseService
     }
 
     /**
-     * Remarca um agendamento existente de forma segura, com transação e checagem de colisões.
+     * Remarca um agendamento existente com checagem de conflitos e segurança transacional.
+     * 
+     * @param int $idAgendamento ID do agendamento
+     * @param string $novaData Nova data (YYYY-MM-DD)
+     * @param string $novaHoraInicio Nova hora de início (HH:MM:SS)
+     * @param string $origem Quem executou a remarcação ('cliente' ou 'funcionario')
+     * @return array Resposta padronizada de sucesso ou falha
      */
     public function remarcarAgendamento($idAgendamento, $novaData, $novaHoraInicio, $origem = 'cliente')
     {
         try {
-            // 1. Validação de data: impede remarcação em datas passadas
+            // 1. Impede remarcação retroativa no passado
             if ($novaData < date('Y-m-d')) {
                 return ['sucesso' => false, 'mensagem' => 'Não é possível remarcar para datas passadas.'];
             }
 
-            // 1.5 Validação de limite de agendamento futuro (para clientes comuns)
+            // 1.5 Validação de limites futuros configurados no painel administrativo
             if ($origem === 'cliente') {
                 require_once __DIR__ . '/../Models/Configuracao.php';
                 $configModel = new Configuracao();
                 $limiteDiasVal = $configModel->obterValor('limite_agendamento_futuro_dias', 'sem_limite');
+                
                 if ($limiteDiasVal !== 'sem_limite' && is_numeric($limiteDiasVal)) {
                     $limiteDiasInt = (int)$limiteDiasVal;
                     $maxDataObj = new DateTime('now', new DateTimeZone('America/Sao_Paulo'));
@@ -405,18 +439,18 @@ class AgendamentoService extends BaseService
                 }
             }
 
-            // 2. Inicia Transação
+            // 2. Inicia a Transação
             if (!$this->conn->inTransaction()) {
                 $this->conn->beginTransaction();
             }
 
-            // 3. Busca o agendamento atual
+            // 3. Recupera o agendamento atual
             $agendamento = $this->agendamentoModel->buscarPorId($idAgendamento);
             if (!$agendamento) {
                 throw new Exception("Agendamento não encontrado.");
             }
 
-            // Validação de estado atual
+            // Impede remarcação de atendimentos já cancelados ou finalizados
             if (in_array($agendamento['status'], ['concluido', 'cancelado'])) {
                 throw new Exception("Não é possível remarcar um agendamento concluído ou cancelado.");
             }
@@ -424,18 +458,18 @@ class AgendamentoService extends BaseService
             $idFuncionario = $agendamento['cod_funcionario'];
             $duracao = (int) $agendamento['duracao'];
 
-            // 4. Cálculos de Tempo: calcula a hora de término baseado na duração original do serviço
+            // 4. Calcula a nova hora final baseando-se na duração original do serviço
             $horaFimObj = new DateTime($novaHoraInicio);
             $horaFimObj->modify("+{$duracao} minutes");
             $novaHoraFim = $horaFimObj->format('H:i:s');
 
-            // 5. Verificação de Conflito de Horário (Overbooking) - Ignora o próprio ID atual na colisão
+            // 5. Prevenção de Overbooking: ignora o próprio ID atual para não colidir consigo mesmo
             $conflito = $this->agendamentoModel->verificarConflitoHorario($idFuncionario, $novaData, $novaHoraInicio, $novaHoraFim, $idAgendamento);
             if ($conflito) {
                 throw new Exception("O profissional já possui um agendamento neste horário.");
             }
 
-            // 6. Verificação de Bloqueios Manuais da Agenda do Funcionário
+            // 6. Verifica se a nova data não bate com bloqueios manuais (férias, folgas) definidos pelo profissional
             require_once __DIR__ . '/../Models/Disponibilidade.php';
             $disponibilidadeModel = new Disponibilidade();
             $bloqueios = $disponibilidadeModel->buscarBloqueiosDia($idFuncionario, $novaData);
@@ -446,14 +480,15 @@ class AgendamentoService extends BaseService
                 foreach ($bloqueios as $b) {
                     $inicioBloqueio = strtotime($b['hora_inicio']);
                     $fimBloqueio = strtotime($b['hora_fim']);
+                    
+                    // Se houver sobreposição nos intervalos de tempo, impede a remarcação
                     if ($inicioNovo < $fimBloqueio && $fimNovo > $inicioBloqueio) {
                         throw new Exception("Este horário está bloqueado pelo profissional.");
                     }
                 }
             }
 
-            // 7. Atualiza os dados no Banco de Dados
-            // Atualiza data na capa
+            // 7. Atualiza os dados no banco de dados (Capa e Itens)
             $sqlCapa = "UPDATE agendamentos SET data_agendamento = :data WHERE id_agendamento = :id";
             $stmtCapa = $this->conn->prepare($sqlCapa);
             $stmtCapa->execute([
@@ -461,7 +496,6 @@ class AgendamentoService extends BaseService
                 ':id' => $idAgendamento
             ]);
 
-            // Atualiza horários no item
             $sqlItem = "UPDATE itens_agendamento SET hora_inicio = :hora_inicio, hora_fim = :hora_fim WHERE cod_agendamento = :id";
             $stmtItem = $this->conn->prepare($sqlItem);
             $stmtItem->execute([
@@ -470,12 +504,12 @@ class AgendamentoService extends BaseService
                 ':id' => $idAgendamento
             ]);
 
-            // Efetiva a gravação no banco
+            // Confirma todas as alterações no banco
             $this->conn->commit();
 
-            // ==========================================
-            // INTEGRAÇÃO ONESIGNAL / EMAIL (Remarcação)
-            // ==========================================
+            // =================================================================
+            // DISPARO DE NOTIFICAÇÕES DE REMARCAÇÃO
+            // =================================================================
             try {
                 $agendamentoCompleto = $this->agendamentoModel->buscarPorId($idAgendamento);
                 if ($agendamentoCompleto) {
@@ -490,10 +524,9 @@ class AgendamentoService extends BaseService
                     $horaPt = substr($agendamentoCompleto['hora_inicio'], 0, 5);
 
                     if ($origem === 'cliente') {
-                        // Criado pelo CLIENTE -> Avisa o FUNCIONÁRIO
+                        // Remarcado pelo cliente -> Notifica o profissional
                         if (!empty($agendamentoCompleto['funcionario_cod_usuario'])) {
                             $msg = "📅 Agendamento Remarcado: {$agendamentoCompleto['cliente_nome']} alterou {$agendamentoCompleto['nome_servico']} para o dia $dataPt às $horaPt.";
-                            
                             $oneSignal->enviarNotificacao(
                                 $agendamentoCompleto['funcionario_cod_usuario'], 
                                 $msg, 
@@ -514,10 +547,9 @@ class AgendamentoService extends BaseService
                             $emailService->enviar($agendamentoCompleto['funcionario_email'], $agendamentoCompleto['funcionario_nome'], $assunto, $corpoHtml);
                         }
                     } else {
-                        // Remarcado pelo FUNCIONÁRIO -> Avisa o CLIENTE
+                        // Remarcado pelo profissional/gerência -> Notifica o cliente
                         if (!empty($agendamentoCompleto['cliente_cod_usuario'])) {
                             $msg = "✨ Agendamento Remarcado: O seu horário de {$agendamentoCompleto['nome_servico']} foi remarcado para o dia $dataPt às $horaPt.";
-                            
                             $oneSignal->enviarNotificacao(
                                 $agendamentoCompleto['cliente_cod_usuario'], 
                                 $msg, 
@@ -561,7 +593,7 @@ class AgendamentoService extends BaseService
     }
 
     /**
-     * Auxiliar para traduzir o limite de dias em um texto amigável para o usuário.
+     * Traduz uma contagem de dias em uma representação legível para exibições de limites ao cliente.
      */
     private function traduzirDiasParaTexto($dias)
     {

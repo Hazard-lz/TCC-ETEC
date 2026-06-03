@@ -324,6 +324,31 @@ $isAdmin = ($tipoLogado === 'admin');
                     <small style="color: var(--text-muted, #64748b); font-size: 0.85rem; display: block; margin-top: 0.25rem;">Deixe em branco para usar o logotipo padrão do sistema (Belezou App).</small>
                 </div>
 
+                <!-- ══ CONFIGURAÇÕES DE LOCALIZAÇÃO (ENDEREÇO E MAPA) ══ -->
+                <hr style="border: 0; border-top: 1px solid var(--border-color, #e2e8f0); margin: 2rem 0;">
+
+                <h3 style="margin-top: 0; margin-bottom: 1.5rem; font-size: 1.25rem; font-weight: 600; color: var(--text-main, #1e293b); display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="bi bi-geo-alt" style="color: var(--color-purple, #8b5cf6);"></i> Endereço e Localização do Salão
+                </h3>
+
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-size: 0.95rem; font-weight: 600; color: var(--text-muted, #64748b);">Endereço Completo (Texto)</label>
+                    <input type="text" name="salao_endereco" id="salao_endereco" value="<?= htmlspecialchars($salaoEndereco ?? '') ?>" class="form-control" placeholder="Av. Dr. Adhemar de Barros, 1000 - Vila Adyana, São José dos Campos - SP" required>
+                    <small style="color: var(--text-muted, #64748b); font-size: 0.85rem; display: block; margin-top: 0.25rem;">O endereço textual que será exibido aos clientes na tela de ajuda.</small>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-size: 0.95rem; font-weight: 600; color: var(--text-muted, #64748b);">URL do Iframe de Incorporação do Google Maps</label>
+                    <textarea name="salao_mapa_iframe" id="salao_mapa_iframe" class="form-control" style="height: 80px;" placeholder="https://www.google.com/maps/embed?pb=..." required><?= htmlspecialchars($salaoMapaIframe ?? '') ?></textarea>
+                    <small style="color: var(--text-muted, #64748b); font-size: 0.85rem; display: block; margin-top: 0.25rem;">Copie apenas o link do atributo 'src' do iframe gerado pelo Google Maps Compartilhar -> Incorporar um mapa.</small>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-size: 0.95rem; font-weight: 600; color: var(--text-muted, #64748b);">Link Direto para o Google Maps (GPS)</label>
+                    <input type="url" name="salao_mapa_link" id="salao_mapa_link" value="<?= htmlspecialchars($salaoMapaLink ?? '') ?>" class="form-control" placeholder="https://maps.google.com/?q=..." required>
+                    <small style="color: var(--text-muted, #64748b); font-size: 0.85rem; display: block; margin-top: 0.25rem;">Link direto para o GPS do Google Maps que abre ao clicar no botão "Como Chegar".</small>
+                </div>
+
                 <div style="margin-top: 2rem; display: flex; justify-content: flex-end;">
                     <button type="submit" class="btn-save-config">
                         <i class="bi bi-check-lg"></i> Salvar Alterações

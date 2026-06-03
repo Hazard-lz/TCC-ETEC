@@ -215,6 +215,7 @@ $router->post('/api/servicos-profissional', 'FuncionarioController@listarServico
 
 $router->get('/api/agenda-eventos', 'AgendamentoController@apiEventos');
 $router->get('/api/agendamentos-pendentes', 'AgendamentoController@apiPendentes');
+$router->get('/api/sse-updates', 'FuncionarioController@sseUpdates');
 
 $router->post('/funcionario/disponibilidade/salvar', 'DisponibilidadeController@salvar');
 $router->get('/funcionario/disponibilidade/salvar', function () {

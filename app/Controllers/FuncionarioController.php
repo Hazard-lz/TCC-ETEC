@@ -321,6 +321,47 @@ class FuncionarioController
         // Formatação do Faturamento para BRL
         $faturamentoFormatado = number_format($faturamentoMes, 2, ',', '.');
 
+        // Se for uma requisição AJAX, retorna JSON com os dados e encerra
+        $isAjax = (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') || isset($_GET['ajax']);
+        if ($isAjax) {
+            header('Content-Type: application/json');
+            
+            $proximosFormatados = [];
+            if ($proximosAgendamentos) {
+                foreach ($proximosAgendamentos as $ag) {
+                    $proximosFormatados[] = [
+                        'id_agendamento' => $ag['id_agendamento'],
+                        'data_agendamento' => date('d/m/Y', strtotime($ag['data_agendamento'])),
+                        'data_agendamento_raw' => $ag['data_agendamento'],
+                        'hora_inicio' => substr($ag['hora_inicio'], 0, 5),
+                        'cliente_nome' => $ag['cliente_nome'],
+                        'nome_servico' => $ag['nome_servico'],
+                        'status' => $ag['status'],
+                        'status_ucfirst' => ucfirst($ag['status'])
+                    ];
+                }
+            }
+            
+            // Calcula quantos agendamentos estão "pendentes" na lista de próximos
+            $qtdPendentes = 0;
+            if ($proximosAgendamentos) {
+                foreach ($proximosAgendamentos as $ag) {
+                    if ($ag['status'] === 'pendente') {
+                        $qtdPendentes++;
+                    }
+                }
+            }
+
+            echo json_encode([
+                'totalAgendamentosHoje' => $totalAgendamentosHoje,
+                'faturamentoFormatado' => $faturamentoFormatado,
+                'totalClientes' => $totalClientes,
+                'qtdPendentes' => $qtdPendentes,
+                'proximosAgendamentos' => $proximosFormatados
+            ]);
+            exit;
+        }
+
         // Saudação baseada no tempo
         date_default_timezone_set('America/Sao_Paulo');
         $horaAtual = (int) date('H');
@@ -413,6 +454,77 @@ class FuncionarioController
         }
 
         header('Location: ' . BASE_URL . '/funcionario/perfil');
+        exit;
+    }
+
+    public function sseUpdates()
+    {
+        header('Content-Type: text/event-stream');
+        header('Cache-Control: no-cache');
+        header('Connection: keep-alive');
+        
+        // Desativa buffering de saída para permitir streaming imediato
+        while (ob_get_level() > 0) {
+            ob_end_flush();
+        }
+        flush();
+
+        if (!isset($_SESSION['usuario_id'])) {
+            echo "data: " . json_encode(['error' => 'Unauthenticated']) . "\n\n";
+            flush();
+            exit;
+        }
+
+        $id_usuario = $_SESSION['usuario_id'];
+        $funcionario = $this->funcionarioModel->buscarPorCodUsuario($id_usuario);
+        if (!$funcionario) {
+            echo "data: " . json_encode(['error' => 'No profile']) . "\n\n";
+            flush();
+            exit;
+        }
+
+        $idFuncionario = $funcionario['id_funcionario'];
+        $isAdmin = in_array($_SESSION['usuario_tipo'] ?? '', ['admin', 'subadmin']);
+
+        // Libera o lock da sessão para evitar lentidão/bloqueio em outras requisições
+        session_write_close();
+
+        require_once __DIR__ . '/../Models/Agendamento.php';
+        $agendamentoModel = new Agendamento();
+
+        $startTime = time();
+        $lastState = null;
+
+        // Loop de 25 segundos para evitar bloquear conexões Apache indefinidamente
+        while (time() - $startTime < 25) {
+            // Conta agendamentos de hoje e pendentes
+            if ($isAdmin) {
+                $totalHoje = $agendamentoModel->contarAgendamentosHojeGeral();
+                $listaPendentes = $agendamentoModel->listarPendentes('todos');
+            } else {
+                $totalHoje = $agendamentoModel->contarAgendamentosHoje($idFuncionario);
+                $listaPendentes = $agendamentoModel->listarPendentes($idFuncionario);
+            }
+            $qtdPendentes = count($listaPendentes ?: []);
+
+            $stateHash = md5($totalHoje . '_' . $qtdPendentes);
+
+            if ($lastState !== $stateHash) {
+                echo "event: update\n";
+                echo "data: " . json_encode([
+                    'totalHoje' => $totalHoje,
+                    'qtdPendentes' => $qtdPendentes
+                ]) . "\n\n";
+                flush();
+                $lastState = $stateHash;
+            } else {
+                // Heartbeat/keep-alive
+                echo ": heartbeat\n\n";
+                flush();
+            }
+
+            sleep(3);
+        }
         exit;
     }
 }

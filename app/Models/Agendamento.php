@@ -237,6 +237,31 @@ class Agendamento extends BaseModel {
     }
 
     /**
+     * Busca o último agendamento CONCLUÍDO do cliente.
+     * Utilizado na funcionalidade 'Agendar Novamente' (1-Click Booking).
+     */
+    public function buscarUltimoAgendamentoCliente($id_cliente) {
+        $sql = "SELECT a.id_agendamento, a.data_agendamento, a.status, 
+                       ia.nome_servico_registrado AS nome_servico,
+                       u_func.nome AS funcionario_nome,
+                       fs.cod_funcionario,
+                       fs.cod_servico AS id_servico,
+                       ia.preco_cobrado AS preco
+                FROM agendamentos a
+                INNER JOIN itens_agendamento ia ON a.id_agendamento = ia.cod_agendamento
+                LEFT JOIN funcionario_servicos fs ON ia.cod_sv_func = fs.id_sv_funcionario
+                LEFT JOIN funcionarios f ON fs.cod_funcionario = f.id_funcionario
+                LEFT JOIN usuarios u_func ON f.cod_usuario = u_func.id_usuario
+                WHERE a.cod_cliente = :cod_cliente
+                  AND a.status = 'concluido'
+                ORDER BY a.data_agendamento DESC, ia.hora_inicio DESC
+                LIMIT 1";
+                
+        return $this->executarQuery($sql, [':cod_cliente' => $id_cliente], 'unico');
+    }
+
+
+    /**
      * Conta quantos agendamentos o funcionário tem marcados para hoje.
      * ARQUITETURA: Uso do COUNT() para não carregar dados desnecessários para a memória.
      */

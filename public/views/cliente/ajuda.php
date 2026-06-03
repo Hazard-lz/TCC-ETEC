@@ -4,6 +4,12 @@ if (!isset($_SESSION['usuario_id'])) {
     header("Location: " . BASE_URL . "/login");
     exit;
 }
+
+require_once __DIR__ . '/../../../app/Models/Configuracao.php';
+$configModel = new Configuracao();
+$endereco = $configModel->obterValor('salao_endereco', 'Av. Dr. Adhemar de Barros, 1000 - Vila Adyana, São José dos Campos - SP');
+$mapaIframe = $configModel->obterValor('salao_mapa_iframe', 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3657.1975870072793!2d-45.894336!3d-23.200788!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94cc161f36a4bb49%3A0x6e9f64bfcb005e83!2sAv.%20Dr.%20Adhemar%20de%20Barros%2C%201000%20-%20Vila%20Adyana%2C%20S%C3%A3o%20Jos%C3%A9%20dos%20Campos%20-%20SP%2C%2012245-010!5e0!3m2!1spt-BR!2sbr!4v1700000000000!5m2!1spt-BR!2sbr');
+$mapaLink = $configModel->obterValor('salao_mapa_link', 'https://maps.google.com/?q=Av.+Dr.+Adhemar+de+Barros,+1000+-+Vila+Adyana,+São+José+dos+Campos+-+SP');
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -167,14 +173,16 @@ if (!isset($_SESSION['usuario_id'])) {
                             </h2>
                             <div id="ca2" class="accordion-collapse collapse" data-bs-parent="#accordionCancelamento">
                                 <div class="accordion-body">
-                                    Ainda não há função de remarcação direta. Para remarcar:
+                                    Sim! Você pode remarcar seu agendamento de forma simples e direta pelo aplicativo:
                                     <ol>
-                                        <li>Cancele o agendamento atual (com ao menos 1 dia de antecedência).</li>
-                                        <li>Retorne à tela de <strong>Agendar</strong> e crie um novo horário.</li>
+                                        <li>Acesse o menu <strong>🕒 Histórico</strong> no menu inferior.</li>
+                                        <li>Na aba <strong>"Próximos"</strong>, localize o agendamento desejado e toque no botão roxo <strong>"Remarcar"</strong>.</li>
+                                        <li>Selecione a <strong>nova data</strong> e o <strong>novo horário disponível</strong> na tela que se abrir.</li>
+                                        <li>Toque em <strong>"Confirmar Remarcação"</strong> para salvar o novo horário.</li>
                                     </ol>
                                     <div class="ajuda-tip">
                                         <i class="bi bi-info-circle-fill"></i>
-                                        <span>Após o cancelamento, o horário fica imediatamente liberado para outro cliente.</span>
+                                        <span><strong>Regra de Antecedência:</strong> a remarcação direta respeita o limite mínimo configurado (normalmente 24 horas antes do horário original).</span>
                                     </div>
                                 </div>
                             </div>
@@ -277,6 +285,41 @@ if (!isset($_SESSION['usuario_id'])) {
                             </div>
                         </div>
 
+                    </div>
+
+                    <!-- Localização e Mapa -->
+                    <div class="ajuda-badge badge-blue" style="margin-top: 1.5rem; background: rgba(59, 130, 246, 0.12); color: #3b82f6;">
+                        <i class="bi bi-geo-alt"></i> Localização
+                    </div>
+                    <div class="ajuda-location-card" style="background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.25rem; margin-top: 0.75rem; margin-bottom: 1.5rem; box-shadow: 0 4px 15px rgba(0,0,0,0.02); text-align: left;">
+                        <div style="display: flex; gap: 0.75rem; align-items: flex-start; margin-bottom: 1rem;">
+                            <div style="background: rgba(59, 130, 246, 0.1); color: #3b82f6; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 1.2rem;">
+                                <i class="bi bi-geo-alt-fill"></i>
+                            </div>
+                            <div>
+                                <h4 style="margin: 0; font-size: 1rem; font-weight: 700; color: var(--text-main);">Nosso Endereço</h4>
+                                <p style="margin: 0.25rem 0 0 0; font-size: 0.88rem; color: var(--text-muted); line-height: 1.4;">
+                                    <?= nl2br(htmlspecialchars($endereco)) ?>
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <!-- Mini-mapa estilizado (Google Maps Embed) -->
+                        <div style="height: 150px; width: 100%; border-radius: 8px; overflow: hidden; position: relative; border: 1px solid var(--border-color); margin-bottom: 1rem;">
+                            <iframe 
+                                src="<?= htmlspecialchars($mapaIframe) ?>" 
+                                width="100%" 
+                                height="100%" 
+                                style="border:0;" 
+                                allowfullscreen="" 
+                                loading="lazy" 
+                                referrerpolicy="no-referrer-when-downgrade">
+                            </iframe>
+                        </div>
+                        
+                        <a href="<?= htmlspecialchars($mapaLink) ?>" target="_blank" class="btn-primary" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.5rem; text-decoration: none; height: 38px; font-size: 0.9rem; border-radius: 8px; background: #3b82f6; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.25); color: white; border: none; font-weight: 600;">
+                            <i class="bi bi-map-fill"></i> Como Chegar (Google Maps)
+                        </a>
                     </div>
 
                     <!-- Rodapé -->

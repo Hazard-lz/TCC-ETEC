@@ -29,6 +29,7 @@ if ($horaAtual >= 5 && $horaAtual < 12) {
 // caso o Controller não as envie por algum motivo.
 $proximoAgendamento = $proximoAgendamento ?? null;
 $servicosPopulares = $servicosPopulares ?? [];
+$ultimoAgendamento = $ultimoAgendamento ?? null;
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -84,6 +85,19 @@ $servicosPopulares = $servicosPopulares ?? [];
                         <div style="text-align: center; padding: 2rem 0; color: var(--text-muted);">
                             <p style="font-size: 2rem; margin-bottom: 0.5rem;">💅</p>
                             <p>Você não possui agendamentos futuros.</p>
+                        </div>
+                    <?php endif; ?>
+
+                    <?php if ($ultimoAgendamento): ?>
+                        <div class="agendar-novamente-card" style="background: var(--surface-color); border: 1px solid var(--border-color); border-radius: var(--radius-lg, 12px); padding: 1.25rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; box-shadow: 0 4px 15px rgba(0,0,0,0.02); margin-bottom: 1.5rem; border-left: 4px solid var(--color-purple);">
+                            <div style="text-align: left;">
+                                <span style="font-size: 0.75rem; color: var(--color-purple); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; display: block; margin-bottom: 0.25rem;">✨ Agendar Novamente</span>
+                                <h4 style="margin: 0; font-size: 1.05rem; color: var(--text-main); font-weight: 600;"><?= htmlspecialchars($ultimoAgendamento['nome_servico']) ?></h4>
+                                <span style="font-size: 0.85rem; color: var(--text-muted);">com <?= htmlspecialchars($ultimoAgendamento['funcionario_nome']) ?></span>
+                            </div>
+                            <a href="<?= BASE_URL ?>/agendar?id_servico=<?= $ultimoAgendamento['id_servico'] ?>&id_funcionario=<?= $ultimoAgendamento['cod_funcionario'] ?>" class="btn-primary" style="width: auto; margin: 0; padding: 0.5rem 1.2rem; border-radius: 20px; font-size: 0.9rem; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; height: 34px;">
+                                Agendar
+                            </a>
                         </div>
                     <?php endif; ?>
 

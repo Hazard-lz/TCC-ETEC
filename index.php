@@ -1,53 +1,71 @@
 <?php
+// =========================================================================
+// FRONT CONTROLLER CENTRAL (index.php)
+// =========================================================================
+// Este arquivo é o ponto de entrada único para todas as requisições HTTP do
+// sistema. Ele gerencia a inicialização, configurações de sessão, segurança
+// CSRF, injeção de estilo White-Label, e despacha a rota correta.
+// =========================================================================
+
+// Define o fuso horário padrão do sistema para garantir sincronia nas datas e horários dos agendamentos
 date_default_timezone_set('America/Sao_Paulo');
 
-// 1. Avisa o servidor para NÃO apagar os ficheiros físicos de sessão antes de 30 dias
+// 1. Configura o tempo máximo de vida da sessão no servidor para 30 dias (em segundos)
+// Isso avisa o PHP para não expirar ou apagar fisicamente a sessão antes do tempo.
 ini_set('session.gc_maxlifetime', 60 * 60 * 24 * 30);
 
-// 2. COOKIE DE SESSÃO COM LIFETIME DINÂMICO
-// Lê um cookie auxiliar definido durante o login para saber o tipo de usuário
-// ANTES de abrir a sessão (pois session_set_cookie_params só funciona antes do session_start)
+// 2. CONFIGURAÇÃO DE COOKIE DE SESSÃO COM LIFETIME DINÂMICO
+// Lê o cookie auxiliar setado durante o login para determinar o tipo de usuário conectado
+// Isso precisa ser executado ANTES de iniciar a sessão com session_start()
 $tipoLogado = $_COOKIE['belezou_tipo'] ?? '';
 
 if ($tipoLogado === 'func') {
-    $cookieLifetime = 60 * 60 * 24 * 7;   // Funcionário: 7 dias
+    $cookieLifetime = 60 * 60 * 24 * 7;   // Funcionário: Sessão dura 7 dias
 } elseif ($tipoLogado === 'cli') {
-    $cookieLifetime = 60 * 60 * 24 * 30;  // Cliente: 30 dias
+    $cookieLifetime = 60 * 60 * 24 * 30;  // Cliente: Sessão dura 30 dias
 } else {
-    $cookieLifetime = 0;                   // Visitante: morre ao fechar o navegador
+    $cookieLifetime = 0;                   // Visitante anônimo: Sessão expira ao fechar o navegador
 }
 
-// Detecta automaticamente se está rodando em HTTPS (Hostinger, Vercel, etc)
+// Detecta automaticamente se a requisição está trafegando sobre conexão segura HTTPS
 $isHttps = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on')
         || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
 
+// Define parâmetros de segurança nos cookies de sessão (impossibilita leitura por Javascript de terceiros)
 session_set_cookie_params([
     'lifetime' => $cookieLifetime,
     'path' => '/',
     'domain' => '',
-    'secure' => $isHttps,        // Ativado automaticamente em HTTPS
-    'httponly' => true,
-    'samesite' => 'Strict'
+    'secure' => $isHttps,        // Habilitado automaticamente quando em HTTPS
+    'httponly' => true,          // Proteção contra ataques XSS (impede acesso do document.cookie no JS)
+    'samesite' => 'Strict'       // Impede envio de cookies em requisições de sites externos (proteção CSRF)
 ]);
 
+// Inicia a sessão PHP para armazenar estados do usuário conectado
 session_start();
 
-// Inicia o buffer de saída para permitir a injeção global de metatags e favicon no <head>
+// Inicia o buffer de saída (output buffering). Isso permite que o PHP capture toda a resposta
+// HTML gerada pelo sistema para poder injetar tags globais de estilo e segurança no final.
 ob_start();
 
-// Gera o token CSRF logo na inicialização da sessão
+// Carrega o mecanismo de proteção contra falsificação de requisições Cross-Site (CSRF)
 require_once __DIR__ . '/app/Helpers/CsrfGuard.php';
-CsrfGuard::gerarToken();
+CsrfGuard::gerarToken(); // Garante a criação de um token único de sessão
 
+// Carrega dependências externas instaladas via Composer (como PHPMailer)
 require_once __DIR__ . '/vendor/autoload.php';
 
-// Detecta o BASE_URL dinamicamente (útil para raiz vs subpasta)
+// Detecta o BASE_URL da aplicação dinamicamente
+// Útil para garantir que os caminhos funcionem tanto rodando na raiz do domínio quanto em subpastas (ex: localhost/TCC-ETEC)
 $scriptDir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));
 define('BASE_URL', rtrim($scriptDir, '/'));
 
 // =========================================================================
-// AUTO-CONCLUSÃO: Agendamentos "marcados" há mais de 7 dias viram "concluido"
-// Roda no máximo 1x a cada 10 minutos para não pesar
+// AUTO-CONCLUSÃO AUTOMÁTICA DE AGENDAMENTOS ANTIGOS
+// =========================================================================
+// Se um agendamento foi "marcado" e já se passaram mais de 7 dias da sua data, 
+// o sistema assume que o serviço foi executado e altera o status para "concluido".
+// Roda no máximo uma vez a cada 10 minutos para preservar a performance.
 // =========================================================================
 if (!isset($_SESSION['ultima_autoconclusao']) || (time() - $_SESSION['ultima_autoconclusao']) > 600) {
     try {
@@ -56,15 +74,19 @@ if (!isset($_SESSION['ultima_autoconclusao']) || (time() - $_SESSION['ultima_aut
         $conn->exec("UPDATE agendamentos SET status = 'concluido' WHERE status = 'marcado' AND data_agendamento < DATE_SUB(CURDATE(), INTERVAL 7 DAY)");
         $_SESSION['ultima_autoconclusao'] = time();
     } catch (Exception $e) {
-        // Silencioso — não deve travar a navegação
+        // Falha silenciosa para não travar a navegação do usuário caso ocorra problema temporário no banco
     }
 }
 
 // =========================================================================
-// 1. ARQUITETURA: AUTOLOADER (Carregamento Dinâmico de Classes)
+// AUTOLOADER CUSTOMIZADO (Carregamento Automático de Classes)
+// =========================================================================
+// Evita a necessidade de usar 'require_once' repetitivos para cada Controller,
+// Model ou Service. O PHP chama esta função sempre que tentamos instanciar
+// uma classe que ainda não foi incluída na memória.
 // =========================================================================
 spl_autoload_register(function ($nome_da_classe) {
-    // Lista das pastas onde as classes ficam armazenadas
+    // Lista das pastas onde as classes do sistema ficam armazenadas
     $pastas = [
         'app/Controllers/',
         'app/Models/',
@@ -83,7 +105,10 @@ spl_autoload_register(function ($nome_da_classe) {
 });
 
 // =========================================================================
-// 2. PREPARAÇÃO DA URI
+// TRATAMENTO DA URI DE ENTRADA
+// =========================================================================
+// Limpa e normaliza a URL acessada pelo usuário para casar com as rotas.
+// Exemplo: 'http://localhost/TCC-ETEC/login' se transforma apenas em '/login'
 // =========================================================================
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
@@ -96,37 +121,46 @@ if ($uri == '') {
 }
 
 // =========================================================================
-// 3. MIDDLEWARE DE PROTEÇÃO DE ROTAS (Níveis de Acesso)
+// MIDDLEWARE DE ROTAS (Níveis de Acesso)
+// =========================================================================
+// Verifica se o usuário tem permissão para acessar a rota requisitada.
+// Exemplo: impede que um cliente acesse '/admin/funcionarios' ou que 
+// um visitante deslogado acesse o dashboard.
 // =========================================================================
 Middleware::verificar($uri);
 
 // =========================================================================
-// 4. ROTEAMENTO CENTRALIZADO
+// EXECUÇÃO DO ROTEADOR CENTRAL
+// =========================================================================
+// Instancia o roteador, inclui as definições do arquivo routes.php e despacha
+// o controle para a classe/método mapeado para a URI atual.
 // =========================================================================
 $router = new Router();
 require_once __DIR__ . '/app/Routes/routes.php';
 $router->executar($uri);
 
 // =========================================================================
-// 5. INJEÇÃO GLOBAL DE ATIVOS (Favicon e Segurança)
-// Captura o HTML gerado e garante que tags essenciais estejam presentes no <head>
+// INJEÇÃO GLOBAL DE ATIVOS (Favicon, CSRF e Identidade Visual White-Label)
+// =========================================================================
+// Captura o HTML final que está guardado no buffer de saída, analisa e 
+// injeta tags fundamentais no <head> antes de enviar para o navegador.
 // =========================================================================
 $html = ob_get_clean();
 
 if (strpos($html, '<head>') !== false) {
     $tagsParaInjetar = "";
 
-    // Injeta o Favicon se não houver um definido na View
+    // 1. Injeção automática do Favicon padrão se a view não especificou nenhum
     if (strpos($html, 'rel="icon"') === false) {
         $tagsParaInjetar .= "\n    <link rel=\"icon\" type=\"image/png\" href=\"" . BASE_URL . "/public/resources/images/favicon.png\">";
     }
 
-    // Injeta a Meta Tag de CSRF se não houver (essencial para segurança em requisições AJAX)
-    if (strpos($html, 'name="csrf-token"') === false) {
+    // 2. Injeção automática da Meta Tag CSRF (usada pelos scripts JavaScript para chamadas AJAX/fetch seguros)
+    if (strpos($html, '<meta name="csrf-token"') === false) {
         $tagsParaInjetar .= "\n    " . CsrfGuard::metaTag();
     }
 
-    // ── Injeção de Identidade Visual White-Label ──
+    // 3. Injeção Dinâmica de Cores e Identidade Visual (Customização de Marca - White-Label)
     try {
         $configModel = new Configuracao();
         $corPrimaria = $configModel->obterValor('cor_primaria');
@@ -134,6 +168,7 @@ if (strpos($html, '<head>') !== false) {
         $logoUrl = $configModel->obterValor('logo_url');
 
         $tagsBranding = "";
+        // Se houver cores personalizadas salvas no banco, sobrescreve as variáveis CSS `:root` globais do sistema
         if (!empty($corPrimaria) || !empty($corSecundaria)) {
             $p = !empty($corPrimaria) ? htmlspecialchars($corPrimaria) : '#f45b69';
             $s = !empty($corSecundaria) ? htmlspecialchars($corSecundaria) : '#8b5cf6';
@@ -150,6 +185,7 @@ if (strpos($html, '<head>') !== false) {
             $tagsBranding .= "\n    </style>";
         }
 
+        // Se houver URL do logotipo personalizada no banco, injeta script para substituir as imagens com classe de logo
         if (!empty($logoUrl)) {
             $tagsBranding .= "\n    <script id=\"white-label-logo-script\">";
             $tagsBranding .= "\n        window.LOGO_URL = '" . htmlspecialchars($logoUrl) . "';";
@@ -160,7 +196,7 @@ if (strpos($html, '<head>') !== false) {
             $tagsBranding .= "\n                });";
             $tagsBranding .= "\n            };";
             $tagsBranding .= "\n            atualizarLogos();";
-            $tagsBranding .= "\n            // Observa possíveis renderizações tardias do JS";
+            $tagsBranding .= "\n            // Executa com pequenos atrasos para garantir a alteração em telas dinâmicas/SPA";
             $tagsBranding .= "\n            setTimeout(atualizarLogos, 100);";
             $tagsBranding .= "\n            setTimeout(atualizarLogos, 500);";
             $tagsBranding .= "\n        });";
@@ -171,11 +207,11 @@ if (strpos($html, '<head>') !== false) {
             $tagsParaInjetar .= $tagsBranding;
         }
     } catch (Exception $e) {
-        // Silencioso se der erro antes do banco ou tabelas estarem prontos
+        // Falha silenciosa para evitar travar o sistema caso o banco de dados ainda não esteja instalado/disponível
     }
 
+    // Insere as tags preparadas logo antes do fechamento da tag </head> para prioridade de renderização correta
     if (!empty($tagsParaInjetar)) {
-        // Insere logo antes do fechamento da tag </head> para garantir maior prioridade do que os links de CSS
         if (strpos($html, '</head>') !== false) {
             $html = str_replace('</head>', $tagsParaInjetar . "\n</head>", $html);
         } else {
@@ -184,4 +220,6 @@ if (strpos($html, '<head>') !== false) {
     }
 }
 
+// Cospe o HTML tratado para o navegador do cliente
 echo $html;
+
