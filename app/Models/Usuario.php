@@ -17,6 +17,14 @@ class Usuario extends BaseModel {
         $telefone = !empty(trim($telefone)) ? trim($telefone) : null;
         $email = !empty(trim($email)) ? trim($email) : null;
 
+        // Higienização do telefone: remove qualquer caractere que não seja número
+        if ($telefone !== null) {
+            $telefone = preg_replace('/[^0-9]/', '', $telefone);
+            if (empty($telefone)) {
+                $telefone = null;
+            }
+        }
+
         $sql = "INSERT INTO usuarios (nome, email, senha, tipo, telefone) 
                 VALUES (:nome, :email, :senha, :tipo, :telefone)";
         
@@ -36,11 +44,17 @@ class Usuario extends BaseModel {
     }
     
     public function buscarPorTelefone($telefone) {
+        if ($telefone !== null) {
+            $telefone = preg_replace('/[^0-9]/', '', $telefone);
+        }
         $sql = "SELECT id_usuario FROM usuarios WHERE telefone = :telefone";
         return $this->executarQuery($sql, [':telefone' => $telefone], 'unico');
     }
 
     public function buscarPorTelefoneDiferenteDe($telefone, $id_usuario) {
+        if ($telefone !== null) {
+            $telefone = preg_replace('/[^0-9]/', '', $telefone);
+        }
         $sql = "SELECT id_usuario FROM usuarios WHERE telefone = :telefone AND id_usuario != :id";
         return $this->executarQuery($sql, [':telefone' => $telefone, ':id' => $id_usuario], 'unico');
     }
@@ -58,11 +72,25 @@ class Usuario extends BaseModel {
     }
 
 // UPDATES
-    public function atualizar($id_usuario, $nome, $telefone) {
+    public function atualizar($id_usuario, $nome, $telefone, $email = null) {
         $telefone = !empty(trim($telefone)) ? trim($telefone) : null;
+        $email = !empty(trim($email)) ? trim($email) : null;
 
-        $sql = "UPDATE usuarios SET nome = :nome, telefone = :telefone WHERE id_usuario = :id";
-        return $this->executarQuery($sql, [':nome' => $nome, ':telefone' => $telefone, ':id' => $id_usuario]);
+        // Higienização do telefone: remove qualquer caractere que não seja número
+        if ($telefone !== null) {
+            $telefone = preg_replace('/[^0-9]/', '', $telefone);
+            if (empty($telefone)) {
+                $telefone = null;
+            }
+        }
+
+        if ($email !== null) {
+            $sql = "UPDATE usuarios SET nome = :nome, telefone = :telefone, email = :email WHERE id_usuario = :id";
+            return $this->executarQuery($sql, [':nome' => $nome, ':telefone' => $telefone, ':email' => $email, ':id' => $id_usuario]);
+        } else {
+            $sql = "UPDATE usuarios SET nome = :nome, telefone = :telefone WHERE id_usuario = :id";
+            return $this->executarQuery($sql, [':nome' => $nome, ':telefone' => $telefone, ':id' => $id_usuario]);
+        }
     }
 
     public function atualizarTipo($id_usuario, $tipo) {
@@ -149,5 +177,15 @@ class Usuario extends BaseModel {
             ':senha' => $senhaHash, 
             ':id'    => $id_usuario
         ]);
+    }
+
+    public function aceitarTermosLGPD($idUsuario) {
+        $sql = "UPDATE usuarios SET aceito_termos = 1, data_aceite = NOW() WHERE id_usuario = :id";
+        return $this->executarQuery($sql, [':id' => $idUsuario]);
+    }
+
+    public function buscarTodosAtivosComum() {
+        $sql = "SELECT * FROM usuarios WHERE tipo = 'comum' AND status = 'ativo'";
+        return $this->executarQuery($sql, [], 'todos');
     }
 }

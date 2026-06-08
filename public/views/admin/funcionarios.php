@@ -32,6 +32,46 @@ $totalAdmins = $usuarioModel->contarAdminsAtivos();
     <link rel="stylesheet" href="<?= BASE_URL ?? '' ?>/public/resources/css/listas.css">
     <link rel="stylesheet" href="<?= BASE_URL ?? '' ?>/public/resources/css/funcionario.css">
     <link rel="stylesheet" href="<?= BASE_URL ?? '' ?>/public/resources/css/modal.css">
+    <style>
+        /* --- ESTILOS DOS BOTÕES DE FILTRO DE STATUS --- */
+        .status-filters {
+            display: flex;
+            gap: 2px;
+            background: var(--bg-color);
+            padding: 3px !important;
+            border-radius: 10px !important;
+            border: 1px solid var(--border-color) !important;
+            align-items: center;
+        }
+
+        .btn-filter-status {
+            border: none !important;
+            background: transparent !important;
+            color: var(--text-muted) !important;
+            border-radius: 8px !important;
+            font-weight: 600 !important;
+            font-size: 0.82rem !important;
+            padding: 0.35rem 1rem !important;
+            height: auto !important; /* Reseta altura padrão de 42px do admin.css */
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            box-shadow: none !important;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-filter-status:not(.active):hover {
+            color: var(--color-purple) !important;
+            background: rgba(139, 92, 246, 0.06) !important;
+        }
+
+        .btn-filter-status.active {
+            background: var(--color-purple) !important;
+            color: white !important;
+            box-shadow: 0 2px 6px rgba(139, 92, 246, 0.25) !important;
+        }
+    </style>
 </head>
 
 <body>
@@ -62,8 +102,15 @@ $totalAdmins = $usuarioModel->contarAdminsAtivos();
     <?php endif; ?>
 
     <div class="base-card">
-        <div class="form-group mb-3" style="margin-bottom: 1.5rem;">
-            <input type="text" class="form-control input-pesquisa-tabela" placeholder="Pesquisar funcionário...">
+        <div class="table-filters" style="display: flex; gap: 1rem; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap;">
+            <div class="search-box" style="flex: 1; min-width: 250px;">
+                <input type="text" class="form-control input-pesquisa-tabela" placeholder="Pesquisar funcionário...">
+            </div>
+            <div class="status-filters">
+                <button type="button" class="btn-filter-status active" data-filter="todos">Todos</button>
+                <button type="button" class="btn-filter-status" data-filter="ativo">Ativos</button>
+                <button type="button" class="btn-filter-status" data-filter="inativo">Inativos</button>
+            </div>
         </div>
         <div class="table-responsive">
             <table class="data-table">
@@ -130,7 +177,8 @@ $totalAdmins = $usuarioModel->contarAdminsAtivos();
                                                 <?= CsrfGuard::campoHidden() ?>
                                                 <input type="hidden" name="cod_usuario" value="<?= $func['cod_usuario'] ?>">
                                                 <button type="submit" class="btn-action" title="Reenviar E-mail de Configuração"
-                                                    onclick="return confirm('Deseja reenviar o link de criação de senha para este funcionário?');">
+                                                    onclick="event.preventDefault(); Swal.fire({title: 'Atenção', text: 'Deseja reenviar o link de criação de senha para o funcionário <?= htmlspecialchars(addslashes($func['nome'])) ?>?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc3545', cancelButtonColor: '#6c757d', confirmButtonText: 'Confirmar', cancelButtonText: 'Cancelar'}).then((result) => { if (result.isConfirmed) { this.closest('form').submit(); } });"
+                                                    style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">
                                                     📧
                                                 </button>
                                             </form>
@@ -155,12 +203,14 @@ $totalAdmins = $usuarioModel->contarAdminsAtivos();
 
                                                 <?php if ($func['status'] === 'ativo'): ?>
                                                     <button type="submit" class="btn-action" title="Inativar Acesso"
-                                                        onclick="return confirm('Deseja realmente INATIVAR este funcionário? Ele não poderá mais acessar o sistema ou receber novos agendamentos.');">
+                                                        onclick="event.preventDefault(); Swal.fire({title: 'Atenção', text: 'Deseja realmente INATIVAR o funcionário <?= htmlspecialchars(addslashes($func['nome'])) ?>? Ele não poderá mais acessar o sistema ou receber novos agendamentos.', icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc3545', cancelButtonColor: '#6c757d', confirmButtonText: 'Confirmar', cancelButtonText: 'Cancelar'}).then((result) => { if (result.isConfirmed) { this.closest('form').submit(); } });"
+                                                        style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">
                                                         🚫
                                                     </button>
                                                 <?php else: ?>
                                                     <button type="submit" class="btn-action" title="Reativar Acesso"
-                                                        onclick="return confirm('Deseja ATIVAR este funcionário novamente?');">
+                                                        onclick="event.preventDefault(); Swal.fire({title: 'Atenção', text: 'Deseja ATIVAR o funcionário <?= htmlspecialchars(addslashes($func['nome'])) ?> novamente?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc3545', cancelButtonColor: '#6c757d', confirmButtonText: 'Confirmar', cancelButtonText: 'Cancelar'}).then((result) => { if (result.isConfirmed) { this.closest('form').submit(); } });"
+                                                        style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">
                                                         ✅
                                                     </button>
                                                 <?php endif; ?>
@@ -200,7 +250,7 @@ $totalAdmins = $usuarioModel->contarAdminsAtivos();
                         </div>
                         <div class="form-group">
                             <label for="telefone">Telefone / WhatsApp</label>
-                            <input type="tel" id="telefone" name="telefone" class="form-control">
+                            <input type="tel" id="telefone" name="telefone" class="form-control" placeholder="Ex: (11) 98765-4321">
                         </div>
                     </div>
 
@@ -231,7 +281,8 @@ $totalAdmins = $usuarioModel->contarAdminsAtivos();
                             <option value="comum">Profissional Comum</option>
                             <option value="subadmin">Subadministrador (Gestão sem relatórios)</option>
                             <?php if ($_SESSION['usuario_tipo'] === 'admin'): ?>
-                                <option value="admin" id="optionAdmin" style="display: none;">👑 Transferir Cargo de Administrador</option>
+                                <option value="admin" id="optionAdmin" style="display: none;">👑 Transferir Cargo de
+                                    Administrador</option>
                             <?php endif; ?>
                         </select>
                     </div>
@@ -239,7 +290,7 @@ $totalAdmins = $usuarioModel->contarAdminsAtivos();
                     <div id="funcionarioError" class="error-message">Verifique os campos preenchidos.</div>
 
                     <div class="modal-actions">
-                        <button type="submit" class="btn-primary">Salvar Funcionário</button>
+                        <button type="submit" id="btnSalvarFuncionario" class="btn-primary">Cadastrar Funcionário</button>
                         <button type="button" data-close-modal class="btn-secondary">Cancelar</button>
                     </div>
                 </form>
@@ -251,9 +302,93 @@ $totalAdmins = $usuarioModel->contarAdminsAtivos();
 
 
 
+    <script>
+        const LOGGED_USER_TYPE = '<?= $_SESSION['usuario_tipo'] ?? '' ?>';
+    </script>
     <script src="<?= BASE_URL ?? '' ?>/public/resources/js/admin.js"></script>
     <script src="<?= BASE_URL ?? '' ?>/public/resources/js/modal.js"></script>
     <script src="<?= BASE_URL ?? '' ?>/public/resources/js/funcionario.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const inputPesquisa = document.querySelector(".input-pesquisa-tabela");
+            const filterButtons = document.querySelectorAll(".btn-filter-status");
+            const tableBody = document.querySelector(".data-table tbody");
+            
+            let filtroAtivo = "todos"; // todos, ativo, inativo
+            let termoPesquisa = "";
+
+            function aplicarFiltros() {
+                if (!tableBody) return;
+                const rows = tableBody.querySelectorAll("tr");
+                let hasVisibleRow = false;
+
+                rows.forEach(row => {
+                    // Ignora linha de "nenhum registro encontrado"
+                    if (row.id === "no-result-row") {
+                        row.remove();
+                        return;
+                    }
+
+                    const textoLinha = row.textContent.toLowerCase();
+                    const matchesSearch = textoLinha.includes(termoPesquisa);
+                    
+                    const isRowInactive = row.classList.contains("row-inactive");
+                    let matchesStatus = true;
+                    if (filtroAtivo === "ativo") {
+                        matchesStatus = !isRowInactive;
+                    } else if (filtroAtivo === "inativo") {
+                        matchesStatus = isRowInactive;
+                    }
+
+                    if (matchesSearch && matchesStatus) {
+                        row.style.display = "";
+                        hasVisibleRow = true;
+                    } else {
+                        row.style.display = "none";
+                    }
+                });
+
+                // Gerencia mensagem de "Nenhum resultado"
+                const noResultRow = document.getElementById("no-result-row");
+                if (!hasVisibleRow) {
+                    if (!noResultRow) {
+                        const tr = document.createElement("tr");
+                        tr.id = "no-result-row";
+                        const td = document.createElement("td");
+                        const headersCount = document.querySelectorAll(".data-table th").length || 6;
+                        td.colSpan = headersCount;
+                        td.style.textAlign = "center";
+                        td.style.padding = "2rem";
+                        td.style.color = "var(--text-muted)";
+                        td.textContent = "Nenhum funcionário corresponde aos filtros selecionados.";
+                        tr.appendChild(td);
+                        tableBody.appendChild(tr);
+                    }
+                } else {
+                    if (noResultRow) {
+                        noResultRow.remove();
+                    }
+                }
+            }
+
+            if (inputPesquisa) {
+                inputPesquisa.addEventListener("input", function(e) {
+                    e.stopImmediatePropagation(); // Evita execução do script padrão
+                    termoPesquisa = this.value.toLowerCase();
+                    aplicarFiltros();
+                });
+            }
+
+            filterButtons.forEach(btn => {
+                btn.addEventListener("click", function() {
+                    filterButtons.forEach(b => b.classList.remove("active"));
+                    this.classList.add("active");
+                    filtroAtivo = this.getAttribute("data-filter");
+                    aplicarFiltros();
+                });
+            });
+        });
+    </script>
 </body>
 
 </html>

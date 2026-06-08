@@ -39,6 +39,9 @@ class ClienteService extends BaseService {
 
             $idNovoUsuario = $resultadoUsuario['id'];
 
+            // 1.1 Registra o consentimento dos termos e LGPD na base de dados
+            $this->usuarioModel->aceitarTermosLGPD($idNovoUsuario);
+
             // 2. VERIFICAÇÃO DE EVOLUÇÃO (Correção do erro de duplicação)
             // Checa se já existe um registro atrelado a esse usuário na tabela 'clientes'
             $clienteExistente = $this->clienteModel->buscarPorCodUsuario($idNovoUsuario);
@@ -118,6 +121,14 @@ class ClienteService extends BaseService {
     public function registrarClienteRapido($nome, $telefone, $observacoes = null) {
         if (empty($nome) || empty($telefone)) {
             return $this->erro('Nome e telefone são obrigatórios para agendamentos manuais.');
+        }
+
+        // Higienização do telefone: remove qualquer caractere que não seja número
+        if ($telefone !== null) {
+            $telefone = preg_replace('/[^0-9]/', '', $telefone);
+            if (empty($telefone)) {
+                $telefone = null;
+            }
         }
 
         try {

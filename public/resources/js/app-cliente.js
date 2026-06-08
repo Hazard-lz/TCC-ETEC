@@ -57,4 +57,52 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     }
+
+    // 3. Dropdown do Perfil do Cliente
+    const btnProfile = document.getElementById('btnProfileDropdown');
+    const profileMenu = document.getElementById('profileMenu');
+    if (btnProfile && profileMenu) {
+        btnProfile.addEventListener('click', (e) => {
+            e.stopPropagation();
+            profileMenu.style.display = profileMenu.style.display === 'block' ? 'none' : 'block';
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!btnProfile.contains(e.target) && !profileMenu.contains(e.target)) {
+                profileMenu.style.display = 'none';
+            }
+        });
+    }
 });
+
+// Confirmação global para sair da conta (SweetAlert2 — Tema Belezou)
+window.confirmarSaida = window.confirmarSaida || function(urlSair) {
+    if (typeof Swal !== 'undefined') {
+        Swal.fire({
+            text:              'Tem certeza que deseja sair do aplicativo?',
+            icon:              'question',
+            showCancelButton:  true,
+            confirmButtonText: 'Sim, sair',
+            cancelButtonText:  'Cancelar',
+            customClass: {
+                popup:         'swal-belezou-popup',
+                title:         'swal-belezou-title',
+                htmlContainer: 'swal-belezou-text',
+                confirmButton: 'swal-belezou-btn-confirm',
+                cancelButton:  'swal-belezou-btn-cancel',
+                icon:          'swal-belezou-icon'
+            },
+            buttonsStyling: false,
+            showClass: { popup: 'swal-belezou-show' },
+            hideClass: { popup: 'swal-belezou-hide' }
+        }).then(result => {
+            if (result.isConfirmed) {
+                window.location.href = urlSair;
+            }
+        });
+    } else {
+        if (confirm('Tem certeza que deseja sair do aplicativo?')) {
+            window.location.href = urlSair;
+        }
+    }
+};

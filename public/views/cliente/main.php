@@ -1,5 +1,5 @@
 <?php
-// Bloqueio de segurança (fallback caso o utilizador aceda à view diretamente)
+// Bloqueio de segurança (fallback caso o usuário acesse a view diretamente)
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
 if (!isset($_SESSION['usuario_id'])) {
     header("Location: " . BASE_URL . "/login");
@@ -7,6 +7,7 @@ if (!isset($_SESSION['usuario_id'])) {
 }
 
 $clienteNome = $_SESSION['usuario_nome'] ?? 'Cliente';
+$primeiroNome = explode(' ', trim($clienteNome))[0];
 
 // ==========================================
 // LÓGICA DE UI: SAUDAÇÃO BASEADA NO TEMPO
@@ -28,6 +29,7 @@ if ($horaAtual >= 5 && $horaAtual < 12) {
 // caso o Controller não as envie por algum motivo.
 $proximoAgendamento = $proximoAgendamento ?? null;
 $servicosPopulares = $servicosPopulares ?? [];
+$ultimoAgendamento = $ultimoAgendamento ?? null;
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -36,8 +38,14 @@ $servicosPopulares = $servicosPopulares ?? [];
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Belezou App</title>
+    <link rel="icon" type="image/png" href="<?= BASE_URL ?>/public/resources/images/favicon.png">
+
+    <!-- SweetAlert2 — necessário para o botão "Sair da Conta" -->
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
 
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/root.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/app-cliente.css">
     <?php require_once __DIR__ . '/../partials/onesignal.php'; ?>
 </head>
@@ -50,31 +58,53 @@ $servicosPopulares = $servicosPopulares ?? [];
             <header class="app-header">
                 <div class="greeting">
                     <p><?= $saudacao ?></p>
-                    <h2><?= htmlspecialchars($clienteNome) ?></h2>
+                    <h2><?= htmlspecialchars($primeiroNome) ?></h2>
                 </div>
-                <div class="avatar">
-                    <?= substr($clienteNome, 0, 1) ?>
+                <div style="position: relative;">
+                    <div id="btnProfileDropdown" class="avatar" style="cursor: pointer;">
+                        <?= strtoupper(substr($clienteNome, 0, 1)) ?>
+                    </div>
+                    
+                    <div id="profileMenu" class="profile-menu shadow" style="display: none;">
+                        <a href="<?= BASE_URL ?>/perfil" class="profile-dropdown-item"><i class="bi bi-person me-2"></i> Editar Perfil</a>
+                        <a href="javascript:void(0)" onclick="confirmarSaida('<?= BASE_URL ?>/login/sair')" class="profile-dropdown-item text-danger"><i class="bi bi-box-arrow-right me-2"></i> Sair da Conta</a>
+                    </div>
                 </div>
             </header>
 
             <main class="app-content">
 
-                <?php if ($proximoAgendamento): ?>
-                    <div class="next-appointment-card" style="grid-column: 1 / -1;">
-                        <span class="appointment-date">📅 <?= $proximoAgendamento['data_display'] ?></span>
-                        <h4 class="appointment-service"><?= htmlspecialchars($proximoAgendamento['nome_servico']) ?></h4>
-                        <span class="appointment-pro">com <?= htmlspecialchars($proximoAgendamento['funcionario_nome']) ?></span>
-                    </div>
-                <?php else: ?>
-                    <div style="text-align: center; padding: 2rem 0; color: var(--text-muted); grid-column: 1 / -1;">
-                        <p style="font-size: 2rem; margin-bottom: 0.5rem;">💅</p>
-                        <p>Você não possui agendamentos futuros.</p>
-                    </div>
-                <?php endif; ?>
+                <div class="home-hero" style="grid-column: 1 / -1; width: 100%;">
+                    <?php if ($proximoAgendamento): ?>
+                        <div class="next-appointment-card">
+                            <span class="appointment-date">📅 <?= $proximoAgendamento['data_display'] ?></span>
+                            <h4 class="appointment-service"><?= htmlspecialchars($proximoAgendamento['nome_servico']) ?></h4>
+                            <span class="appointment-pro">com <?= htmlspecialchars($proximoAgendamento['funcionario_nome']) ?></span>
+                        </div>
+                    <?php else: ?>
+                        <div style="text-align: center; padding: 2rem 0; color: var(--text-muted);">
+                            <p style="font-size: 2rem; margin-bottom: 0.5rem;">💅</p>
+                            <p>Você não possui agendamentos futuros.</p>
+                        </div>
+                    <?php endif; ?>
 
-                <a href="<?= BASE_URL ?>/agendar" class="btn-agendar-agora">
-                    <span style="font-size: 1.5rem;">+</span> Novo Agendamento
-                </a>
+                    <?php if ($ultimoAgendamento): ?>
+                        <div class="agendar-novamente-card" style="background: var(--surface-color); border: 1px solid var(--border-color); border-radius: var(--radius-lg, 12px); padding: 1.25rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; box-shadow: 0 4px 15px rgba(0,0,0,0.02); margin-bottom: 1.5rem; border-left: 4px solid var(--color-purple);">
+                            <div style="text-align: left;">
+                                <span style="font-size: 0.75rem; color: var(--color-purple); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; display: block; margin-bottom: 0.25rem;">✨ Agendar Novamente</span>
+                                <h4 style="margin: 0; font-size: 1.05rem; color: var(--text-main); font-weight: 600;"><?= htmlspecialchars($ultimoAgendamento['nome_servico']) ?></h4>
+                                <span style="font-size: 0.85rem; color: var(--text-muted);">com <?= htmlspecialchars($ultimoAgendamento['funcionario_nome']) ?></span>
+                            </div>
+                            <a href="<?= BASE_URL ?>/agendar?id_servico=<?= $ultimoAgendamento['id_servico'] ?>&id_funcionario=<?= $ultimoAgendamento['cod_funcionario'] ?>" class="btn-primary" style="width: auto; margin: 0; padding: 0.5rem 1.2rem; border-radius: 20px; font-size: 0.9rem; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; height: 34px;">
+                                Agendar
+                            </a>
+                        </div>
+                    <?php endif; ?>
+
+                    <a href="<?= BASE_URL ?>/agendar" class="btn-agendar-agora">
+                        <span style="font-size: 1.5rem;">+</span> Novo Agendamento
+                    </a>
+                </div>
 
                 <h3 class="section-title">Serviços Populares</h3>
                 
@@ -110,6 +140,9 @@ $servicosPopulares = $servicosPopulares ?? [];
                 </a>
                 <a href="<?= BASE_URL ?>/perfil" class="nav-item">
                     <span class="nav-icon">👤</span><span>Perfil</span>
+                </a>
+                <a href="<?= BASE_URL ?>/cliente/ajuda" class="nav-item">
+                    <span class="nav-icon"><i class="bi bi-question-circle" style="font-size: 1.2rem;"></i></span><span>Ajuda</span>
                 </a>
             </nav>
 

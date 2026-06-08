@@ -107,6 +107,14 @@ class UsuarioService extends BaseService
             return $this->erro('Este e-mail já está cadastrado no sistema.');
         }
 
+        // Higienização do telefone: remove qualquer caractere que não seja número
+        if ($telefone !== null) {
+            $telefone = preg_replace('/[^0-9]/', '', $telefone);
+            if (empty($telefone)) {
+                $telefone = null;
+            }
+        }
+
         $idNovoUsuario = $this->usuarioModel->cadastrar($nome, $email, null, $tipo, $telefone);
 
         if ($idNovoUsuario) {
@@ -251,7 +259,7 @@ class UsuarioService extends BaseService
         $assunto = "Recuperação de Senha - Belezou App";
         $html = "<div style='text-align:center; padding: 20px; font-family: sans-serif;'>
                     <h2>Olá, {$usuario['nome']}!</h2>
-                    <p>Recebemos um pedido para redefinir a sua senha.</p>
+                    <p>Recebemos uma solicitação para redefinir a sua senha.</p>
                     <p>O seu código de recuperação (válido por 30 minutos) é:</p>
                     <h1 style='color: #8b5cf6; letter-spacing: 5px; font-size: 2.5rem; background: #f8fafc; padding: 10px; border-radius: 8px; display: inline-block;'>{$codigo}</h1>
                     <p>Se não pediu esta alteração, ignore este e-mail.</p>
@@ -305,9 +313,18 @@ class UsuarioService extends BaseService
         return $this->sucesso('Senha alterada com segurança!');
     }
 
-    public function atualizarUsuario($id_usuario, $nome, $telefone)
+    public function atualizarUsuario($id_usuario, $nome, $telefone, $email = null)
     {
         $telefone = !empty(trim($telefone)) ? trim($telefone) : null;
+        $email = !empty(trim($email)) ? trim($email) : null;
+
+        // Higienização do telefone: remove qualquer caractere que não seja número
+        if ($telefone !== null) {
+            $telefone = preg_replace('/[^0-9]/', '', $telefone);
+            if (empty($telefone)) {
+                $telefone = null;
+            }
+        }
 
         if ($telefone) {
             $existente = $this->usuarioModel->buscarPorTelefoneDiferenteDe($telefone, $id_usuario);
@@ -316,11 +333,27 @@ class UsuarioService extends BaseService
             }
         }
 
-        $sucesso = $this->usuarioModel->atualizar($id_usuario, $nome, $telefone);
+        if ($email) {
+            $existenteEmail = $this->usuarioModel->buscarPorEmail($email);
+            if ($existenteEmail && $existenteEmail['id_usuario'] != $id_usuario) {
+                return $this->erro('Este e-mail já está cadastrado em outra conta.');
+            }
+        }
+
+        $sucesso = $this->usuarioModel->atualizar($id_usuario, $nome, $telefone, $email);
         if ($sucesso !== false) {
             return $this->sucesso('Dados básicos atualizados com sucesso!');
         }
         return $this->erro('Erro ao atualizar os dados do usuário no banco de dados.');
+    }
+
+    public function aceitarTermosLGPD($idUsuario)
+    {
+        $sucesso = $this->usuarioModel->aceitarTermosLGPD($idUsuario);
+        if ($sucesso !== false) {
+            return $this->sucesso('Termos de privacidade aceitos com sucesso!');
+        }
+        return $this->erro('Erro ao registrar aceite dos termos.');
     }
 
     public function reenviarCodigoVerificacao($email)

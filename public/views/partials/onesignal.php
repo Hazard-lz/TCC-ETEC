@@ -1,3 +1,4 @@
+<link rel="manifest" href="<?= BASE_URL ?>/manifest.json">
 <?php
 if (isset($_SESSION['usuario_id'])):
     // Garante que o Conexao.php está carregado

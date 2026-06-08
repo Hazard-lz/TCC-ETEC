@@ -57,11 +57,15 @@ class Agendamento extends BaseModel {
     public function buscarPorId($id_agendamento) {
         $sql = "SELECT a.*, 
                        u_cli.nome AS cliente_nome, 
+                       u_cli.email AS cliente_email,
                        u_func.nome AS funcionario_nome, 
+                       u_func.email AS funcionario_email,
                        ia.nome_servico_registrado AS nome_servico, 
                        ia.hora_inicio, ia.hora_fim, ia.preco_cobrado,
+                       ia.duracao_registrada AS duracao,
                        c.cod_usuario AS cliente_cod_usuario,
-                       f.cod_usuario AS funcionario_cod_usuario
+                       f.cod_usuario AS funcionario_cod_usuario,
+                       fs.cod_funcionario AS cod_funcionario
                 FROM agendamentos a
                 INNER JOIN clientes c ON a.cod_cliente = c.id_cliente
                 INNER JOIN usuarios u_cli ON c.cod_usuario = u_cli.id_usuario
@@ -80,7 +84,9 @@ class Agendamento extends BaseModel {
     public function listarPorCliente($id_cliente) {
         $sql = "SELECT a.id_agendamento, a.data_agendamento, a.status, 
                        ia.nome_servico_registrado AS nome_servico, ia.hora_inicio, ia.preco_cobrado,
-                       u_func.nome AS funcionario_nome
+                       u_func.nome AS funcionario_nome,
+                       fs.cod_funcionario,
+                       fs.cod_servico AS id_servico
                 FROM agendamentos a
                 INNER JOIN itens_agendamento ia ON a.id_agendamento = ia.cod_agendamento
                 LEFT JOIN funcionario_servicos fs ON ia.cod_sv_func = fs.id_sv_funcionario
@@ -178,6 +184,36 @@ class Agendamento extends BaseModel {
     }
 
     /**
+     * Retorna a lista de agendamentos pendentes.
+     */
+    public function listarPendentes($id_funcionario = null) {
+        $sql = "SELECT a.id_agendamento, a.data_agendamento, a.status,
+                       u_cli.nome AS cliente_nome, 
+                       ia.nome_servico_registrado AS nome_servico, 
+                       ia.hora_inicio, ia.hora_fim, ia.preco_cobrado,
+                       u_func.nome AS profissional_nome
+                FROM agendamentos a
+                INNER JOIN clientes c ON a.cod_cliente = c.id_cliente
+                INNER JOIN usuarios u_cli ON c.cod_usuario = u_cli.id_usuario
+                INNER JOIN itens_agendamento ia ON a.id_agendamento = ia.cod_agendamento
+                LEFT JOIN funcionario_servicos fs ON ia.cod_sv_func = fs.id_sv_funcionario
+                LEFT JOIN funcionarios f ON fs.cod_funcionario = f.id_funcionario
+                LEFT JOIN usuarios u_func ON f.cod_usuario = u_func.id_usuario
+                WHERE a.status = 'pendente'";
+                
+        $params = [];
+        if ($id_funcionario !== null && $id_funcionario !== 'todos') {
+            $sql .= " AND (fs.cod_funcionario = :cod_funcionario OR a.cod_funcionario_criador = :cod_funcionario_criador)";
+            $params[':cod_funcionario'] = $id_funcionario;
+            $params[':cod_funcionario_criador'] = $id_funcionario;
+        }
+
+        $sql .= " ORDER BY a.data_agendamento ASC, ia.hora_inicio ASC";
+                
+        return $this->executarQuery($sql, $params, 'todos');
+    }
+
+    /**
      * Busca APENAS o agendamento futuro mais próximo do cliente.
      * ARQUITETURA: O uso do LIMIT 1 e ordenação ASC garante altíssima 
      * performance, retornando só o que a página inicial precisa.
@@ -199,6 +235,31 @@ class Agendamento extends BaseModel {
                 
         return $this->executarQuery($sql, [':cod_cliente' => $id_cliente], 'unico');
     }
+
+    /**
+     * Busca o último agendamento CONCLUÍDO do cliente.
+     * Utilizado na funcionalidade 'Agendar Novamente' (1-Click Booking).
+     */
+    public function buscarUltimoAgendamentoCliente($id_cliente) {
+        $sql = "SELECT a.id_agendamento, a.data_agendamento, a.status, 
+                       ia.nome_servico_registrado AS nome_servico,
+                       u_func.nome AS funcionario_nome,
+                       fs.cod_funcionario,
+                       fs.cod_servico AS id_servico,
+                       ia.preco_cobrado AS preco
+                FROM agendamentos a
+                INNER JOIN itens_agendamento ia ON a.id_agendamento = ia.cod_agendamento
+                LEFT JOIN funcionario_servicos fs ON ia.cod_sv_func = fs.id_sv_funcionario
+                LEFT JOIN funcionarios f ON fs.cod_funcionario = f.id_funcionario
+                LEFT JOIN usuarios u_func ON f.cod_usuario = u_func.id_usuario
+                WHERE a.cod_cliente = :cod_cliente
+                  AND a.status = 'concluido'
+                ORDER BY a.data_agendamento DESC, ia.hora_inicio DESC
+                LIMIT 1";
+                
+        return $this->executarQuery($sql, [':cod_cliente' => $id_cliente], 'unico');
+    }
+
 
     /**
      * Conta quantos agendamentos o funcionário tem marcados para hoje.
@@ -333,7 +394,7 @@ class Agendamento extends BaseModel {
     /**
      * Matemética de detecção de colisão de tempo para evitar overbooking.
      */
-    public function verificarConflitoHorario($id_funcionario, $data, $hora_inicio, $hora_fim) {
+    public function verificarConflitoHorario($id_funcionario, $data, $hora_inicio, $hora_fim, $id_agendamento_ignorar = null) {
         $sql = "SELECT a.id_agendamento 
                 FROM agendamentos a
                 INNER JOIN itens_agendamento ia ON a.id_agendamento = ia.cod_agendamento
@@ -343,12 +404,19 @@ class Agendamento extends BaseModel {
                   AND a.status NOT IN ('cancelado')
                   AND (ia.hora_inicio < :hora_fim AND ia.hora_fim > :hora_inicio)";
         
-        return $this->executarQuery($sql, [
+        $params = [
             ':cod_funcionario' => $id_funcionario,
             ':data' => $data,
             ':hora_inicio' => $hora_inicio,
             ':hora_fim' => $hora_fim
-        ], 'unico');
+        ];
+
+        if ($id_agendamento_ignorar !== null) {
+            $sql .= " AND a.id_agendamento != :id_agendamento_ignorar";
+            $params[':id_agendamento_ignorar'] = $id_agendamento_ignorar;
+        }
+        
+        return $this->executarQuery($sql, $params, 'unico');
     }
 
     /**
@@ -399,7 +467,7 @@ class Agendamento extends BaseModel {
                     COUNT(a.id_agendamento) AS total_geral
                 FROM agendamentos a
                 INNER JOIN itens_agendamento ia ON a.id_agendamento = ia.cod_agendamento
-                INNER JOIN funcionario_servicos fs ON ia.cod_sv_func = fs.id_sv_funcionario
+                LEFT JOIN funcionario_servicos fs ON ia.cod_sv_func = fs.id_sv_funcionario
                 WHERE a.data_agendamento BETWEEN :data_inicio AND :data_fim";
 
         $params = [
@@ -423,7 +491,7 @@ class Agendamento extends BaseModel {
                        COUNT(*) AS quantidade
                 FROM agendamentos a
                 INNER JOIN itens_agendamento ia ON a.id_agendamento = ia.cod_agendamento
-                INNER JOIN funcionario_servicos fs ON ia.cod_sv_func = fs.id_sv_funcionario
+                LEFT JOIN funcionario_servicos fs ON ia.cod_sv_func = fs.id_sv_funcionario
                 WHERE a.data_agendamento BETWEEN :data_inicio AND :data_fim
                   AND a.status = 'concluido'";
 
@@ -452,7 +520,7 @@ class Agendamento extends BaseModel {
                 INNER JOIN clientes c ON a.cod_cliente = c.id_cliente
                 INNER JOIN usuarios u ON c.cod_usuario = u.id_usuario
                 INNER JOIN itens_agendamento ia ON a.id_agendamento = ia.cod_agendamento
-                INNER JOIN funcionario_servicos fs ON ia.cod_sv_func = fs.id_sv_funcionario
+                LEFT JOIN funcionario_servicos fs ON ia.cod_sv_func = fs.id_sv_funcionario
                 WHERE a.data_agendamento BETWEEN :data_inicio AND :data_fim
                   AND a.status = 'concluido'";
 
@@ -480,7 +548,7 @@ class Agendamento extends BaseModel {
                        COUNT(ia.id_item) AS atendimentos
                 FROM agendamentos a
                 INNER JOIN itens_agendamento ia ON a.id_agendamento = ia.cod_agendamento
-                INNER JOIN funcionario_servicos fs ON ia.cod_sv_func = fs.id_sv_funcionario
+                LEFT JOIN funcionario_servicos fs ON ia.cod_sv_func = fs.id_sv_funcionario
                 WHERE a.data_agendamento BETWEEN :data_inicio AND :data_fim
                   AND a.status = 'concluido'";
                   

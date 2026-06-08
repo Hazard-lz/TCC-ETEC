@@ -5,9 +5,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Belezou App</title>
+    <link rel="icon" type="image/png" href="<?= BASE_URL ?>/public/resources/images/favicon.png">
     
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/root.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/login.css">
+    <link rel="manifest" href="<?= BASE_URL ?>/manifest.json">
 </head>
 <body>
 
@@ -62,7 +64,7 @@
                     <input type="password" id="senha" name="senha" class="form-control" placeholder="Digite sua senha" required>
                     
                     <div class="forgot-password-container">
-                        <a href="<?= BASE_URL ?>/recuperar-senha">Esqueci a minha senha</a>
+                        <a href="<?= BASE_URL ?>/recuperar-senha" class="forgot-password">Esqueci a minha senha</a>
                     </div>
                     
                     <div id="loginError" class="error-message" style="display: none; text-align: center; margin-top: 1rem; color: #dc2626;">Por favor, preencha todos os campos corretamente.</div>

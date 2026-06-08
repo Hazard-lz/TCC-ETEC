@@ -27,8 +27,14 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
         <title>Meu Perfil - Belezou App</title>
+        <link rel="icon" type="image/png" href="<?= BASE_URL ?>/public/resources/images/favicon.png">
+
+        <!-- SweetAlert2 — necessário para o botão "Sair da Conta" -->
+        <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css" rel="stylesheet">
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
 
         <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/root.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
         <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/app-cliente.css">
         <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/perfil.css">
     </head>
@@ -95,7 +101,7 @@
 
                                         <div class="form-group">
                                             <label for="nascimento">Data de Nascimento</label>
-                                            <input type="date" id="nascimento" name="nascimento" class="form-control" value="<?= $clienteNascimento ?>" required>
+                                            <input type="date" id="nascimento" name="nascimento" class="form-control" value="<?= $clienteNascimento ?>">
                                         </div>
 
                                         <button type="submit" class="btn-primary" style="padding: 0.8rem; font-size: 0.95rem;">Salvar Dados</button>
@@ -161,6 +167,9 @@
                     </a>
                     <a href="<?= BASE_URL ?>/perfil" class="nav-item active">
                         <span class="nav-icon">👤</span><span>Perfil</span>
+                    </a>
+                    <a href="<?= BASE_URL ?>/cliente/ajuda" class="nav-item">
+                        <span class="nav-icon"><i class="bi bi-question-circle" style="font-size: 1.2rem;"></i></span><span>Ajuda</span>
                     </a>
                 </nav>
 

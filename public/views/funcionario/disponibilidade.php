@@ -295,6 +295,7 @@ $mostrarBotaoEditar = (!$isNovaGrade && !empty($idDisponibilidade)) ? 'block' : 
             </div>
         </div>
 
+
         <?php if (!empty($idDisponibilidade)): ?>
         <form id="form-excluir" action="<?= BASE_URL ?>/funcionario/disponibilidade/excluir" method="POST" style="display: none;">
                                         <?= CsrfGuard::campoHidden() ?>
@@ -319,16 +320,22 @@ $mostrarBotaoEditar = (!$isNovaGrade && !empty($idDisponibilidade)) ? 'block' : 
         function confirmarSalvamento(event) {
             event.preventDefault(); 
             const acao = "<?= empty($idDisponibilidade) ? 'criar esta nova' : 'salvar as alterações nesta' ?>";
-            if (confirm(`Deseja confirmar e ${acao} grade de horários?`)) {
-                event.target.submit(); 
-            }
+            Swal.fire({
+                title: 'Atenção',
+                text: `Deseja confirmar e ${acao} grade de horários?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Confirmar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    event.target.submit(); 
+                }
+            });
         }
 
-        function confirmarExclusaoGrade() {
-            if(confirm('ATENÇÃO: Tem certeza que deseja EXCLUIR esta grade permanentemente? Esta ação não pode ser desfeita.')) { 
-                document.getElementById('form-excluir').submit(); 
-            }
-        }
 
         function cancelarNovaGrade() {
             document.getElementById('form-cancelar').submit();

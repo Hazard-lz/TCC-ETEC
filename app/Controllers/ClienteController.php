@@ -148,6 +148,9 @@ class ClienteController {
             );
         }
 
+        // 3.5 Busca o último agendamento concluído (se existir) para o "Agendar Novamente"
+        $ultimoAgendamento = $agendamentoModel->buscarUltimoAgendamentoCliente($cliente['id_cliente']);
+
         // 4. Busca os Serviços Ativos para listar como "Populares"
         $servicoModel = new Servico();
         $todosServicos = $servicoModel->listarPorStatus('ativo');

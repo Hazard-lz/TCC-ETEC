@@ -5,8 +5,8 @@ class Cliente extends BaseModel {
 
 // CREATE/INSERT
     public function cadastrar($cod_usuario, $data_nascimento, $observacoes = null) {
-        $data_nascimento = !empty(trim($data_nascimento)) ? trim($data_nascimento) : null;
-        $observacoes = !empty(trim($observacoes)) ? trim($observacoes) : null;
+        $data_nascimento = (!empty($data_nascimento) && is_string($data_nascimento) && trim($data_nascimento) !== '') ? trim($data_nascimento) : null;
+        $observacoes = (!empty($observacoes) && is_string($observacoes) && trim($observacoes) !== '') ? trim($observacoes) : null;
 
         $sql = "INSERT INTO clientes (cod_usuario, data_nascimento, observacoes) 
                 VALUES (:cod_usuario, :data_nascimento, :observacoes)";
@@ -38,8 +38,8 @@ class Cliente extends BaseModel {
 
 // UPDATE
     public function atualizar($id_cliente, $data_nascimento, $observacoes) {
-        $data_nascimento = !empty(trim($data_nascimento)) ? trim($data_nascimento) : null;
-        $observacoes = !empty(trim($observacoes)) ? trim($observacoes) : null;
+        $data_nascimento = (!empty($data_nascimento) && is_string($data_nascimento) && trim($data_nascimento) !== '') ? trim($data_nascimento) : null;
+        $observacoes = (!empty($observacoes) && is_string($observacoes) && trim($observacoes) !== '') ? trim($observacoes) : null;
 
         $sql = "UPDATE clientes SET data_nascimento = :data_nascimento, observacoes = :observacoes WHERE id_cliente = :id";
         return $this->executarQuery($sql, [':data_nascimento' => $data_nascimento, ':observacoes' => $observacoes, ':id' => $id_cliente]);

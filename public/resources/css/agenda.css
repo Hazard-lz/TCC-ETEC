@@ -1,0 +1,1201 @@
+/* --- AJUSTES DE DESIGN DO CALENDÁRIO --- */
+.fc {
+    background: var(--surface-color);
+    border-radius: var(--radius-lg);
+    padding: 1rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    border: 1px solid var(--border-color) !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box;
+}
+
+/* Garante que o container pai do calendário não transborda */
+#calendario-agendamentos {
+    width: 100%;
+    min-width: 0;
+    overflow: hidden;
+}
+
+/* Corrigir o esmagamento do texto nos blocos de evento */
+.fc-v-event .fc-event-main {
+    white-space: normal !important;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    padding: 4px !important;
+    font-size: 0.85rem;
+    line-height: 1.2;
+}
+
+/* Esconder a hora dentro do bloco colorido para sobrar espaço para o nome */
+.fc-v-event .fc-event-time {
+    display: none !important;
+}
+
+/* --- ESTILIZAÇÃO PREMIUM DOS EVENTOS NO GRID GERAL (SEMANA / DIA) --- */
+.fc-timegrid-event,
+.fc-event.evento-marcado,
+.fc-event.evento-concluido,
+.fc-event.evento-pendente,
+.fc-event.evento-cancelado {
+    border: none !important;
+    border-radius: var(--radius-md) !important;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08) !important;
+    transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    overflow: hidden !important;
+    background-color: var(--surface-color) !important; /* Padroniza o fundo do card para ser sempre a cor de superfície do tema (branco no claro) */
+    background-image: none !important; /* IMPORTANTE: Força a remoção de gradientes do padrão linear herdado */
+    background: var(--surface-color) !important; /* IMPORTANTE: Sobrescreve shorthands anteriores */
+    min-height: 84px !important; /* IMPORTANTE: Altura mínima para caber Cliente, Serviço e Funcionário sem cortar */
+}
+
+.fc-timegrid-event:hover {
+    transform: translateY(-2px) scale(1.01) !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
+    z-index: 100 !important;
+}
+
+/* Borda lateral esquerda de destaque do status */
+.fc-event.evento-marcado {
+    border-left: 6px solid var(--color-purple) !important;
+}
+.fc-event.evento-concluido {
+    border-left: 6px solid #2ecc71 !important;
+}
+.fc-event.evento-pendente {
+    border-left: 6px solid #f59e0b !important;
+}
+.fc-event.evento-cancelado {
+    border-left: 6px solid #ef4444 !important;
+}
+.fc-event.evento-bloqueado {
+    border-left: 6px solid #64748b !important;
+    background: repeating-linear-gradient(
+        45deg,
+        rgba(100, 116, 139, 0.08),
+        rgba(100, 116, 139, 0.08) 10px,
+        rgba(100, 116, 139, 0.15) 10px,
+        rgba(100, 116, 139, 0.15) 20px
+    ) !important;
+}
+
+/* Evita que o evento no modo DIA vire um blocão horizontal gigantesco */
+.fc-timeGridDay-view .fc-timegrid-event {
+    max-width: 480px !important;
+    margin-left: 6px !important;
+    border-radius: var(--radius-lg) !important;
+    box-shadow: 0 6px 22px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Mantém o padrão linear original como fallback seguro para outros componentes (ex: legendas), excluindo elementos do calendário */
+.evento-marcado:not(.fc-event) { background: linear-gradient(135deg, #a78bfa, var(--color-purple)) !important; border: none !important; }
+.evento-concluido:not(.fc-event) { background: linear-gradient(135deg, #2ecc71, #27ae60) !important; border: none !important; }
+.evento-pendente:not(.fc-event) { background: linear-gradient(135deg, #f59e0b, #f39c12) !important; border: none !important; }
+
+.fc-event:hover {
+    cursor: pointer;
+}
+
+/* Ajustes específicos para destacar o card no MODO ESCURO */
+[data-theme="dark"] .fc-timegrid-event {
+    background-color: #384252 !important; /* Ligeiramente mais claro que o fundo do calendário (#2d3748) */
+    background: #384252 !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-theme="dark"] .fc-timegrid-event:hover {
+    background-color: #3e4b5e !important;
+    background: #3e4b5e !important;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45) !important;
+}
+
+/* --- ESTILOS DA AGENDA EM LISTA (listWeek) --- */
+.fc-theme-standard .fc-list {
+    border: none !important;
+    background: transparent !important;
+}
+
+.fc-list-table {
+    display: block !important;
+    border: none !important;
+    background: transparent !important;
+}
+
+.fc-list-table tbody {
+    display: block !important;
+    width: 100% !important;
+    box-sizing: border-box;
+}
+
+/* Cabeçalho do dia como barra elegante e flutuante */
+.fc-list-day {
+    display: block !important;
+    margin: 1.75rem 0 0.85rem 0 !important;
+    background: transparent !important;
+}
+
+.fc-list-day th {
+    display: block !important;
+    width: 100% !important;
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+}
+
+.fc-list-day-cushion {
+    background-color: var(--bg-color) !important;
+    padding: 10px 16px !important;
+    border-radius: 10px !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    border: 1px solid var(--border-color) !important;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.01) !important;
+}
+
+.fc-list-day-text, .fc-list-day-side-text {
+    color: var(--text-main) !important;
+    font-weight: 700 !important;
+    font-size: 0.82rem !important;
+    letter-spacing: 0.5px;
+    text-transform: uppercase !important;
+}
+
+/* Elemento tr de agendamento transformado em CARD premium */
+.fc-list-event {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    background: var(--surface-color) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 12px !important;
+    margin-bottom: 0.75rem !important;
+    padding: 1rem 1.25rem !important;
+    transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    gap: 1.25rem !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.01) !important;
+    position: relative !important;
+    overflow: hidden !important;
+    box-sizing: border-box;
+    width: 100% !important;
+}
+
+.fc-list-event:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02) !important;
+    border-color: var(--color-purple) !important;
+    cursor: pointer !important;
+}
+
+/* Removendo estilos antigos de tabela das células td */
+.fc-list-event td {
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+}
+
+.fc-list-event-graphic {
+    display: none !important; /* Escondemos a bolinha/dot padrão */
+}
+
+/* Borda lateral colorida de indicação de status no card */
+.fc-list-event.evento-marcado   { border-left: 6px solid var(--color-purple) !important; }
+.fc-list-event.evento-concluido { border-left: 6px solid #2ecc71 !important; }
+.fc-list-event.evento-pendente  { border-left: 6px solid #f59e0b !important; }
+.fc-list-event.evento-cancelado { border-left: 6px solid #ef4444 !important; }
+.fc-list-event.evento-bloqueado {
+    border-left: 6px solid #64748b !important;
+    background: repeating-linear-gradient(
+        45deg,
+        rgba(100, 116, 139, 0.05),
+        rgba(100, 116, 139, 0.05) 10px,
+        rgba(100, 116, 139, 0.1) 10px,
+        rgba(100, 116, 139, 0.1) 20px
+    ) !important;
+}
+
+/* Coluna da hora à esquerda */
+.fc-list-event-time {
+    font-size: 0.9rem !important;
+    font-weight: 700 !important;
+    min-width: 90px !important;
+    flex-shrink: 0 !important;
+    text-align: left !important;
+    white-space: nowrap;
+    display: flex !important;
+    align-items: center !important;
+    align-self: center !important;
+}
+
+/* Horário colorido com o status */
+.evento-marcado .fc-list-event-time   { color: var(--color-purple) !important; }
+.evento-concluido .fc-list-event-time { color: #2ecc71 !important; }
+.evento-pendente .fc-list-event-time  { color: #d97706 !important; }
+.evento-cancelado .fc-list-event-time { color: #ef4444 !important; }
+.evento-bloqueado .fc-list-event-time { color: #64748b !important; }
+
+/* Célula do título que abriga nosso layout customizado */
+.fc-list-event-title {
+    flex-grow: 1 !important;
+    width: auto !important;
+}
+
+/* --- CUSTOMIZADOR DE EVENTOS DA AGENDA (GRID E LISTA) --- */
+.fc-grid-event-custom {
+    padding: 6px 8px !important;
+    font-size: 0.8rem;
+    line-height: 1.4;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    height: 100%;
+    color: var(--text-main) !important;
+    box-sizing: border-box;
+    position: relative !important; /* IMPORTANTE: Para posicionar o badge de status absoluto */
+}
+.fc-grid-event-custom .fc-event-client {
+    font-weight: 700;
+    font-size: 0.88rem;
+    color: var(--text-main) !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-right: 82px !important; /* IMPORTANTE: Evita sobreposição do nome do cliente com o badge */
+}
+.fc-grid-event-custom .fc-event-service {
+    font-weight: 600;
+    font-size: 0.76rem;
+    color: var(--text-main) !important;
+    opacity: 0.9; /* Muito mais nítido e legível em todos os temas */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.fc-grid-event-custom .fc-event-prof {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--text-main) !important;
+    opacity: 0.8; /* Muito mais nítido e legível em todos os temas */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.fc-list-event-custom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    gap: 1.5rem;
+    font-family: inherit;
+}
+
+.fc-list-event-main-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    text-align: left;
+}
+
+.fc-list-event-client-name {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+.fc-list-event-service-name {
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.fc-list-event-service-name i {
+    color: var(--color-purple);
+    font-size: 0.85rem;
+}
+
+.fc-list-event-meta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-shrink: 0;
+}
+
+.fc-list-event-prof {
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: var(--bg-color);
+    padding: 0.25rem 0.6rem;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+}
+
+/* Beautiful status badges matching modern white-label */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 0.25rem 0.65rem;
+    border-radius: 9999px;
+    letter-spacing: 0.2px;
+}
+
+.status-badge-pendente {
+    background-color: rgba(245, 158, 11, 0.12);
+    color: #d97706;
+    border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.status-badge-marcado {
+    background-color: color-mix(in srgb, var(--color-purple) 12%, transparent);
+    color: var(--color-purple);
+    border: 1px solid color-mix(in srgb, var(--color-purple) 20%, transparent);
+}
+
+.status-badge-concluido {
+    background-color: rgba(46, 204, 113, 0.12);
+    color: #2ecc71;
+    border: 1px solid rgba(46, 204, 113, 0.2);
+}
+
+.status-badge-cancelado {
+    background-color: rgba(239, 68, 68, 0.12);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+/* --- Dark Mode Overrides for Status Badges --- */
+[data-theme="dark"] .status-badge-pendente {
+    background-color: rgba(245, 158, 11, 0.2);
+    color: #fbbf24;
+    border-color: rgba(245, 158, 11, 0.4);
+}
+
+[data-theme="dark"] .status-badge-marcado {
+    background-color: color-mix(in srgb, var(--color-purple) 20%, transparent);
+    color: color-mix(in srgb, var(--color-purple) 85%, #ffffff);
+    border-color: color-mix(in srgb, var(--color-purple) 45%, transparent);
+}
+
+[data-theme="dark"] .status-badge-concluido {
+    background-color: rgba(46, 204, 113, 0.2);
+    color: #4ade80;
+    border-color: rgba(46, 204, 113, 0.4);
+}
+
+[data-theme="dark"] .status-badge-cancelado {
+    background-color: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+    border-color: rgba(239, 68, 68, 0.4);
+}
+
+/* Badge específica compacta para o Grid */
+.status-badge.grid-badge {
+    position: absolute !important;
+    top: 6px !important;
+    right: 8px !important;
+    font-size: 0.65rem !important;
+    padding: 1.5px 5px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.3px !important;
+    line-height: 1.2 !important;
+    border-radius: 9999px !important;
+    display: inline-block !important;
+}
+
+/* --- ADAPTABILIDADE DE CARDS ESPREMIDOS (OVERLAP / LADO A LADO) --- */
+.fc-timegrid-event {
+    container-type: inline-size !important;
+}
+
+@container (max-width: 175px) {
+    .fc-grid-event-custom .fc-event-client {
+        padding-right: 0 !important; /* Libera espaço total para o nome do cliente */
+    }
+    .status-badge.grid-badge {
+        display: none !important; /* Oculta o texto do badge se o card for muito estreito */
+    }
+}
+
+@container (max-width: 130px) {
+    .fc-grid-event-custom .fc-event-prof {
+        display: none !important; /* Oculta o profissional para não esmagar em telas minúsculas */
+    }
+    .fc-grid-event-custom .fc-event-service {
+        font-size: 0.7rem !important; /* Diminui a fonte do serviço */
+    }
+}
+
+/* Responsive layout for mobile inside the card */
+@media (max-width: 768px) {
+    .fc-list-event {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 0.65rem !important;
+        padding: 1rem !important;
+    }
+
+    .fc-list-event-title {
+        width: 100% !important;
+    }
+
+    .fc-list-event-time {
+        min-width: auto !important;
+        border-bottom: 1px dashed var(--border-color) !important;
+        width: 100% !important;
+        padding-bottom: 0.5rem !important;
+        font-size: 0.85rem !important;
+    }
+
+    .fc-list-event-custom {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 0.5rem !important;
+        width: 100% !important;
+    }
+
+    .fc-list-event-meta {
+        width: 100% !important;
+        justify-content: space-between !important;
+        gap: 0.5rem !important;
+        margin-top: 0.25rem !important;
+    }
+}
+
+.fc-list-empty {
+    background-color: var(--surface-color) !important;
+    color: var(--text-muted) !important;
+    padding: 4rem !important;
+    text-align: center;
+    border-radius: 12px !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+.fc-list-table {
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+}
+
+/* --- BOTÕES DO CALENDÁRIO ESTILO PILULA/SWITCH PREMIUM --- */
+.fc-button-group {
+    background: var(--bg-color) !important;
+    padding: 3px !important;
+    border-radius: 10px !important;
+    border: 1px solid var(--border-color) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 2px !important;
+}
+
+.fc-button-group .fc-button {
+    border: none !important;
+    background: transparent !important;
+    color: var(--text-muted) !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    font-size: 0.82rem !important;
+    padding: 0.35rem 0.9rem !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: none !important;
+    text-transform: capitalize !important;
+}
+
+.fc-button-group .fc-button:not(.fc-button-active):hover {
+    color: var(--color-purple) !important;
+    background: rgba(139, 92, 246, 0.06) !important;
+}
+
+.fc-button-group .fc-button-active {
+    background: var(--color-purple) !important;
+    color: white !important;
+    box-shadow: 0 2px 6px rgba(139, 92, 246, 0.25) !important;
+}
+
+/* Botões Avulsos (Hoje, Seta Anterior, Próxima Seta) */
+.fc-today-button,
+.fc-prev-button,
+.fc-next-button {
+    background: var(--surface-color) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 8px !important;
+    color: var(--text-main) !important;
+    font-weight: 600 !important;
+    font-size: 0.85rem !important;
+    padding: 0.35rem 0.8rem !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: none !important;
+    text-transform: capitalize !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.fc-today-button:hover,
+.fc-prev-button:hover,
+.fc-next-button:hover {
+    background: var(--bg-color) !important;
+    border-color: var(--color-purple) !important;
+    color: var(--color-purple) !important;
+}
+
+.fc-today-button:disabled {
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
+    border-color: var(--border-color) !important;
+    background: var(--surface-color) !important;
+    color: var(--text-muted) !important;
+}
+
+/* --- PÁGINA HEADER --- */
+.header-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+}
+
+.header-actions h2 {
+    color: var(--text-main);
+    margin: 0;
+    font-size: 1.4rem;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 0.8rem;
+    flex-shrink: 0;
+}
+
+/* Botão flutuante no mobile */
+.fab-novo {
+    display: none;
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--gradient-brand);
+    color: #fff;
+    font-size: 1.8rem;
+    font-weight: 300;
+    line-height: 56px;
+    text-align: center;
+    border: none;
+    box-shadow: 0 6px 20px rgba(139, 92, 246, 0.5);
+    z-index: 900;
+    cursor: pointer;
+    padding: 0;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.fab-novo:hover {
+    transform: scale(1.1);
+    box-shadow: 0 8px 25px rgba(139, 92, 246, 0.6);
+}
+
+/* --- LEGENDA DE CORES --- */
+.legenda-status {
+    display: flex;
+    gap: 1.2rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+}
+
+.legenda-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.legenda-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* --- RESPONSIVIDADE MOBILE --- */
+@media (max-width: 992px) {
+    /* Trava o viewport da página inteira no mobile para que o scroll do corpo não ocorra */
+    html, body {
+        overflow: hidden !important;
+        height: 100% !important;
+        max-height: 100% !important;
+        position: fixed !important;
+        width: 100% !important;
+        top: 0 !important;
+        left: 0 !important;
+    }
+
+    .main-wrapper {
+        height: 100% !important;
+        max-height: 100% !important;
+        overflow: hidden !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+
+    .main-content {
+        flex: 1 !important;
+        min-height: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        overflow: hidden !important;
+    }
+
+    .content-area {
+        flex: 1 !important;
+        min-height: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        overflow: hidden !important;
+        padding-bottom: 0 !important; /* Remove o padding inferior para que o card encoste na base */
+    }
+
+    /* Toolbar: tudo na mesma linha, que quebra quando precisa */
+    .fc .fc-toolbar {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .fc .fc-toolbar-chunk {
+        display: flex;
+        align-items: center;
+    }
+
+    .fc-toolbar-title {
+        font-size: 0.9rem !important;
+        width: 100%;
+        text-align: center;
+        order: -1;
+    }
+
+    /* Esconder vista "Semana" no mobile */
+    .fc-timeGridWeek-button {
+        display: none !important;
+    }
+
+
+    /* Header da página empilha */
+    .header-actions {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    /* Botoes de ação do header ficam ocultos — usa FAB */
+    .action-buttons .btn-desktop {
+        display: none;
+    }
+
+    /* FAB visível */
+    .fab-novo {
+        display: block;
+    }
+
+    /* Calendário ocupa toda a largura e preenche dinamicamente o espaço restante do viewport */
+    #calendario-agendamentos {
+        width: calc(100% + 2rem) !important;
+        margin-left: -1rem !important;
+        margin-right: -1rem !important;
+        margin-bottom: 0 !important;
+        overflow: hidden !important;
+        flex: 1 !important; /* Preenchimento vertical dinâmico via flexbox */
+        min-height: 0 !important;
+        height: auto !important;
+    }
+
+    .fc {
+        border-radius: 0 !important;
+        border-left: none !important;
+        border-right: none !important;
+        border-bottom: none !important; /* Sem borda no limite inferior da tela */
+        padding: 0.5rem 1rem !important;
+        width: 100% !important;
+        margin: 0 !important;
+        box-sizing: border-box;
+        height: 100% !important; /* Herda a altura calculada pelo Flexbox */
+    }
+
+    /* Garante rolagem suave por toque nativo no container de lista interna do FullCalendar */
+    .fc-scroller {
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+
+    /* Reseta as margens negativas padrões do FullCalendar que puxavam a lista para fora nas laterais */
+    .fc-list,
+    .fc-list-table,
+    .fc-list-day,
+    .fc-list-event {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        width: 100% !important;
+    }
+
+    /* Removendo paddings antigos das celulas para nao quebrar os novos cards customizados */
+    .fc-list-day-cushion   { padding: 8px 12px !important; }
+}
+
+/* --- ADAPTAÇÃO DO CALENDÁRIO GERAL AOS MODOS DARK E LIGHT --- */
+/* Força o calendário a usar as variáveis CSS do tema para as bordas e realces de forma nativa */
+.fc {
+    --fc-border-color: var(--border-color) !important;
+    --fc-today-bg-color: rgba(139, 92, 246, 0.08) !important;
+}
+
+/* Cabeçalhos das Colunas (Dias da Semana) e do Grid */
+.fc-col-header,
+.fc-col-header-cell,
+.fc-scrollgrid-section-header,
+.fc-scrollgrid-section-header th,
+.fc-scrollgrid-section-header td {
+    background-color: var(--surface-color) !important;
+    border-color: var(--border-color) !important;
+}
+
+.fc-col-header-cell-cushion {
+    color: var(--text-main) !important;
+    font-weight: 600 !important;
+    text-decoration: none !important;
+    display: inline-block !important;
+    padding: 8px 4px !important;
+}
+
+/* Mantém as linhas divisórias e bordas perfeitamente visíveis em ambos os modos */
+.fc-theme-standard td,
+.fc-theme-standard th {
+    border-color: var(--border-color) !important;
+}
+.fc-theme-standard .fc-scrollgrid {
+    border-color: var(--border-color) !important;
+}
+
+/* Célula do dia atual (Today) destacada suavemente sem cobrir as linhas de divisão */
+.fc-day-today {
+    background-color: rgba(139, 92, 246, 0.08) !important;
+}
+
+/* Eixo lateral de horários (Labels) e alinhamentos */
+.fc-timegrid-slot-label-cushion,
+.fc-timegrid-axis-cushion {
+    color: var(--text-main) !important;
+    font-weight: 600 !important;
+}
+
+/* Mantém as células de tempo transparentes para não ocultar ou pintar sobre as bordas verticais/horizontais */
+.fc-timegrid-slot,
+.fc-timegrid-axis,
+.fc-timegrid-axis-frame {
+    background-color: transparent !important;
+    border-color: var(--border-color) !important;
+}
+
+/* Título do cabeçalho */
+.fc-toolbar-title {
+    color: var(--text-main) !important;
+}
+
+/* --- ESTILIZAÇÃO E ADAPTAÇÃO DO TOM SELECT (LIGHT & DARK MODE) --- */
+.ts-wrapper .ts-control {
+    background-color: var(--bg-color) !important;
+    color: var(--text-main) !important;
+    border: 1.5px solid var(--border-color) !important;
+    border-radius: var(--radius-md) !important;
+    padding: 0.75rem 1rem !important;
+    box-shadow: none !important;
+    min-height: 46px !important;
+    display: flex !important;
+    align-items: center !important;
+    transition: all var(--transition-default) !important;
+    position: relative !important;
+}
+
+.ts-wrapper.focus .ts-control,
+.ts-wrapper.input-active .ts-control {
+    background-color: var(--surface-color) !important;
+    border-color: var(--color-purple) !important;
+    box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.15) !important;
+}
+
+.ts-wrapper .ts-control .item {
+    color: var(--text-main) !important;
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    font-size: 1rem !important;
+    display: inline-flex !important;
+    align-items: center !important;
+}
+
+.ts-wrapper .ts-control input {
+    color: var(--text-main) !important;
+    font-size: 1rem !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.ts-wrapper .ts-control input::placeholder {
+    color: var(--text-muted) !important;
+    opacity: 1 !important;
+}
+
+.ts-wrapper.single .ts-control {
+    padding-right: 2rem !important;
+    background-image: none !important; /* Remove caret padrão do bootstrap */
+}
+
+.ts-wrapper.single .ts-control::after {
+    content: ' ' !important;
+    display: block !important;
+    position: absolute !important;
+    top: 50% !important;
+    right: 15px !important;
+    margin-top: -3px !important;
+    width: 0 !important;
+    height: 0 !important;
+    border-style: solid !important;
+    border-width: 5px 5px 0 5px !important;
+    border-color: var(--text-muted) transparent transparent transparent !important;
+    transition: transform var(--transition-default) !important;
+    pointer-events: none !important;
+}
+
+.ts-wrapper.single.open .ts-control::after {
+    border-color: transparent transparent var(--text-muted) transparent !important;
+    border-width: 0 5px 5px 5px !important;
+    margin-top: -2px !important;
+}
+
+.ts-dropdown {
+    background-color: var(--surface-color) !important;
+    color: var(--text-main) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: var(--radius-md) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15) !important;
+    margin-top: 4px !important;
+    z-index: 2000 !important;
+    overflow: hidden !important;
+}
+
+.ts-dropdown .option {
+    padding: 0.75rem 1rem !important;
+    color: var(--text-main) !important;
+    cursor: pointer !important;
+    transition: background-color var(--transition-default), color var(--transition-default) !important;
+}
+
+.ts-dropdown .option:hover,
+.ts-dropdown .active {
+    background-color: var(--color-purple) !important;
+    color: #ffffff !important;
+}
+
+.ts-dropdown .active.create {
+    color: #ffffff !important;
+}
+
+.ts-dropdown .create {
+    color: var(--text-muted) !important;
+}
+
+.ts-dropdown .no-results,
+.ts-dropdown .loading {
+    padding: 0.75rem 1rem !important;
+    color: var(--text-muted) !important;
+    background-color: var(--surface-color) !important;
+}
+
+.ts-wrapper.disabled .ts-control {
+    background-color: var(--bg-disabled) !important;
+    opacity: 0.6 !important;
+    cursor: not-allowed !important;
+}
+
+/* --- ESTILO SELETOR FILTRO GERENCIA --- */
+.agenda-filter-container {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: var(--surface-color);
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+}
+
+.agenda-filter-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    white-space: nowrap;
+}
+
+.agenda-filter-select {
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 0.4rem 2.2rem 0.4rem 0.75rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    outline: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%236b7280' class='bi bi-chevron-down' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 12px;
+    min-width: 180px;
+}
+
+.agenda-filter-select:focus {
+    border-color: var(--color-purple);
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
+}
+
+/* Responsivo para mobile */
+@media (max-width: 992px) {
+    .agenda-filter-container {
+        width: 100%;
+        justify-content: space-between;
+        box-sizing: border-box;
+    }
+    .agenda-filter-select {
+        flex: 1;
+        max-width: 250px;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SISTEMA DE ALERTA DE AGENDAMENTOS PENDENTES
+   ═══════════════════════════════════════════════════════════════ */
+
+/* --- Sino Piscante --- */
+#alerta-pendentes {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: rgba(245, 158, 11, 0.12);
+    color: #d97706;
+    font-size: 0.82rem;
+    font-weight: 700;
+    padding: 0.3rem 0.75rem;
+    border-radius: 9999px;
+    border: 1px solid rgba(245, 158, 11, 0.25);
+    cursor: pointer;
+    animation: pendingPulse 2s ease-in-out infinite;
+    transition: all 0.22s ease;
+    white-space: nowrap;
+    user-select: none;
+}
+
+#alerta-pendentes:hover {
+    background: rgba(245, 158, 11, 0.2);
+    transform: scale(1.05);
+    box-shadow: 0 4px 16px rgba(245, 158, 11, 0.25);
+}
+
+#alerta-pendentes i {
+    font-size: 1rem;
+    animation: pendingBellShake 2s ease-in-out infinite;
+}
+
+@keyframes pendingPulse {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.3);
+    }
+    50% {
+        box-shadow: 0 0 0 8px rgba(245, 158, 11, 0);
+    }
+}
+
+@keyframes pendingBellShake {
+    0%, 100% { transform: rotate(0deg); }
+    10% { transform: rotate(14deg); }
+    20% { transform: rotate(-12deg); }
+    30% { transform: rotate(10deg); }
+    40% { transform: rotate(-8deg); }
+    50% { transform: rotate(0deg); }
+}
+
+/* --- Cards de Lista de Pendentes --- */
+.lista-pendentes-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.lista-pendentes-body::-webkit-scrollbar {
+    width: 5px;
+}
+.lista-pendentes-body::-webkit-scrollbar-track {
+    background: transparent;
+}
+.lista-pendentes-body::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 10px;
+}
+
+.pendente-item-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-left: 5px solid #f59e0b;
+    border-radius: var(--radius-md);
+    padding: 0.85rem 1rem;
+    cursor: pointer;
+    transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    gap: 1rem;
+}
+
+.pendente-item-card:hover {
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.08);
+    border-color: #f59e0b;
+    background: var(--bg-color);
+}
+
+.pendente-item-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    flex: 1;
+    min-width: 0;
+}
+
+.pendente-item-cliente {
+    font-weight: 700;
+    font-size: 0.92rem;
+    color: var(--text-main);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.pendente-item-cliente i {
+    color: #d97706;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+}
+
+.pendente-item-servico {
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.pendente-item-servico i {
+    color: var(--color-purple);
+    font-size: 0.82rem;
+    flex-shrink: 0;
+}
+
+.pendente-item-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.2rem;
+    flex-shrink: 0;
+}
+
+.pendente-item-data,
+.pendente-item-hora {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    white-space: nowrap;
+}
+
+.pendente-item-hora i,
+.pendente-item-data i {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+/* --- Modo Escuro --- */
+[data-theme="dark"] #alerta-pendentes {
+    background: rgba(244, 91, 105, 0.18);
+    border-color: rgba(244, 91, 105, 0.35);
+}
+
+[data-theme="dark"] .pendente-item-card {
+    background: #384252;
+    border-color: rgba(255, 255, 255, 0.08);
+    border-left-color: #f59e0b;
+}
+
+[data-theme="dark"] .pendente-item-card:hover {
+    background: #3e4b5e;
+    border-color: #f59e0b;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+}
+
+/* --- Responsivo do sino --- */
+@media (max-width: 768px) {
+    #alerta-pendentes {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.6rem;
+    }
+    .pendente-item-card {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    .pendente-item-meta {
+        flex-direction: row;
+        align-items: center;
+        gap: 0.75rem;
+        width: 100%;
+    }
+}

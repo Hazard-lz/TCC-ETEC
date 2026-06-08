@@ -48,12 +48,12 @@ if ($dadosFunc) {
 
     <?php if (isset($_SESSION['flash_sucesso'])): ?>
         <div class="alert alert-success">
-            <?= $_SESSION['flash_sucesso']; unset($_SESSION['flash_sucesso']); ?>
+            <strong>Sucesso!</strong> <?= $_SESSION['flash_sucesso']; unset($_SESSION['flash_sucesso']); ?>
         </div>
     <?php endif; ?>
     <?php if (isset($_SESSION['flash_erro'])): ?>
         <div class="alert alert-danger">
-            <?= $_SESSION['flash_erro']; unset($_SESSION['flash_erro']); ?>
+            <strong>Erro:</strong> <?= $_SESSION['flash_erro']; unset($_SESSION['flash_erro']); ?>
         </div>
     <?php endif; ?>
 

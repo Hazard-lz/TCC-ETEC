@@ -13,18 +13,36 @@ function confirmarSalvamento(event) {
     const form = event.currentTarget || event.target.closest("form");
     if (!form) return;
 
-    if (confirm(`Deseja confirmar e ${acaoDisponibilidade} grade de horários?`)) {
-        HTMLFormElement.prototype.submit.call(form);
-    }
+    Swal.fire({
+        title: 'Atenção',
+        text: `Deseja confirmar e ${acaoDisponibilidade} grade de horários?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Confirmar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            HTMLFormElement.prototype.submit.call(form);
+        }
+    });
 }
 
 function confirmarExclusaoGrade() {
-    const formExcluir = document.getElementById("form-excluir");
-    if (!formExcluir) return;
-
-    if (confirm("ATENÇÃO: Tem certeza que deseja EXCLUIR esta grade permanentemente? Esta ação não pode ser desfeita.")) {
-        HTMLFormElement.prototype.submit.call(formExcluir);
-    }
+    Swal.fire({
+        title: 'Atenção',
+        text: 'Tem certeza que deseja EXCLUIR esta grade permanentemente? Esta ação não pode ser desfeita.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        confirmButtonText: 'Sim, Excluir',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            document.getElementById('form-excluir').submit();
+        }
+    });
 }
 
 function cancelarNovaGrade() {

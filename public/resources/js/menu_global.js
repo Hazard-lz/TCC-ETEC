@@ -7,7 +7,7 @@ const BASE_URL = window.BASE_URL || ''; // Usa a base URL definida globalmente n
 document.addEventListener("DOMContentLoaded", () => {
     const userString = localStorage.getItem('belezou_user');
     const isPublicPage = window.location.pathname.includes('login') || window.location.pathname.includes('cadastro');
-    
+
     if (!userString && !isPublicPage) {
         window.location.href = BASE_URL + "/public/views/auth/login.php";
         return;
@@ -20,6 +20,11 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function renderizarLayoutGlobal(usuario) {
+    // Evita a duplicação do layout se ele já estiver renderizado na página
+    if (document.getElementById('sidebar-global')) {
+        return;
+    }
+
     const isAdmin = usuario.tipo === 'admin';
     const isSubadmin = usuario.tipo === 'subadmin';
     const isGerencia = isAdmin || isSubadmin;
@@ -34,6 +39,7 @@ function renderizarLayoutGlobal(usuario) {
         <li class="nav-item"><a href="${BASE_URL}/funcionario/servicos" class="nav-link ${pathAtual.includes('servicos') && !pathAtual.includes('admin') ? 'active' : ''}" title="Meus Serviços"><i class="bi bi-scissors me-2"></i> <span>Meus Serviços</span></a></li>
         <li class="nav-item"><a href="${BASE_URL}/funcionario/clientes" class="nav-link ${pathAtual.includes('clientes') ? 'active' : ''}" title="Clientes"><i class="bi bi-people me-2"></i> <span>Clientes</span></a></li>
         <li class="nav-item"><a href="${BASE_URL}/funcionario/disponibilidade" class="nav-link ${pathAtual.includes('disponibilidade') ? 'active' : ''}" title="Disponibilidade"><i class="bi bi-clock me-2"></i> <span>Disponibilidade</span></a></li>
+        <li class="nav-item"><a href="${BASE_URL}/funcionario/ajuda" class="nav-link ${pathAtual.includes('/funcionario/ajuda') ? 'active' : ''}" title="Ajuda / FAQ"><i class="bi bi-question-circle me-2"></i> <span>Ajuda / FAQ</span></a></li>
     `;
 
     if (isGerencia) {
@@ -46,6 +52,8 @@ function renderizarLayoutGlobal(usuario) {
         // Relatórios: exclusivo do admin (subadmin NÃO vê)
         if (isAdmin) {
             navLinks += `<li class="nav-item"><a href="${BASE_URL}/admin/relatorios/desempenho" class="nav-link ${pathAtual.includes('relatorios') ? 'active' : ''}" title="Relatórios"><i class="bi bi-graph-up me-2"></i> <span>Relatórios</span></a></li>`;
+            navLinks += `<li class="nav-item"><a href="${BASE_URL}/admin/configuracoes" class="nav-link ${pathAtual.includes('configuracoes') ? 'active' : ''}" title="Configurações"><i class="bi bi-gear me-2"></i> <span>Configurações</span></a></li>`;
+            navLinks += `<li class="nav-item"><a href="${BASE_URL}/admin/ajuda" class="nav-link ${pathAtual.includes('/admin/ajuda') ? 'active' : ''}" title="Ajuda Administrativa"><i class="bi bi-question-circle me-2"></i> <span>Ajuda Admin</span></a></li>`;
         }
     }
 
@@ -54,7 +62,7 @@ function renderizarLayoutGlobal(usuario) {
         <div class="sidebar" id="sidebar-global">
             <div class="sidebar-header">
                 <a href="${BASE_URL}/funcionario/dashboard">
-                    <img src="${BASE_URL}/public/resources/images/Belezou.png" alt="Belezou App Logo" class="sidebar-logo" onerror="this.style.display='none'">
+                    <img src="${BASE_URL}/public/resources/images/Belezou.png?v=2" alt="Belezou App Logo" class="sidebar-logo" onerror="this.style.display='none'">
                 </a>
             </div>
             
@@ -134,13 +142,13 @@ function iniciarEventosLayout() {
     const mainWrapper = document.getElementById('main-wrapper-global');
     const overlay = document.getElementById('sidebar-overlay');
     const themeToggle = document.getElementById('themeToggle');
-    
+
     const btnProfile = document.getElementById('btnProfileDropdown');
     const profileMenu = document.getElementById('profileMenu');
 
     // 0. Relógio da Sidebar e Restauração de Scroll
     iniciarRelogio();
-    
+
     if (sidebar) {
         // Restaura a posição do scroll que estava antes de mudar de página
         const savedScroll = sessionStorage.getItem('belezou_sidebar_scroll');
@@ -156,7 +164,7 @@ function iniciarEventosLayout() {
             let scrollTop = sidebar.scrollTop;
             const nav = sidebar.querySelector('.sidebar-nav');
             if (nav && nav.scrollTop > 0) scrollTop = nav.scrollTop;
-            
+
             sessionStorage.setItem('belezou_sidebar_scroll', scrollTop);
         });
     }
@@ -196,7 +204,7 @@ function iniciarEventosLayout() {
 
         overlay.addEventListener('click', fecharMenuMobile);
 
-        // Bloqueia o arrasto/scroll se o utilizador tentar scrollar no overlay escuro
+        // Bloqueia o arrasto/scroll se o usuário tentar scrollar no overlay escuro
         overlay.addEventListener('touchmove', (e) => {
             if (overlay.classList.contains('open')) {
                 e.preventDefault();
@@ -259,16 +267,28 @@ function iniciarRelogio() {
     setInterval(atualizar, 1000);
 }
 
-async function fazerLogout() {
+function fazerLogout() {
     if (confirm("Deseja realmente sair do sistema?")) {
         // Limpeza OneSignal no Cliente: desvincula este dispositivo do usuário
         if (window.OneSignalDeferred) {
-            OneSignalDeferred.push(async function(OneSignal) {
+            OneSignalDeferred.push(async function (OneSignal) {
                 await OneSignal.logout();
             });
         }
-        
-        localStorage.removeItem('belezou_user');
-        window.location.href = BASE_URL + "/login/sair";
+
+        Swal.fire({
+            text: 'Deseja realmente sair do sistema?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Sim, sair',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#28a745',
+            cancelButtonColor: '#dc3545'
+        }).then(result => {
+            if (result.isConfirmed) {
+                localStorage.removeItem('belezou_user');
+                window.location.href = BASE_URL + "/login/sair";
+            }
+        });
     }
 }

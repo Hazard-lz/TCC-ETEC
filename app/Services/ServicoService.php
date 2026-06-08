@@ -32,14 +32,10 @@ class ServicoService extends BaseService {
             return $this->erro('Duração inválida. Deve ser entre 1 e 480, em blocos de 5 min.');
         }
         
-        $servicosAtivos = $this->servicoModel->listarPorStatus('ativo');
-        $servicosInativos = $this->servicoModel->listarPorStatus('inativo');
-        $todosServicos = array_merge($servicosAtivos, $servicosInativos);
+        $servicoExistente = $this->servicoModel->buscarPorNome($nome);
         
-        foreach ($todosServicos as $servico) {
-            if (strtolower(trim($servico['nome_servico'])) === strtolower($nome)) {
-                return $this->erro('Já existe um serviço cadastrado com este exato nome e preço.');
-            }
+        if ($servicoExistente) {
+            return $this->erro('Já existe um serviço cadastrado com este nome.');
         }
 
         $idServico = $this->servicoModel->cadastrar($nome, $descricao, $preco, $duracao);
@@ -76,17 +72,10 @@ class ServicoService extends BaseService {
             return $this->erro('Duração inválida.');
         }
        
-        $servicosAtivos = $this->servicoModel->listarPorStatus('ativo');
-        $servicosInativos = $this->servicoModel->listarPorStatus('inativo');
-        $todosServicos = array_merge($servicosAtivos, $servicosInativos);
-        
-        foreach ($todosServicos as $servico) {
-            $mesmoNome = strtolower(trim($servico['nome_servico'])) === strtolower($nome);
-            $idDiferente = $servico['id_servico'] != $id_servico; 
+        $servicoExistente = $this->servicoModel->buscarPorNome($nome);
 
-            if ($mesmoNome && $idDiferente) {
-                return $this->erro('Outro serviço já usa esse mesmo nome.');
-            }
+        if ($servicoExistente && $servicoExistente['id_servico'] != $id_servico) {
+            return $this->erro('Outro serviço já utiliza este mesmo nome.');
         }
 
         $atualizou = $this->servicoModel->atualizar($id_servico, $nome, $descricao, $preco, $duracao);

@@ -8,7 +8,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 1.5rem; /* Evita que o cartão cole nas bordas do telemóvel */
+    padding: 1.5rem; /* Evita que o card cole nas bordas do celular */
     background: var(--gradient-brand); /* Fundo com a identidade visual do salão */
 }
 
@@ -43,11 +43,11 @@
     color: var(--color-purple);
     text-decoration: none;
     font-weight: 600;
-    transition: color var(--transition-default);
+    transition: all var(--transition-default);
 }
 
 .forgot-password:hover {
     color: var(--color-pink);
-    text-decoration: underline;
+    opacity: 0.85;
 }
 

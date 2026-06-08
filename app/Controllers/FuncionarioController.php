@@ -42,29 +42,20 @@ class FuncionarioController
         $idLogado = $_SESSION['usuario_id'] ?? '';
 
         // ═══ REGRA: ADMIN ÚNICO — Bloqueio de escalonamento ═══
-        // Subadmin NUNCA pode atribuir o cargo 'admin'
         if ($tipoLogado === 'subadmin' && $tipo === 'admin') {
             $_SESSION['flash_erro'] = "Você não tem permissão para atribuir o cargo de administrador.";
             header('Location: ' . BASE_URL . '/admin/funcionarios');
             exit;
         }
 
-        // Funcionário comum NUNCA pode atribuir 'admin'
-        if ($tipoLogado === 'comum' && $tipo === 'admin') {
-            $_SESSION['flash_erro'] = "Você não tem permissão para esta operação.";
-            header('Location: ' . BASE_URL . '/admin/funcionarios');
-            exit;
-        }
-
-        // ═══ REGRA: Não é possível criar um NOVO funcionário como admin ═══
-        if (empty($id_funcionario) && $tipo === 'admin') {
-            $_SESSION['flash_erro'] = "Não é possível cadastrar um novo funcionário como Administrador. Use a transferência de cargo.";
-            header('Location: ' . BASE_URL . '/admin/funcionarios');
-            exit;
-        }
-
         if (empty($id_funcionario)) {
-            // CADASTRAR NOVO (Sem a senha)
+            // REGISTRO DE NOVO FUNCIONÁRIO
+            if ($tipo === 'admin') {
+                $_SESSION['flash_erro'] = "Não é possível cadastrar um novo funcionário como Administrador. Use a transferência de cargo.";
+                header('Location: ' . BASE_URL . '/admin/funcionarios');
+                exit;
+            }
+
             $resultado = $this->funcionarioService->registrarFuncionario(
                 $nome,
                 $email,
@@ -74,7 +65,7 @@ class FuncionarioController
                 $tipo
             );
         } else {
-            // EDITAR EXISTENTE
+            // EDIÇÃO DE FUNCIONÁRIO EXISTENTE
             $funcionarioAtual = $this->funcionarioModel->buscarPorId($id_funcionario);
             if (!$funcionarioAtual) {
                 $_SESSION['flash_erro'] = "Funcionário não encontrado.";
@@ -82,8 +73,7 @@ class FuncionarioController
                 exit;
             }
 
-            // ═══ PROTEÇÃO HIERÁRQUICA ═══
-            // Subadmin não pode editar um admin
+            // Proteção hierárquica básica (Subadmin -> Admin)
             $usuarioAlvo = $this->usuarioModel->buscarPorId($funcionarioAtual['cod_usuario']);
             if ($tipoLogado === 'subadmin' && $usuarioAlvo && $usuarioAlvo['tipo'] === 'admin') {
                 $_SESSION['flash_erro'] = "Você não tem permissão para editar um administrador.";
@@ -98,33 +88,23 @@ class FuncionarioController
                 $nome,
                 $telefone,
                 $especialidade,
-                $salario
+                $salario,
+                $tipo,
+                $idLogado,
+                $tipoLogado,
+                $email
             );
 
-            if ($resultado['sucesso']) {
-                // ═══ REGRA: TRANSFERÊNCIA DE ADMIN (ADMIN ÚNICO) ═══
-                if ($tipo === 'admin' && $tipoLogado === 'admin') {
-                    // Promove o alvo para admin
-                    $this->usuarioModel->atualizarTipo($id_usuario, 'admin');
-                    // Rebaixa o admin logado para subadmin
-                    $this->usuarioModel->atualizarTipo($idLogado, 'subadmin');
-                    // Atualiza a sessão do admin logado
-                    $_SESSION['usuario_tipo'] = 'subadmin';
-
-                    $resultado['mensagem'] = "Transferência realizada! " . htmlspecialchars($nome) . " agora é o Administrador. Você foi reclassificado como Subadministrador.";
-                } else {
-                    // Atualização normal de tipo (sem envolver admin)
-                    $this->usuarioModel->atualizarTipo($id_usuario, $tipo);
-                }
-            }
+            // A sincronização de cargo/sessão agora é feita AUTOMATICAMENTE pelo Middleware em cada clique.
+            // Não é necessário atualizar $_SESSION manualmente aqui.
         }
 
-        // REDIRECIONAMENTO LIMPO (Usa a sessão em vez de ?sucesso=1 na URL)
         if ($resultado['sucesso']) {
             $_SESSION['flash_sucesso'] = $resultado['mensagem'] ?? "Operação realizada com sucesso.";
         } else {
             $_SESSION['flash_erro'] = $resultado['mensagem'];
         }
+
         header('Location: ' . BASE_URL . '/admin/funcionarios');
         exit;
     }
@@ -205,6 +185,8 @@ class FuncionarioController
 
         $id_usuario = $_POST['cod_usuario'] ?? '';
         $status_atual = $_POST['status_atual'] ?? '';
+        $idLogado = $_SESSION['usuario_id'] ?? '';
+        $tipoLogado = $_SESSION['usuario_tipo'] ?? '';
 
         if (empty($id_usuario) || empty($status_atual)) {
             $_SESSION['flash_erro'] = "Dados insuficientes para alterar o status.";
@@ -212,9 +194,7 @@ class FuncionarioController
             exit;
         }
 
-        // ═══ PROTEÇÃO HIERÁRQUICA ═══
-        // Subadmin não pode alterar o status de um admin
-        $tipoLogado = $_SESSION['usuario_tipo'] ?? '';
+        // Bloqueio hierárquico básico
         $usuarioAlvo = $this->usuarioModel->buscarPorId($id_usuario);
         if ($tipoLogado === 'subadmin' && $usuarioAlvo && $usuarioAlvo['tipo'] === 'admin') {
             $_SESSION['flash_erro'] = "Você não tem permissão para alterar o status de um administrador.";
@@ -224,9 +204,8 @@ class FuncionarioController
 
         $novo_status = ($status_atual === 'ativo') ? 'inativo' : 'ativo';
 
-        $resultado = $this->funcionarioService->alterarStatusFuncionario($id_usuario, $novo_status);
+        $resultado = $this->funcionarioService->alterarStatusFuncionario($id_usuario, $novo_status, $idLogado);
 
-        // Feedback visual usando sessões flash
         if ($resultado['sucesso']) {
             $_SESSION['flash_sucesso'] = $resultado['mensagem'];
         } else {
@@ -274,6 +253,35 @@ class FuncionarioController
         exit;
     }
 
+    public function listarServicosPorProfissionalApi()
+    {
+        header('Content-Type: application/json');
+        
+        $dados = json_decode(file_get_contents("php://input"), true);
+        $id_funcionario = $dados['id_funcionario'] ?? $_POST['id_funcionario'] ?? '';
+
+        if (empty($id_funcionario)) {
+            echo json_encode(['sucesso' => false, 'mensagem' => 'Profissional não informado.']);
+            exit;
+        }
+
+        $servicosRaw = $this->funcionarioModel->buscarServicosPorFuncionario($id_funcionario, 'ativo');
+        
+        $servicos = array_filter($servicosRaw, function($s) {
+            return $s['status_servico'] === 'ativo';
+        });
+
+        $servicosFormatados = array_map(function($s) {
+            return [
+                'id_servico' => $s['cod_servico'],
+                'nome_servico' => $s['nome_servico']
+            ];
+        }, array_values($servicos));
+
+        echo json_encode(['sucesso' => true, 'servicos' => $servicosFormatados]);
+        exit;
+    }
+
     public function dashboard()
     {
         $id_usuario = $_SESSION['usuario_id'];
@@ -312,6 +320,47 @@ class FuncionarioController
 
         // Formatação do Faturamento para BRL
         $faturamentoFormatado = number_format($faturamentoMes, 2, ',', '.');
+
+        // Se for uma requisição AJAX, retorna JSON com os dados e encerra
+        $isAjax = (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') || isset($_GET['ajax']);
+        if ($isAjax) {
+            header('Content-Type: application/json');
+            
+            $proximosFormatados = [];
+            if ($proximosAgendamentos) {
+                foreach ($proximosAgendamentos as $ag) {
+                    $proximosFormatados[] = [
+                        'id_agendamento' => $ag['id_agendamento'],
+                        'data_agendamento' => date('d/m/Y', strtotime($ag['data_agendamento'])),
+                        'data_agendamento_raw' => $ag['data_agendamento'],
+                        'hora_inicio' => substr($ag['hora_inicio'], 0, 5),
+                        'cliente_nome' => $ag['cliente_nome'],
+                        'nome_servico' => $ag['nome_servico'],
+                        'status' => $ag['status'],
+                        'status_ucfirst' => ucfirst($ag['status'])
+                    ];
+                }
+            }
+            
+            // Calcula quantos agendamentos estão "pendentes" na lista de próximos
+            $qtdPendentes = 0;
+            if ($proximosAgendamentos) {
+                foreach ($proximosAgendamentos as $ag) {
+                    if ($ag['status'] === 'pendente') {
+                        $qtdPendentes++;
+                    }
+                }
+            }
+
+            echo json_encode([
+                'totalAgendamentosHoje' => $totalAgendamentosHoje,
+                'faturamentoFormatado' => $faturamentoFormatado,
+                'totalClientes' => $totalClientes,
+                'qtdPendentes' => $qtdPendentes,
+                'proximosAgendamentos' => $proximosFormatados
+            ]);
+            exit;
+        }
 
         // Saudação baseada no tempo
         date_default_timezone_set('America/Sao_Paulo');
@@ -370,8 +419,17 @@ class FuncionarioController
         $telefone = $_POST['telefone'] ?? null;
         $especialidade = $_POST['especialidade'] ?? '';
 
+        $senha = $_POST['senha'] ?? '';
+        $confirmar_senha = $_POST['confirmar_senha'] ?? '';
+
+        if (!empty($senha) && $senha !== $confirmar_senha) {
+            $_SESSION['flash_erro'] = "As senhas não coincidem.";
+            header('Location: ' . BASE_URL . '/funcionario/perfil');
+            exit;
+        }
+
         // Preserva o salário original porque um funcionário comum não deve alterar o próprio salário
-        $salario = $funcionario['salario_base'] ?? 0;
+        $salario = $funcionario['salario'] ?? 0;
 
         $resultado = $this->funcionarioService->atualizarDadosFuncionario(
             $idLogado,
@@ -379,7 +437,12 @@ class FuncionarioController
             $nome,
             $telefone,
             $especialidade,
-            $salario
+            $salario,
+            null, // tipo
+            $idLogado, // idLogado
+            null, // tipoLogado
+            null, // email
+            !empty($senha) ? $senha : null // senha
         );
 
         if ($resultado['sucesso']) {
@@ -391,6 +454,77 @@ class FuncionarioController
         }
 
         header('Location: ' . BASE_URL . '/funcionario/perfil');
+        exit;
+    }
+
+    public function sseUpdates()
+    {
+        header('Content-Type: text/event-stream');
+        header('Cache-Control: no-cache');
+        header('Connection: keep-alive');
+        
+        // Desativa buffering de saída para permitir streaming imediato
+        while (ob_get_level() > 0) {
+            ob_end_flush();
+        }
+        flush();
+
+        if (!isset($_SESSION['usuario_id'])) {
+            echo "data: " . json_encode(['error' => 'Unauthenticated']) . "\n\n";
+            flush();
+            exit;
+        }
+
+        $id_usuario = $_SESSION['usuario_id'];
+        $funcionario = $this->funcionarioModel->buscarPorCodUsuario($id_usuario);
+        if (!$funcionario) {
+            echo "data: " . json_encode(['error' => 'No profile']) . "\n\n";
+            flush();
+            exit;
+        }
+
+        $idFuncionario = $funcionario['id_funcionario'];
+        $isAdmin = in_array($_SESSION['usuario_tipo'] ?? '', ['admin', 'subadmin']);
+
+        // Libera o lock da sessão para evitar lentidão/bloqueio em outras requisições
+        session_write_close();
+
+        require_once __DIR__ . '/../Models/Agendamento.php';
+        $agendamentoModel = new Agendamento();
+
+        $startTime = time();
+        $lastState = null;
+
+        // Loop de 25 segundos para evitar bloquear conexões Apache indefinidamente
+        while (time() - $startTime < 25) {
+            // Conta agendamentos de hoje e pendentes
+            if ($isAdmin) {
+                $totalHoje = $agendamentoModel->contarAgendamentosHojeGeral();
+                $listaPendentes = $agendamentoModel->listarPendentes('todos');
+            } else {
+                $totalHoje = $agendamentoModel->contarAgendamentosHoje($idFuncionario);
+                $listaPendentes = $agendamentoModel->listarPendentes($idFuncionario);
+            }
+            $qtdPendentes = count($listaPendentes ?: []);
+
+            $stateHash = md5($totalHoje . '_' . $qtdPendentes);
+
+            if ($lastState !== $stateHash) {
+                echo "event: update\n";
+                echo "data: " . json_encode([
+                    'totalHoje' => $totalHoje,
+                    'qtdPendentes' => $qtdPendentes
+                ]) . "\n\n";
+                flush();
+                $lastState = $stateHash;
+            } else {
+                // Heartbeat/keep-alive
+                echo ": heartbeat\n\n";
+                flush();
+            }
+
+            sleep(3);
+        }
         exit;
     }
 }

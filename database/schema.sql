@@ -11,19 +11,19 @@ CREATE TABLE usuarios (
     email_verificado TINYINT(1) NOT NULL DEFAULT 0,
     expiracao_codigo DATETIME DEFAULT NULL,
     onesignal_sub_id VARCHAR(255) DEFAULT NULL,
+    aceito_termos TINYINT(1) NOT NULL DEFAULT 0,
+    data_aceite DATETIME DEFAULT NULL,
     data_criacao TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
-
 -- 2. Tabela: servicos
 CREATE TABLE servicos (
     id_servico INT AUTO_INCREMENT PRIMARY KEY,
     nome_servico VARCHAR(100) NOT NULL,
-    descricao TEXT NOT NULL, 
+    descricao TEXT NOT NULL,
     preco DECIMAL(10, 2) NOT NULL,
     duracao INT NOT NULL,
     status ENUM('ativo', 'inativo') NOT NULL DEFAULT 'ativo'
 );
-
 -- 3. Tabela: clientes 
 CREATE TABLE clientes (
     id_cliente INT AUTO_INCREMENT PRIMARY KEY,
@@ -33,17 +33,15 @@ CREATE TABLE clientes (
     -- CASCADE no usúario do cliente (se o usuário desse cliente for deletado, o cliente também é)
     FOREIGN KEY (cod_usuario) REFERENCES usuarios(id_usuario) ON DELETE CASCADE
 );
-
 -- 4. Tabela: funcionarios 
 CREATE TABLE funcionarios (
     id_funcionario INT AUTO_INCREMENT PRIMARY KEY,
     cod_usuario INT UNIQUE NOT NULL,
-    especialidade VARCHAR(150) DEFAULT NULL, 
+    especialidade VARCHAR(150) DEFAULT NULL,
     salario DECIMAL(10, 2) DEFAULT NULL,
     -- CASCADE no usúario do funcionário (se o usuário desse funcionário for deletado, o funcionário também é)
     FOREIGN KEY (cod_usuario) REFERENCES usuarios(id_usuario) ON DELETE CASCADE
 );
-
 -- 5. Tabela: disponibilidade 
 CREATE TABLE disponibilidade (
     id_disponibilidade INT AUTO_INCREMENT PRIMARY KEY,
@@ -54,21 +52,19 @@ CREATE TABLE disponibilidade (
     data_criacao TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (cod_funcionario) REFERENCES funcionarios(id_funcionario) ON DELETE CASCADE
 );
-
 -- 5.5 Tabela: disponibilidade_dias
 CREATE TABLE disponibilidade_dias (
     id_dia INT AUTO_INCREMENT PRIMARY KEY,
     cod_disponibilidade INT NOT NULL,
-    dia_semana ENUM('Dom','Seg','Ter','Qua','Qui','Sex','Sab') NOT NULL,
+    dia_semana ENUM('Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab') NOT NULL,
     hora_inicio_trabalho TIME NOT NULL,
     hora_fim_trabalho TIME NOT NULL,
-    intervalo_inicio TIME DEFAULT NULL, 
+    intervalo_inicio TIME DEFAULT NULL,
     intervalo_fim TIME DEFAULT NULL,
     status ENUM('disponivel', 'indisponivel') NOT NULL DEFAULT 'disponivel',
     -- CASCADE na disponibilidade (se a disponibilidade for excluida o disponibilidade_dias também vai ser)
     FOREIGN KEY (cod_disponibilidade) REFERENCES disponibilidade(id_disponibilidade) ON DELETE CASCADE
 );
-
 -- 6. Tabela Associativa: funcionario_servicos 
 CREATE TABLE funcionario_servicos (
     id_sv_funcionario INT AUTO_INCREMENT PRIMARY KEY,
@@ -79,7 +75,6 @@ CREATE TABLE funcionario_servicos (
     FOREIGN KEY (cod_funcionario) REFERENCES funcionarios(id_funcionario) ON DELETE RESTRICT,
     FOREIGN KEY (cod_servico) REFERENCES servicos(id_servico) ON DELETE RESTRICT
 );
-
 -- 7. Tabela: agendamentos 
 CREATE TABLE agendamentos (
     id_agendamento INT AUTO_INCREMENT PRIMARY KEY,
@@ -91,7 +86,6 @@ CREATE TABLE agendamentos (
     -- RESTRICT: O sistema não vai deixar excluir um cliente que já tenha agendamentos no histórico
     FOREIGN KEY (cod_cliente) REFERENCES clientes(id_cliente) ON DELETE RESTRICT
 );
-
 -- 8. Tabela: itens_agendamento 
 CREATE TABLE itens_agendamento (
     id_item INT AUTO_INCREMENT PRIMARY KEY,
@@ -105,5 +99,24 @@ CREATE TABLE itens_agendamento (
     -- CASCADE no agendamento (se a reserva inteira for cancelada/excluída, os itens vão junto)
     FOREIGN KEY (cod_agendamento) REFERENCES agendamentos(id_agendamento) ON DELETE CASCADE,
     -- SET NULL: Se o serviço for excluído permanentemente, o histórico mantém os dados financeiros mas o ID do serviço fica nulo
-    FOREIGN KEY (cod_sv_func) REFERENCES funcionario_servicos(id_sv_funcionario) ON DELETE SET NULL
+    FOREIGN KEY (cod_sv_func) REFERENCES funcionario_servicos(id_sv_funcionario) ON DELETE
+    SET NULL
+);
+-- 9. Tabela: configuracoes_sistema (White-Label e Parametrização)
+CREATE TABLE configuracoes_sistema (
+    id_config INT AUTO_INCREMENT PRIMARY KEY,
+    chave VARCHAR(100) UNIQUE NOT NULL,
+    valor TEXT DEFAULT NULL,
+    data_atualizacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+-- 10. Tabela: bloqueios_agenda (Bloqueio Manual de Horários)
+CREATE TABLE bloqueios_agenda (
+    id_bloqueio INT AUTO_INCREMENT PRIMARY KEY,
+    cod_funcionario INT NOT NULL,
+    data_bloqueio DATE NOT NULL,
+    hora_inicio TIME NOT NULL,
+    hora_fim TIME NOT NULL,
+    motivo VARCHAR(255) DEFAULT NULL,
+    data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (cod_funcionario) REFERENCES funcionarios(id_funcionario) ON DELETE CASCADE
 );

@@ -34,6 +34,11 @@ class AgendamentoController
         // Busca os dados ativos no banco
         $servicos = $servicoModel->listarPorStatus('ativo');
 
+        // Busca o limite futuro de agendamento (padrão 'sem_limite')
+        require_once __DIR__ . '/../Models/Configuracao.php';
+        $configModel = new Configuracao();
+        $limiteFuturoDias = $configModel->obterValor('limite_agendamento_futuro_dias', 'sem_limite');
+
         // Renderiza a View passando as variáveis $servicos e $profissionais
         require_once __DIR__ . '/../../public/views/cliente/agendar.php';
     }
@@ -60,7 +65,7 @@ class AgendamentoController
             $this->redirecionarAposErro();
         }
 
-        // 2. Identificar quem está a fazer a ação através da sessão
+        // 2. Identificar quem está fazendo a ação com base na sessão
         $id_usuario_logado = $_SESSION['usuario_id'];
         $tipo_usuario_logado = $_SESSION['usuario_tipo'];
 
@@ -69,7 +74,7 @@ class AgendamentoController
 
         // 3. Tradução de IDs conforme a arquitetura de "Herança" no BD
         if ($tipo_usuario_logado === 'comum') {
-            // O próprio cliente está a agendar pelo telemóvel/site
+            // O próprio cliente está agendando pelo celular/site
             $cliente = $this->clienteModel->buscarPorCodUsuario($id_usuario_logado);
             if (!$cliente) {
                 $_SESSION['flash_erro'] = "Perfil de cliente não encontrado. Atualize o seu cadastro.";
@@ -79,7 +84,7 @@ class AgendamentoController
             $id_cliente = $cliente['id_cliente'];
 
         } else {
-            // Um admin ou funcionário está a agendar para um cliente (via balcão)
+            // Um admin ou funcionário está agendando para um cliente (via balcão)
             $id_cliente = $_POST['id_cliente'] ?? '';
 
             if (empty($id_cliente)) {
@@ -88,7 +93,7 @@ class AgendamentoController
                 exit;
             }
 
-            // Descobre o ID do funcionário que está a criar este agendamento (auditoria)
+            // Descobre o ID do funcionário que está criando este agendamento (auditoria)
             $funcionarioCriador = $this->funcionarioModel->buscarPorCodUsuario($id_usuario_logado);
             if ($funcionarioCriador) {
                 $id_funcionario_criador = $funcionarioCriador['id_funcionario'];
@@ -154,7 +159,7 @@ class AgendamentoController
     }
 
     /**
-     * Utilitário privado para garantir que o utilizador volta para a tela correta.
+     * Utilitário privado para garantir que o usuário volta para a tela correta.
      */
     private function redirecionarAposErro()
     {
@@ -189,10 +194,18 @@ class AgendamentoController
         $agendamentoModel->cancelarPendentesExpirados();
         $agendamentos = $agendamentoModel->listarPorCliente($cliente['id_cliente']);
 
+        // 3.5 Busca a antecedência mínima parametrizada para cancelamento e o limite futuro de agendamento
+        require_once __DIR__ . '/../Models/Configuracao.php';
+        $configModel = new Configuracao();
+        $antecedenciaHoras = (int)$configModel->obterValor('antecedencia_cancelamento_horas', '24');
+        $limiteFuturoDias = $configModel->obterValor('limite_agendamento_futuro_dias', 'sem_limite');
+
         // 4. Separação de Lógica e Formatação (Data Prep)
         // ARQUITETURA: O Controller mastiga os dados. A View apenas renderiza.
         $proximos = [];
         $anteriores = [];
+        $dataInicioFiltro = $_GET['data_inicio'] ?? null;
+        $dataFimFiltro = $_GET['data_fim'] ?? null;
 
         if ($agendamentos) {
             foreach ($agendamentos as $ag) {
@@ -206,10 +219,32 @@ class AgendamentoController
                 if (in_array($ag['status'], ['pendente', 'marcado'])) {
                     $proximos[] = $ag;
                 } else {
+                    // Aplica o filtro de data somente para agendamentos passados
+                    if (!empty($dataInicioFiltro)) {
+                        if ($ag['data_agendamento'] < $dataInicioFiltro) {
+                            continue;
+                        }
+                    }
+                    if (!empty($dataFimFiltro)) {
+                        if ($ag['data_agendamento'] > $dataFimFiltro) {
+                            continue;
+                        }
+                    }
                     // cancelado, concluido
                     $anteriores[] = $ag;
                 }
             }
+        }
+        // If ajax request, return JSON
+        if (isset($_GET['ajax'])) {
+            header('Content-Type: application/json');
+            echo json_encode([
+                'sucesso' => true,
+                'proximos' => $proximos,
+                'anteriores' => $anteriores,
+                'antecedenciaHoras' => $antecedenciaHoras
+            ]);
+            exit;
         }
 
         // 5. Injeta as variáveis no HTML
@@ -236,7 +271,7 @@ class AgendamentoController
         $dataProxima = (clone $dataBase)->modify('+7 days')->format('Y-m-d');
         $hoje = date('Y-m-d');
 
-        // Lógica matemática infalível para ir buscar o Domingo desta semana (0 = Domingo)
+        // Lógica matemática infalível para encontrar o Domingo desta semana (0 = Domingo)
         $diaSemana = (int) $dataBase->format('w');
         $domingoBase = clone $dataBase;
         $domingoBase->modify("-{$diaSemana} days");
@@ -252,7 +287,7 @@ class AgendamentoController
         $servicos = $servicoModel->listarPorStatus('ativo');
 
         $clientes = $this->clienteModel->listarTodos();
-        $profissionais = $this->funcionarioModel->listarTodos();
+        $profissionais = $this->funcionarioModel->listarAtivos();
 
         // 3. Limites de horário do calendário baseados na disponibilidade
         $disponibilidadeModel = new Disponibilidade();
@@ -306,9 +341,17 @@ class AgendamentoController
         $dataInicio = $_GET['start'] ?? date('Y-m-d');
         $dataFim = $_GET['end'] ?? date('Y-m-d', strtotime('+7 days'));
 
+        // Validação de Gerência (Admin ou Subadmin) para permitir filtrar outros funcionários
+        $isGerencia = in_array($_SESSION['usuario_tipo'] ?? '', ['admin', 'subadmin']);
+        $idFuncionarioAgenda = $funcionario['id_funcionario'];
+        
+        if ($isGerencia && isset($_GET['funcionario_id']) && !empty($_GET['funcionario_id'])) {
+            $idFuncionarioAgenda = (int) $_GET['funcionario_id'];
+        }
+
         $agendamentoModel = new Agendamento();
         $agendamentos = $agendamentoModel->listarAgendaFuncionarioPeriodo(
-            $funcionario['id_funcionario'],
+            $idFuncionarioAgenda,
             $dataInicio,
             $dataFim
         );
@@ -332,7 +375,77 @@ class AgendamentoController
             }
         }
 
+        // Recupera os bloqueios manuais de agenda para este profissional e período
+        require_once __DIR__ . '/../Models/Disponibilidade.php';
+        $disponibilidadeModel = new Disponibilidade();
+        $bloqueios = $disponibilidadeModel->buscarBloqueiosPeriodo($idFuncionarioAgenda, $dataInicio, $dataFim);
+        
+        if ($bloqueios) {
+            foreach ($bloqueios as $b) {
+                $eventos[] = [
+                    'id' => 'bloqueio_' . $b['id_bloqueio'],
+                    'title' => "🚫 Bloqueado\nMotivo: " . ($b['motivo'] ?? 'Bloqueio Manual'),
+                    'start' => $b['data_bloqueio'] . 'T' . $b['hora_inicio'],
+                    'end' => $b['data_bloqueio'] . 'T' . $b['hora_fim'],
+                    'className' => 'evento-bloqueado',
+                    'extendedProps' => [
+                        'isBloqueio' => true,
+                        'idBloqueio' => $b['id_bloqueio'],
+                        'motivo' => $b['motivo'] ?? 'Bloqueio Manual',
+                        'status' => 'bloqueado'
+                    ]
+                ];
+            }
+        }
+
         echo json_encode($eventos);
+        exit;
+    }
+
+    /**
+     * API JSON: Retorna os agendamentos pendentes para a notificação de alertas.
+     * GET: /api/agendamentos-pendentes?funcionario_id=XXX
+     */
+    public function apiPendentes()
+    {
+        header('Content-Type: application/json');
+
+        if (!isset($_SESSION['usuario_id'])) {
+            echo json_encode([]);
+            exit;
+        }
+
+        $funcionario = $this->funcionarioModel->buscarPorCodUsuario($_SESSION['usuario_id']);
+        if (!$funcionario) {
+            echo json_encode([]);
+            exit;
+        }
+
+        $isGerencia = in_array($_SESSION['usuario_tipo'] ?? '', ['admin', 'subadmin']);
+        $idFuncionarioFiltro = $funcionario['id_funcionario'];
+
+        if ($isGerencia && isset($_GET['funcionario_id']) && !empty($_GET['funcionario_id'])) {
+            $idFuncionarioFiltro = $_GET['funcionario_id'];
+        }
+
+        $agendamentoModel = new Agendamento();
+        $agendamentoModel->cancelarPendentesExpirados();
+        
+        $pendentes = $agendamentoModel->listarPendentes($idFuncionarioFiltro);
+        
+        $formatados = [];
+        if ($pendentes) {
+            foreach ($pendentes as $p) {
+                $dataObj = new DateTime($p['data_agendamento']);
+                $p['data_formatada'] = $dataObj->format('d/m/Y');
+                $p['hora_inicio_formatada'] = substr($p['hora_inicio'], 0, 5);
+                $p['hora_fim_formatada'] = substr($p['hora_fim'], 0, 5);
+                $p['preco_formatado'] = number_format($p['preco_cobrado'], 2, ',', '.');
+                $formatados[] = $p;
+            }
+        }
+
+        echo json_encode($formatados);
         exit;
     }
 
@@ -368,20 +481,84 @@ class AgendamentoController
             exit;
         }
 
-        // Regra de negócio: só pode cancelar até 1 dia antes
-        $dataAgendamento = new DateTime($agendamento['data_agendamento']);
-        $hoje = new DateTime(date('Y-m-d'));
-
-        if ($dataAgendamento <= $hoje) {
-            $_SESSION['flash_erro'] = "Não é possível cancelar no mesmo dia do agendamento ou em datas passadas. Cancelamentos apenas com 1 dia de antecedência.";
-            header('Location: ' . BASE_URL . '/historico');
-            exit;
-        }
-
         $resultado = $this->agendamentoService->alterarStatus($id_agendamento, 'cancelado', 'cliente');
 
         if ($resultado['sucesso']) {
             $_SESSION['flash_sucesso'] = "Agendamento cancelado com sucesso!";
+        } else {
+            $_SESSION['flash_erro'] = $resultado['mensagem'];
+        }
+
+        header('Location: ' . BASE_URL . '/historico');
+        exit;
+    }
+
+    /**
+     * Action: POST para /historico/remarcar
+     * Responsável por remarcar um agendamento a pedido do próprio cliente.
+     */
+    public function remarcarPeloCliente()
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $_SESSION['flash_erro'] = "Método inválido.";
+            header('Location: ' . BASE_URL . '/historico');
+            exit;
+        }
+
+        $id_agendamento = $_POST['id_agendamento'] ?? '';
+        $nova_data = $_POST['data'] ?? '';
+        $nova_hora = $_POST['hora'] ?? '';
+
+        if (empty($id_agendamento) || empty($nova_data) || empty($nova_hora)) {
+            $_SESSION['flash_erro'] = "Dados insuficientes para remarcar o agendamento.";
+            header('Location: ' . BASE_URL . '/historico');
+            exit;
+        }
+
+        // Validação de segurança (IDOR prevention)
+        $agendamentoModel = new Agendamento();
+        $agendamento = $agendamentoModel->buscarPorId($id_agendamento);
+
+        $cliente = $this->clienteModel->buscarPorCodUsuario($_SESSION['usuario_id']);
+
+        if (!$agendamento || !$cliente || $agendamento['cod_cliente'] !== $cliente['id_cliente']) {
+            $_SESSION['flash_erro'] = "Você não tem permissão para alterar este agendamento.";
+            header('Location: ' . BASE_URL . '/historico');
+            exit;
+        }
+
+        // Regra de negócio: só pode remarcar respeitando a antecedência mínima parametrizada (para agendamentos marcados/confirmados)
+        if ($agendamento['status'] === 'marcado') {
+            require_once __DIR__ . '/../Models/Configuracao.php';
+            $configModel = new Configuracao();
+            $antecedenciaHoras = (int)$configModel->obterValor('antecedencia_cancelamento_horas', '24');
+
+            if ($antecedenciaHoras > 0) {
+                date_default_timezone_set('America/Sao_Paulo');
+                $dataHoraAgendamento = new DateTime($agendamento['data_agendamento'] . ' ' . $agendamento['hora_inicio']);
+                $agora = new DateTime();
+
+                if ($dataHoraAgendamento > $agora) {
+                    $intervalo = $agora->diff($dataHoraAgendamento);
+                    $horasDiferenca = ($intervalo->days * 24) + $intervalo->h + ($intervalo->i / 60);
+
+                    if ($horasDiferenca < $antecedenciaHoras) {
+                        $_SESSION['flash_erro'] = "Não é possível remarcar com menos de {$antecedenciaHoras} horas de antecedência.";
+                        header('Location: ' . BASE_URL . '/historico');
+                        exit;
+                    }
+                } else {
+                    $_SESSION['flash_erro'] = "Não é possível remarcar agendamentos que já ocorreram.";
+                    header('Location: ' . BASE_URL . '/historico');
+                    exit;
+                }
+            }
+        }
+
+        $resultado = $this->agendamentoService->remarcarAgendamento($id_agendamento, $nova_data, $nova_hora, 'cliente');
+
+        if ($resultado['sucesso']) {
+            $_SESSION['flash_sucesso'] = "Agendamento remarcado com sucesso!";
         } else {
             $_SESSION['flash_erro'] = $resultado['mensagem'];
         }
@@ -433,6 +610,8 @@ class AgendamentoController
         // Process data
         $proximos = [];
         $anteriores = [];
+        $dataInicioFiltro = $_GET['data_inicio'] ?? null;
+        $dataFimFiltro = $_GET['data_fim'] ?? null;
 
         if ($agendamentos) {
             foreach ($agendamentos as $ag) {
@@ -444,6 +623,17 @@ class AgendamentoController
                 if (in_array($ag['status'], ['pendente', 'marcado'])) {
                     $proximos[] = $ag;
                 } else {
+                    // Aplica o filtro de data somente para agendamentos passados
+                    if (!empty($dataInicioFiltro)) {
+                        if ($ag['data_agendamento'] < $dataInicioFiltro) {
+                            continue;
+                        }
+                    }
+                    if (!empty($dataFimFiltro)) {
+                        if ($ag['data_agendamento'] > $dataFimFiltro) {
+                            continue;
+                        }
+                    }
                     $anteriores[] = $ag;
                 }
             }

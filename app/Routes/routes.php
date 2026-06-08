@@ -38,10 +38,15 @@ $router->post('/agendar', 'AgendamentoController@salvar');
 
 $router->get('/historico', 'AgendamentoController@historicoCliente');
 $router->post('/historico/cancelar', 'AgendamentoController@cancelarPeloCliente');
+$router->post('/historico/remarcar', 'AgendamentoController@remarcarPeloCliente');
+
+// Rotas de Ajuda (FAQ)
+$router->view('/cliente/ajuda', 'cliente/ajuda');
+$router->view('/contingencia', 'cliente/contingencia');
 
 
 // ===========================================================
-// ROTAS DE AUTENTICAÇÃO E REGISTO
+// Rotas de autenticação e cadastro
 // ===========================================================
 
 $router->view('/cadastro', 'auth/cadastro');
@@ -136,6 +141,12 @@ $router->get('/admin/funcionarios/reenviar-email', function () {
 
 $router->get('/admin/relatorios/desempenho', 'RelatorioController@desempenhoFuncionario');
 
+$router->get('/admin/configuracoes', 'ConfiguracaoController@carregarTela');
+$router->post('/admin/configuracoes/salvar', 'ConfiguracaoController@salvar');
+$router->post('/admin/configuracoes/disparar-comunicado', 'ConfiguracaoController@dispararComunicadoLote');
+
+$router->view('/admin/ajuda', 'admin/ajuda');
+
 
 // ===========================================================
 // ROTAS DA EQUIPE (FUNCIONÁRIOS E ADMIN)
@@ -169,6 +180,8 @@ $router->post('/funcionario/perfil/salvar', 'FuncionarioController@salvarPerfil'
 
 $router->view('/funcionario/servicos', 'funcionario/servicos');
 
+$router->view('/funcionario/ajuda', 'funcionario/ajuda');
+
 
 // ===========================================================
 // ROTAS DE DISPONIBILIDADE
@@ -198,8 +211,11 @@ $router->post('/api/onesignal/registrar', function () {
 });
 
 $router->get('/api/profissionais-por-servico', 'FuncionarioController@listarProfissionaisPorServicoApi');
+$router->post('/api/servicos-profissional', 'FuncionarioController@listarServicosPorProfissionalApi');
 
 $router->get('/api/agenda-eventos', 'AgendamentoController@apiEventos');
+$router->get('/api/agendamentos-pendentes', 'AgendamentoController@apiPendentes');
+$router->get('/api/sse-updates', 'FuncionarioController@sseUpdates');
 
 $router->post('/funcionario/disponibilidade/salvar', 'DisponibilidadeController@salvar');
 $router->get('/funcionario/disponibilidade/salvar', function () {
@@ -226,6 +242,10 @@ $router->get('/funcionario/disponibilidade/excluir', function () {
     header("Location: " . BASE_URL . "/funcionario/disponibilidade");
     exit;
 });
+
+// Rotas de Bloqueio Manual de Agenda
+$router->post('/funcionario/bloqueio/salvar', 'DisponibilidadeController@salvarBloqueio');
+$router->post('/funcionario/bloqueio/excluir', 'DisponibilidadeController@excluirBloqueio');
 
 $router->post('/funcionario/servicos/salvar', function () {
     $funcionarioModel = new Funcionario();

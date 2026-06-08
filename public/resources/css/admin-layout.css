@@ -43,12 +43,17 @@ body.sidebar-open-body {
     overflow-x: hidden;
     overflow-y: auto; /* Permite rolar todo o conteúdo da barra */
     -webkit-overflow-scrolling: touch;
+    
+    /* Esconde a barra de rolagem no Firefox */
+    scrollbar-width: none;
+    /* Esconde a barra de rolagem no IE e Edge antigo */
+    -ms-overflow-style: none;
     box-shadow: 2px 0 15px rgba(0, 0, 0, 0.15);
     padding-bottom: 2rem; /* Espaço extra para garantir que o footer apareça */
 }
 
 .sidebar-header {
-    padding: 1.2rem 1.5rem 0.5rem;
+    padding: 2rem 1.5rem 1rem;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -60,10 +65,16 @@ body.sidebar-open-body {
     display: flex;
     justify-content: center;
     text-decoration: none;
+    width: 100%;
 }
 
 .sidebar-logo {
-    max-width: 140px;
+    width: 100%;
+    max-width: 190px;
+    height: auto;
+    max-height: 80px;
+    object-fit: contain;
+    border-radius: 12px;
     transition: opacity 0.3s ease;
 }
 
@@ -81,6 +92,11 @@ body.sidebar-open-body {
 .sidebar-nav::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.3);
     border-radius: 10px;
+}
+
+/* Esconde a barra de rolagem no Chrome, Safari e Edge (Webkit) */
+.sidebar::-webkit-scrollbar {
+    display: none;
 }
 
 .nav-item {
@@ -287,34 +303,63 @@ body.sidebar-open-body {
 
 /* --- SUBMENU DO PERFIL --- */
 .profile-menu {
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 50px;
+    background: var(--surface-color, #ffffff);
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: 8px;
+    width: 180px;
+    z-index: 1000;
+    overflow: hidden;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    animation: slideDownFade 0.2s ease-out;
+}
+
+@keyframes slideDownFade {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .profile-dropdown-item {
-    display: block;
-    padding: 12px 15px;
+    display: flex;
+    align-items: center;
+    padding: 0.8rem 1rem;
     color: var(--text-main, #2d3748);
-    text-decoration: none;
-    font-size: 0.95rem;
-    transition: background 0.2s;
+    text-decoration: none !important;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .profile-dropdown-item:hover {
     background-color: var(--bg-color, #f4f7f6);
     color: var(--color-purple, #8b5cf6);
+    text-decoration: none !important;
+}
+
+.profile-dropdown-item i {
+    font-size: 1.1rem;
 }
 
 .profile-dropdown-item.text-danger {
-    color: #dc3545;
+    color: #dc2626 !important;
     border-top: 1px solid var(--border-color, #e2e8f0);
 }
 
 .profile-dropdown-item.text-danger:hover {
-    background-color: #fee2e2;
-    color: #991b1b;
+    background-color: rgba(220, 38, 38, 0.05);
+    color: #dc2626 !important;
 }
 
-/* --- Fundo Escuro (Overlay) no Telemóvel --- */
+/* --- Fundo Escuro (Overlay) no Celular --- */
 .sidebar-overlay {
     display: none;
     position: fixed;
@@ -348,7 +393,7 @@ body.sidebar-open-body {
     .main-wrapper,
     .main-wrapper.expanded {
         margin-left: 0;
-        /* No telemóvel não há menu fixo a ocupar espaço */
+        /* No celular não há menu fixo a ocupar espaço */
         width: 100%;
         /* Aqui o 100% é seguro porque a margem é 0 */
     }

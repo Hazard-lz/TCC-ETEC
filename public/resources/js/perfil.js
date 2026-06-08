@@ -5,10 +5,17 @@
 // Função para aplicar a Máscara de Telefone Brasileira
 function aplicarMascaraTelefone(valor) {
     if (!valor) return "";
-    valor = valor.replace(/\D/g, ""); // Remove tudo o que não é dígito
-    valor = valor.replace(/(\d{2})(\d)/, "($1) $2"); // Coloca parênteses em volta do DDD
-    valor = valor.replace(/(\d)(\d{4})$/, "$1-$2"); // Coloca hífen entre o quarto e o quinto dígitos
-    valor = valor.substring(0, 15);// Limita a 15 caracteres (tamanho máximo da string formatada)
+
+    valor = valor.replace(/\D/g, "").slice(0, 11);
+
+    if (valor.length <= 10) {
+        valor = valor.replace(/(\d{2})(\d)/, "($1) $2");
+        valor = valor.replace(/(\d{4})(\d{1,4})$/, "$1-$2");
+    } else {
+        valor = valor.replace(/(\d{2})(\d)/, "($1) $2");
+        valor = valor.replace(/(\d{5})(\d{1,4})$/, "$1-$2");
+    }
+
     return valor;
 }
 
@@ -38,12 +45,30 @@ function abrirAba(nomeDaAba, botaoClicado) {
     }
 }
 
-// Confirmação para sair da conta
+// Confirmação para sair da conta (SweetAlert2 — Tema Belezou)
 function confirmarSaida(urlSair) {
-    if (confirm("Tem certeza que deseja sair do aplicativo?")) {
-        // Redireciona para a URL fornecida (dinâmica)
-        window.location.href = urlSair; 
-    }
+    Swal.fire({
+        text:              'Tem certeza que deseja sair do aplicativo?',
+        icon:              'question',
+        showCancelButton:  true,
+        confirmButtonText: 'Sim, sair',
+        cancelButtonText:  'Cancelar',
+        customClass: {
+            popup:         'swal-belezou-popup',
+            title:         'swal-belezou-title',
+            htmlContainer: 'swal-belezou-text',
+            confirmButton: 'swal-belezou-btn-confirm',
+            cancelButton:  'swal-belezou-btn-cancel',
+            icon:          'swal-belezou-icon'
+        },
+        buttonsStyling: false,
+        showClass: { popup: 'swal-belezou-show' },
+        hideClass: { popup: 'swal-belezou-hide' }
+    }).then(result => {
+        if (result.isConfirmed) {
+            window.location.href = urlSair;
+        }
+    });
 }
 
 // Inicializações ao carregar a página

@@ -46,7 +46,7 @@ function setBotoesPasso(passo, habilitado) {
     if (passo === 4) {
       btnGlobal.textContent = '✅ Confirmar Agendamento';
     } else if (passo === 3) {
-      btnGlobal.textContent = 'Ver Resumo';
+      btnGlobal.textContent = 'Revisar agendamento';
     } else {
       btnGlobal.textContent = 'Continuar';
     }
@@ -79,6 +79,32 @@ function atualizarConectores(passoAtual) {
   });
 }
 
+function atualizarBotoesSidebar(passo) {
+  const btnVoltarGlobal = document.getElementById('btn-voltar-global');
+  if (!btnVoltarGlobal) return;
+
+  if (passo > 1 && passo < 4) {
+    btnVoltarGlobal.classList.add('visible');
+  } else {
+    btnVoltarGlobal.classList.remove('visible');
+  }
+}
+
+function atualizarLayoutPasso(passo) {
+  const layout = document.querySelector('.agendar-layout');
+  const resumo = document.getElementById('resumo-lateral');
+  if (!layout) return;
+
+  if (passo === 4) {
+    layout.classList.add('step-4-active');
+    if (resumo) resumo.style.display = 'none';
+  } else {
+    layout.classList.remove('step-4-active');
+    if (resumo) resumo.style.display = '';
+  }
+  atualizarBotoesSidebar(passo);
+}
+
 function irParaPasso(passoAtual, proximoPasso) {
   document.getElementById(`step-${passoAtual}`).classList.remove('active');
   document.getElementById(`step-${proximoPasso}`).classList.add('active');
@@ -93,9 +119,11 @@ function irParaPasso(passoAtual, proximoPasso) {
     // No passo 4 o botão global já pode enviar o formulário
     setBotoesPasso(4, true);
   }
+  atualizarLayoutPasso(proximoPasso);
 }
 
 function voltarPasso(passoAnterior) {
+  limparSelecoesAPartirDoPasso(passoAnterior);
   const passoAtual = passoAnterior + 1;
   document.getElementById(`step-${passoAtual}`).classList.remove('active');
   document.getElementById(`step-${passoAnterior}`).classList.add('active');
@@ -111,6 +139,7 @@ function voltarPasso(passoAnterior) {
   if (passoAnterior === 3) jaTemSelecao = !!document.getElementById('horario_selecionado').value;
 
   setBotoesPasso(passoAnterior, jaTemSelecao);
+  atualizarLayoutPasso(passoAnterior);
 }
 
 /** Descobre qual passo está atualmente ativo (1-4) */
@@ -139,20 +168,26 @@ document.getElementById('btn-continuar-global').addEventListener('click', () => 
   }
 
   if (atual === 2) {
-    // Avança para passo 3 e configura data mínima
+    // Avança para passo 3 e configura data mínima e máxima
     irParaPasso(2, 3);
-    const dataLocal = new Date();
-    const ano = dataLocal.getFullYear();
-    const mes = String(dataLocal.getMonth() + 1).padStart(2, '0');
-    const dia = String(dataLocal.getDate()).padStart(2, '0');
-    const hoje = `${ano}-${mes}-${dia}`;
-    document.getElementById('data_agendamento').setAttribute('min', hoje);
+    configurarLimitesData();
     return;
   }
 
   // Passo 1 → 2
   irParaPasso(1, 2);
 });
+
+// Listener do botão voltar global (aside — desktop)
+const btnVoltarGlobal = document.getElementById('btn-voltar-global');
+if (btnVoltarGlobal) {
+  btnVoltarGlobal.addEventListener('click', () => {
+    const atual = passoAtivo();
+    if (atual > 1) {
+      voltarPasso(atual - 1);
+    }
+  });
+}
 
 // ─── PASSO 1: SERVIÇOS ────────────────────────────────────────────────────────
 
@@ -163,6 +198,7 @@ document.getElementById('btn-continuar-global').addEventListener('click', () => 
  * @param {Element} elemento - Card clicado
  */
 function selecionarServico(id, nome, preco, elemento) {
+  limparSelecoesAPartirDoPasso(1);
   document.getElementById('servico_id').value = id;
   document.getElementById('servico_nome').value = nome;
   document.getElementById('servico_preco').value = preco;
@@ -181,11 +217,20 @@ function selecionarServico(id, nome, preco, elemento) {
 
   // Carrega profissionais
   buscarProfissionais(id);
+
+  // ARQUITETURA UX: Avanço automático após 300ms de delay para a micro-animação rodar
+  setTimeout(() => {
+    irParaPasso(1, 2);
+  }, 300);
 }
 
 async function buscarProfissionais(idServico) {
   const container = document.getElementById('container-profissionais');
-  container.innerHTML = '<p style="color: var(--text-muted); text-align: center;">A buscar especialistas...</p>';
+  container.innerHTML = `
+    <div class="skeleton-card"><div class="skeleton-line skeleton-line-title"></div><div class="skeleton-line skeleton-line-subtitle"></div></div>
+    <div class="skeleton-card"><div class="skeleton-line skeleton-line-title"></div><div class="skeleton-line skeleton-line-subtitle"></div></div>
+    <div class="skeleton-card"><div class="skeleton-line skeleton-line-title"></div><div class="skeleton-line skeleton-line-subtitle"></div></div>
+  `;
 
   try {
     const response = await fetch(`${BASE_URL}/api/profissionais-por-servico?id_servico=${idServico}`);
@@ -204,6 +249,7 @@ async function buscarProfissionais(idServico) {
         const especialidade = prof.especialidade || 'Profissional';
         const div = document.createElement('div');
         div.className = 'base-card selectable-card';
+        div.setAttribute('data-id-funcionario', prof.id_funcionario);
         div.style.cssText = 'padding: 1rem; margin-bottom: 0.8rem; cursor: pointer;';
         div.onclick = function () { selecionarProfissional(prof.id_funcionario, prof.nome, this); };
         div.innerHTML = `
@@ -214,7 +260,22 @@ async function buscarProfissionais(idServico) {
       });
     } else {
       container.innerHTML = '<p style="color: #ef4444; text-align: center;">Não há profissionais para este serviço.</p>';
-      alert('Nenhum profissional está configurado para realizar este serviço no momento. Por favor, escolha outro.');
+      Swal.fire({
+        title:             'Sem Profissionais',
+        text:              'Nenhum profissional está configurado para realizar este serviço no momento. Por favor, escolha outro.',
+        icon:              'info',
+        confirmButtonText: 'Entendi',
+        customClass: {
+          popup:         'swal-belezou-popup',
+          title:         'swal-belezou-title',
+          htmlContainer: 'swal-belezou-text',
+          confirmButton: 'swal-belezou-btn-confirm',
+          icon:          'swal-belezou-icon'
+        },
+        buttonsStyling: false,
+        showClass: { popup: 'swal-belezou-show' },
+        hideClass: { popup: 'swal-belezou-hide' }
+      });
 
       document.querySelectorAll('#step-1 .selectable-card').forEach(c => c.classList.remove('selected'));
       document.getElementById('servico_id').value = '';
@@ -229,7 +290,22 @@ async function buscarProfissionais(idServico) {
   } catch (error) {
     console.error('Erro na API:', error);
     container.innerHTML = '<p style="color: #ef4444; text-align: center;">Erro ao carregar profissionais.</p>';
-    alert('Falha ao contactar o servidor. Tente novamente.');
+    Swal.fire({
+      title:             'Erro de Conexão',
+      text:              'Falha ao contactar o servidor. Verifique a sua ligação e tente novamente.',
+      icon:              'error',
+      confirmButtonText: 'Entendi',
+      customClass: {
+        popup:         'swal-belezou-popup',
+        title:         'swal-belezou-title',
+        htmlContainer: 'swal-belezou-text',
+        confirmButton: 'swal-belezou-btn-confirm',
+        icon:          'swal-belezou-icon'
+      },
+      buttonsStyling: false,
+      showClass: { popup: 'swal-belezou-show' },
+      hideClass: { popup: 'swal-belezou-hide' }
+    });
     setBotoesPasso(1, false);
   }
 }
@@ -240,6 +316,7 @@ document.getElementById('btn-next-1').addEventListener('click', () => irParaPass
 // ─── PASSO 2: PROFISSIONAIS ───────────────────────────────────────────────────
 
 function selecionarProfissional(id, nome, elemento) {
+  limparSelecoesAPartirDoPasso(2);
   document.getElementById('funcionario_id').value = id;
   document.getElementById('funcionario_nome').value = nome;
 
@@ -249,18 +326,45 @@ function selecionarProfissional(id, nome, elemento) {
   elemento.classList.add('selected');
 
   setBotoesPasso(2, true);
+
+  // ARQUITETURA UX: Avanço automático após 300ms de delay para a micro-animação rodar
+  setTimeout(() => {
+    irParaPasso(2, 3);
+    configurarLimitesData();
+  }, 300);
 }
 
 // Listener do botão mobile do passo 2
 document.getElementById('btn-next-2').addEventListener('click', () => {
   irParaPasso(2, 3);
+  configurarLimitesData();
+});
+
+/** Configura os limites min e max da data de agendamento de acordo com as regras */
+function configurarLimitesData() {
+  const elData = document.getElementById('data_agendamento');
+  if (!elData) return;
+
   const dataLocal = new Date();
   const ano = dataLocal.getFullYear();
   const mes = String(dataLocal.getMonth() + 1).padStart(2, '0');
   const dia = String(dataLocal.getDate()).padStart(2, '0');
   const hoje = `${ano}-${mes}-${dia}`;
-  document.getElementById('data_agendamento').setAttribute('min', hoje);
-});
+  elData.setAttribute('min', hoje);
+
+  if (typeof LIMITE_FUTURO_DIAS !== 'undefined' && LIMITE_FUTURO_DIAS !== 'sem_limite') {
+    const limiteDias = parseInt(LIMITE_FUTURO_DIAS, 10);
+    if (!isNaN(limiteDias)) {
+      const dataMax = new Date();
+      dataMax.setDate(dataMax.getDate() + limiteDias);
+      const maxAno = dataMax.getFullYear();
+      const maxMes = String(dataMax.getMonth() + 1).padStart(2, '0');
+      const maxDia = String(dataMax.getDate()).padStart(2, '0');
+      const maxDataStr = `${maxAno}-${maxMes}-${maxDia}`;
+      elData.setAttribute('max', maxDataStr);
+    }
+  }
+}
 
 // ─── PASSO 3: DATA E HORA ─────────────────────────────────────────────────────
 
@@ -276,7 +380,14 @@ async function liberarHorarios() {
   document.getElementById('horario_selecionado').value = '';
   setBotoesPasso(3, false); // Bloqueia enquanto escolhe o horário
 
-  containerHorarios.innerHTML = '<p>A calcular horários disponíveis...</p>';
+  containerHorarios.innerHTML = `
+    <div class="skeleton-slot"></div>
+    <div class="skeleton-slot"></div>
+    <div class="skeleton-slot"></div>
+    <div class="skeleton-slot"></div>
+    <div class="skeleton-slot"></div>
+    <div class="skeleton-slot"></div>
+  `;
 
   if (!dataSelecionada || !idServico || !idFuncionario) return;
 
@@ -287,6 +398,20 @@ async function liberarHorarios() {
   if (dataSel < hoje) {
     containerHorarios.innerHTML = '<p style="color: red;">Não é possível agendar em datas passadas. Selecione outra data.</p>';
     return;
+  }
+
+  // Validação de limite futuro no frontend: bloqueia datas além do limite configurado
+  if (typeof LIMITE_FUTURO_DIAS !== 'undefined' && LIMITE_FUTURO_DIAS !== 'sem_limite') {
+    const limiteDias = parseInt(LIMITE_FUTURO_DIAS, 10);
+    if (!isNaN(limiteDias)) {
+      const dataMax = new Date();
+      dataMax.setDate(dataMax.getDate() + limiteDias);
+      dataMax.setHours(0, 0, 0, 0);
+      if (dataSel > dataMax) {
+        containerHorarios.innerHTML = '<p style="color: red; grid-column: 1/-1; text-align: center;">A data selecionada excede o limite permitido para agendamentos futuros.</p>';
+        return;
+      }
+    }
   }
 
   try {
@@ -308,7 +433,8 @@ async function liberarHorarios() {
         containerHorarios.appendChild(div);
       });
     } else {
-      containerHorarios.innerHTML = '<p style="color: red;">Nenhum horário disponível nesta data.</p>';
+      const msg = data.mensagem || 'Nenhum horário disponível nesta data.';
+      containerHorarios.innerHTML = `<p style="color: red; grid-column: 1/-1; text-align: center;">${msg}</p>`;
     }
   } catch (error) {
     console.error('Erro na API de Disponibilidade:', error);
@@ -338,8 +464,43 @@ document.getElementById('btn-next-3').addEventListener('click', () => montarResu
 // ─── PASSO 4: CONFIRMAÇÃO ─────────────────────────────────────────────────────
 
 function montarResumo() {
+  const servicoNome = document.getElementById('servico_nome').value;
+  const servicoPreco = parseFloat(document.getElementById('servico_preco').value || 0);
+  const funcionarioNome = document.getElementById('funcionario_nome').value;
+  const hora = document.getElementById('horario_selecionado').value;
+  const dataBruta = document.getElementById('data_agendamento').value;
+
+  // Preenche o Cupom Estético de Agendamento
+  const elCupomSvc = document.getElementById('cupom-servico');
+  const elCupomProf = document.getElementById('cupom-profissional');
+  const elCupomPreco = document.getElementById('cupom-preco');
+  const elCupomDuracao = document.getElementById('cupom-duracao');
+  const elCupomData = document.getElementById('cupom-datahora');
+
+  if (elCupomSvc) elCupomSvc.textContent = servicoNome || 'Não selecionado';
+  if (elCupomProf) elCupomProf.textContent = funcionarioNome || 'Não selecionado';
+  if (elCupomPreco) elCupomPreco.textContent = formatarPreco(servicoPreco);
+
+  // Tenta buscar a duração do serviço a partir do card de serviço selecionado no Passo 1
+  let duracao = "Sob Consulta";
+  const cardSelecionado = document.querySelector('#step-1 .selectable-card.selected p');
+  if (cardSelecionado) {
+    const textContent = cardSelecionado.textContent;
+    const match = textContent.match(/Duração:\s*(\d+)\s*min/i);
+    if (match) {
+      duracao = match[1] + " min";
+    }
+  }
+  if (elCupomDuracao) elCupomDuracao.textContent = duracao;
+
+  if (dataBruta && hora && elCupomData) {
+    const [ano, mes, dia] = dataBruta.split('-');
+    elCupomData.textContent = `${dia}/${mes}/${ano} às ${hora.substring(0, 5)}`;
+  } else if (elCupomData) {
+    elCupomData.textContent = 'Não selecionado';
+  }
+
   irParaPasso(3, 4);
-  // No passo 4 o botão global já está habilitado (feito dentro de irParaPasso)
 }
 
 // ─── Clique nos Indicadores do Stepper (navegar para passos anteriores) ────────
@@ -351,6 +512,8 @@ document.querySelectorAll('.step-indicator[data-passo]').forEach((indicador) => 
 
     // Só permite navegar para passos já concluídos (não para frente)
     if (destino >= atual) return;
+
+    limparSelecoesAPartirDoPasso(destino);
 
     // Esconde o passo atual e mostra o destino
     document.getElementById(`step-${atual}`).classList.remove('active');
@@ -377,6 +540,7 @@ document.querySelectorAll('.step-indicator[data-passo]').forEach((indicador) => 
     if (destino === 3) jaTemSelecao = !!document.getElementById('horario_selecionado').value;
 
     setBotoesPasso(destino, jaTemSelecao);
+    atualizarLayoutPasso(destino);
   });
 });
 
@@ -414,5 +578,112 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
   }
+
+  // ─── AUTO-SELEÇÃO VIA URL (Agendar Novamente) ───
+  const urlParams = new URLSearchParams(window.location.search);
+  const paramServico = urlParams.get('id_servico');
+  const paramFuncionario = urlParams.get('id_funcionario');
+
+  if (paramServico) {
+    const cardServico = document.querySelector(`[data-id-servico="${paramServico}"]`);
+    if (cardServico) {
+      const nome = cardServico.querySelector('h4').textContent;
+      const preco = parseFloat(cardServico.getAttribute('data-preco') || 0);
+      
+      document.getElementById('servico_id').value = paramServico;
+      document.getElementById('servico_nome').value = nome;
+      document.getElementById('servico_preco').value = preco;
+
+      atualizarResumo('lat-servico', nome);
+      const elPreco = document.getElementById('lat-preco');
+      if (elPreco) elPreco.textContent = formatarPreco(preco);
+      cardServico.classList.add('selected');
+      setBotoesPasso(1, true);
+
+      buscarProfissionais(paramServico).then(() => {
+        if (paramFuncionario) {
+          const cardProf = document.querySelector(`[data-id-funcionario="${paramFuncionario}"]`);
+          if (cardProf) {
+            const profNome = cardProf.querySelector('h4').textContent;
+            document.getElementById('funcionario_id').value = paramFuncionario;
+            document.getElementById('funcionario_nome').value = profNome;
+            
+            atualizarResumo('lat-profissional', profNome);
+            cardProf.classList.add('selected');
+            setBotoesPasso(2, true);
+
+            irParaPasso(1, 3);
+            document.getElementById('ind-2').classList.add('completed');
+            configurarLimitesData();
+          } else {
+            irParaPasso(1, 2);
+          }
+        } else {
+          irParaPasso(1, 2);
+        }
+      });
+    }
+  }
 });
+
+/** Limpa as seleções feitas a partir de um determinado passo (inclusive ele mesmo, para sincronizar com o resumo lateral) */
+function limparSelecoesAPartirDoPasso(passo) {
+  if (passo === 1) {
+    // Limpa Passo 1
+    document.getElementById('servico_id').value = '';
+    document.getElementById('servico_nome').value = '';
+    document.getElementById('servico_preco').value = '';
+    atualizarResumo('lat-servico', null);
+    const elPreco = document.getElementById('lat-preco');
+    if (elPreco) elPreco.textContent = 'R$ --';
+    document.querySelectorAll('#step-1 .selectable-card').forEach(c => c.classList.remove('selected'));
+    setBotoesPasso(1, false);
+
+    // Limpa Passo 2
+    document.getElementById('funcionario_id').value = '';
+    document.getElementById('funcionario_nome').value = '';
+    atualizarResumo('lat-profissional', null);
+    document.querySelectorAll('#step-2 .selectable-card').forEach(c => c.classList.remove('selected'));
+    setBotoesPasso(2, false);
+
+    // Limpa Passo 3
+    document.getElementById('horario_selecionado').value = '';
+    document.getElementById('data_agendamento').value = '';
+    const remarcarHora = document.getElementById('remarcar-hora-selecionada');
+    if (remarcarHora) remarcarHora.value = '';
+    atualizarResumo('lat-datahora', null);
+    document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+    const containerHorarios = document.getElementById('container-horarios-dinamicos');
+    if (containerHorarios) containerHorarios.innerHTML = '';
+    const boxHorarios = document.getElementById('box-horarios');
+    if (boxHorarios) boxHorarios.style.display = 'none';
+    setBotoesPasso(3, false);
+  } else if (passo === 2) {
+    // Limpa Passo 2
+    document.getElementById('funcionario_id').value = '';
+    document.getElementById('funcionario_nome').value = '';
+    atualizarResumo('lat-profissional', null);
+    document.querySelectorAll('#step-2 .selectable-card').forEach(c => c.classList.remove('selected'));
+    setBotoesPasso(2, false);
+
+    // Limpa Passo 3
+    document.getElementById('horario_selecionado').value = '';
+    document.getElementById('data_agendamento').value = '';
+    const remarcarHora = document.getElementById('remarcar-hora-selecionada');
+    if (remarcarHora) remarcarHora.value = '';
+    atualizarResumo('lat-datahora', null);
+    document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+    const containerHorarios = document.getElementById('container-horarios-dinamicos');
+    if (containerHorarios) containerHorarios.innerHTML = '';
+    const boxHorarios = document.getElementById('box-horarios');
+    if (boxHorarios) boxHorarios.style.display = 'none';
+    setBotoesPasso(3, false);
+  } else if (passo === 3) {
+    // Limpa Passo 3 (vindo de volta do Passo 4)
+    document.getElementById('horario_selecionado').value = '';
+    atualizarResumo('lat-datahora', null);
+    document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+    setBotoesPasso(3, false);
+  }
+}
 

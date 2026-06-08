@@ -4,7 +4,7 @@ require_once __DIR__ . '/../../database/Conexao.php';
 
 abstract class BaseModel {
     
-    // Protected permite que as classes filhas acedam à conexão quando precisarem de transações complexas
+    // Protected permite que as classes filhas acessem a conexão quando precisarem de transações complexas
     protected $conn;
 
     public function __construct() {

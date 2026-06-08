@@ -1,0 +1,26 @@
+{
+  "name": "Belezou App",
+  "short_name": "Belezou",
+  "description": "Sistema de gestão e agendamento para salões de beleza.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#f45b69",
+  "icons": [
+    {
+      "src": "./public/resources/images/192icon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "./public/resources/images/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "./public/resources/images/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ]
+}

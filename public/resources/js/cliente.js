@@ -9,10 +9,21 @@ const isAdmin = window.isAdmin ?? false;
 const isGerencia = window.isGerencia ?? false;
 
 // Chamado pelo botão de lixeira na tabela
-function confirmarExclusaoCliente(id) {
-    if (confirm("Tem certeza que deseja remover o cliente #" + id + " do sistema?")) {
-        alert("Cliente " + id + " seria excluído no banco de dados.");
-    }
+function confirmarExclusaoCliente(id, nome) {
+    Swal.fire({
+        title: 'Atenção',
+        text: `Tem certeza que deseja remover o cliente "${nome}" do sistema?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Confirmar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            alert("Cliente " + id + " seria excluído no banco de dados.");
+        }
+    });
 }
 
 // Função única para preencher modal de edição

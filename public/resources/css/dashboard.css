@@ -251,7 +251,7 @@
   .base-card .data-table td:nth-child(2) {
     grid-area: time;
     font-size: 0.95rem;
-    color: var(--color-purple);
+    color: var(--text-main);
     font-weight: 700;
     margin-left: 0;
     align-self: center;

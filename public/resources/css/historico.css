@@ -78,7 +78,7 @@
     background-color: rgba(139, 92, 246, 0.05) !important;
 }
 
-.tab-btn.aba-active {
+.tab-btn.active {
     background: var(--color-purple) !important;
     color: #ffffff !important;
     box-shadow: 0 4px 12px rgba(139, 92, 246, 0.25);
@@ -93,7 +93,7 @@
     min-width: 20px;
 }
 
-.tab-btn:not(.aba-active) .tab-count {
+.tab-btn:not(.active) .tab-count {
     background-color: var(--border-color);
     color: var(--text-main);
 }
@@ -137,7 +137,7 @@
 .history-card.status-marcado  { border-left-color: var(--color-purple); }
 .history-card.status-pendente { border-left-color: #f59e0b; }
 .history-card.status-concluido { border-left-color: #22c55e; }
-.history-card.status-cancelado { border-left-color: var(--color-pink); }
+.history-card.status-cancelado { border-left-color: #ef4444; }
 .history-card.status-cancelado .history-body { opacity: 0.5; }
 
 /* Cabeçalho do Cartão */
@@ -168,7 +168,28 @@
 .badge-purple { background: rgba(139, 92, 246, 0.12); color: var(--color-purple); }
 .badge-green  { background: rgba(34, 197, 94, 0.12);  color: #22c55e; }
 .badge-orange { background: rgba(245, 158, 11, 0.12); color: #f59e0b; }
-.badge-pink   { background: rgba(244, 91, 105, 0.12); color: var(--color-pink); }
+.badge-pink   { background: rgba(239, 68, 68, 0.12); color: #ef4444; }
+
+/* --- Dark Mode Overrides for History Badges --- */
+[data-theme="dark"] .badge-purple {
+    background: color-mix(in srgb, var(--color-purple) 20%, transparent);
+    color: color-mix(in srgb, var(--color-purple) 85%, #ffffff);
+}
+
+[data-theme="dark"] .badge-green {
+    background: rgba(34, 197, 94, 0.2);
+    color: #4ade80;
+}
+
+[data-theme="dark"] .badge-orange {
+    background: rgba(245, 158, 11, 0.2);
+    color: #fbbf24;
+}
+
+[data-theme="dark"] .badge-pink {
+    background: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+}
 
 /* Corpo do Cartão */
 .history-body {
@@ -238,6 +259,10 @@
    RESPONSIVIDADE (DESKTOP)
    ========================================= */
 @media (min-width: 769px) {
+    .app-content {
+        display: block !important;
+    }
+
     .tabs-container {
         margin-left: 0;
     }
@@ -250,4 +275,33 @@
     .empty-state {
         grid-column: 1 / -1;
     }
+}
+
+/* =========================================
+   REMARCAÇÃO DIRETAS - MODAL TIME SLOTS
+   ========================================= */
+#remarcar-container-horarios {
+    margin-top: 10px;
+}
+
+.time-slot {
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+    padding: 0.8rem 0;
+    border-radius: var(--radius-md);
+    text-align: center;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.time-slot:hover {
+    border-color: var(--color-purple);
+}
+
+.time-slot.selected {
+    background: var(--color-purple);
+    color: white;
+    border-color: var(--color-purple);
 }

@@ -60,6 +60,40 @@ class RelatorioController {
 
             $ticketMedio = ($totalConcluidos > 0) ? $faturamentoBruto / $totalConcluidos : 0;
             $taxaCancelamento = ($totalGeral > 0) ? ($totalCancelados / $totalGeral) * 100 : 0;
+            $taxaConversao = ($totalGeral > 0) ? ($totalConcluidos / $totalGeral) * 100 : 0;
+            $taxaAbsenteismo = $taxaCancelamento;
+
+            // Cálculo proporcional preciso dos salários contratuais baseado nos dias reais de cada mês
+            $dtInicio = new DateTime($dataInicio);
+            $dtFim = new DateTime($dataFim);
+            
+            // Loop dia a dia no período selecionado
+            $interval = new DateInterval('P1D');
+            $period = new DatePeriod($dtInicio, $interval, (clone $dtFim)->modify('+1 day'));
+
+            if ($idFuncionario === 'todos') {
+                $custoTotal = 0;
+                $funcionariosAtivos = array_filter($listaFuncionarios, function($f) {
+                    return ($f['status'] ?? '') !== 'inativo';
+                });
+                
+                foreach ($period as $date) {
+                    $diasNoMes = (int) $date->format('t'); // Retorna a quantidade de dias no mês da data (28 a 31)
+                    foreach ($funcionariosAtivos as $func) {
+                        $sal = (float) ($func['salario'] ?? 0);
+                        $custoTotal += $sal / $diasNoMes;
+                    }
+                }
+                $faturamentoLiquido = $faturamentoBruto - $custoTotal;
+            } else {
+                $sal = (float) ($funcionarioSelecionado['salario'] ?? 0);
+                $custo = 0;
+                foreach ($period as $date) {
+                    $diasNoMes = (int) $date->format('t');
+                    $custo += $sal / $diasNoMes;
+                }
+                $faturamentoLiquido = $faturamentoBruto - $custo;
+            }
         }
 
         require_once __DIR__ . '/../../public/views/admin/relatorio_desempenho.php';

@@ -34,7 +34,7 @@ class CadastroController
         $emailService->enviar($email, $nome, $assunto, $html);
 
         if ($resultado['sucesso']) {
-            $_SESSION['email_verificacao'] = $email; // Lembra quem é o utilizador
+            $_SESSION['email_verificacao'] = $email; // Lembra quem é o usuário
             header("Location: " . BASE_URL . "/verificar-email"); 
             exit; 
         } else {

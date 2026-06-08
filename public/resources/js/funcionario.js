@@ -2,22 +2,53 @@
    FUNCIONARIO.JS - REGRAS DE FUNCIONÁRIOS (Admin Único)
 */
 
-function confirmarExclusaoFuncionario(id) {
-    if (confirm("Deseja realmente remover o acesso deste funcionário (#" + id + ")?")) {
-        alert("Funcionário " + id + " seria removido no banco de dados.");
+// Função para aplicar a Máscara de Telefone Brasileira
+function aplicarMascaraTelefone(valor) {
+    if (!valor) return "";
+
+    valor = valor.replace(/\D/g, "").slice(0, 11);
+
+    if (valor.length <= 10) {
+        valor = valor.replace(/(\d{2})(\d)/, "($1) $2");
+        valor = valor.replace(/(\d{4})(\d{1,4})$/, "$1-$2");
+    } else {
+        valor = valor.replace(/(\d{2})(\d)/, "($1) $2");
+        valor = valor.replace(/(\d{5})(\d{1,4})$/, "$1-$2");
     }
+
+    return valor;
+}
+
+function confirmarExclusaoFuncionario(id, nome) {
+    Swal.fire({
+        title: 'Atenção',
+        text: `Deseja realmente remover o acesso do funcionário "${nome}"?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Confirmar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            alert("Funcionário " + id + " seria removido no banco de dados.");
+        }
+    });
 }
 
 function abrirEdicaoFuncionario(button) {
-
     const func = JSON.parse(button.getAttribute("data-funcionario"));
     const isLogado = button.getAttribute("data-is-logado") === "true";
 
     document.getElementById("modalTitleFunc").textContent = "Editar Funcionário: " + func.nome;
+    const submitBtn = document.getElementById("btnSalvarFuncionario");
+    if (submitBtn) {
+        submitBtn.textContent = "Salvar Alterações";
+    }
 
     document.getElementById("id_funcionario").value = func.id_funcionario;
     document.getElementById("nome").value = func.nome;
-    document.getElementById("telefone").value = func.telefone || "";
+    document.getElementById("telefone").value = aplicarMascaraTelefone(func.telefone || "");
     document.getElementById("email").value = func.email;
     document.getElementById("especialidade").value = func.especialidade;
     document.getElementById("salario").value = func.salario;
@@ -60,28 +91,85 @@ function abrirEdicaoFuncionario(button) {
         inputEscondido.value = "admin";
         document.getElementById("formFuncionario").appendChild(inputEscondido);
 
+    } else if (typeof LOGGED_USER_TYPE !== 'undefined' && LOGGED_USER_TYPE === 'subadmin' && func.tipo === 'subadmin') {
+        // CASO 2: Subadmin editando a si mesmo ou outro subadmin → Campo trancado
+        selectTipo.style.display = "none";
+
+        const inputFalso = document.createElement("input");
+        inputFalso.type = "text";
+        inputFalso.id = "fake_tipo_lock";
+        inputFalso.className = "form-control";
+        inputFalso.value = "Subadministrador (Não é permitido rebaixar para profissional comum)";
+        inputFalso.readOnly = true;
+        inputFalso.style.backgroundColor = "var(--bg-disabled)";
+        inputFalso.style.cursor = "not-allowed";
+        inputFalso.style.color = "var(--text-muted)";
+        inputFalso.style.opacity = "0.8";
+        inputFalso.title = "Subadministradores não podem rebaixar a si mesmos ou outros subadministradores.";
+        
+        selectTipo.parentNode.insertBefore(inputFalso, selectTipo.nextSibling);
+
+        // Input hidden para manter o tipo subadmin no envio do form
+        const inputEscondido = document.createElement("input");
+        inputEscondido.type = "hidden";
+        inputEscondido.id = "hidden_tipo_lock";
+        inputEscondido.name = "tipo";
+        inputEscondido.value = "subadmin";
+        document.getElementById("formFuncionario").appendChild(inputEscondido);
+
     } else {
-        // CASO 2: Admin editando OUTRO funcionário → Mostra select normalmente
+        // CASO 3: Admin editando OUTRO funcionário OU Subadmin editando um funcionário Comum → Mostra select normalmente
         selectTipo.style.display = "block";
         selectTipo.value = func.tipo || "comum";
 
         // Mostra a opção "Transferir Admin" apenas se o logado for admin
         if (optionAdmin) {
-            optionAdmin.style.display = "block";
+            if (typeof LOGGED_USER_TYPE !== 'undefined' && LOGGED_USER_TYPE === 'subadmin') {
+                optionAdmin.style.display = "none";
+            } else {
+                optionAdmin.style.display = "block";
+            }
         }
     }
 
-    // Trava a edição do e-mail na atualização
-    document.getElementById("email").setAttribute("readonly", "true");
+    // Libera a edição do e-mail para administradores, mas tranca para subadministradores
+    const emailInput = document.getElementById("email");
+    if (typeof LOGGED_USER_TYPE !== 'undefined' && LOGGED_USER_TYPE === 'subadmin') {
+        emailInput.setAttribute("readonly", "true");
+        emailInput.style.backgroundColor = "var(--bg-disabled)";
+        emailInput.style.cursor = "not-allowed";
+        emailInput.style.color = "var(--text-muted)";
+        emailInput.style.opacity = "0.8";
+        emailInput.title = "Subadministradores não podem alterar o e-mail de funcionários.";
+    } else {
+        emailInput.removeAttribute("readonly");
+        emailInput.style.backgroundColor = "";
+        emailInput.style.cursor = "";
+        emailInput.style.color = "";
+        emailInput.style.opacity = "";
+        emailInput.title = "";
+    }
+    emailInput.setAttribute("data-original", func.email);
 }
 
 function limparModalFuncionario() {
     document.getElementById("modalTitleFunc").textContent = "Cadastrar Novo Funcionário";
+    const submitBtn = document.getElementById("btnSalvarFuncionario");
+    if (submitBtn) {
+        submitBtn.textContent = "Cadastrar Funcionário";
+    }
     document.getElementById("formFuncionario").reset();
     document.getElementById("id_funcionario").value = "";
 
     // Libera o e-mail para um novo cadastro
-    document.getElementById("email").removeAttribute("readonly");
+    const emailInput = document.getElementById("email");
+    emailInput.removeAttribute("readonly");
+    emailInput.removeAttribute("data-original");
+    emailInput.style.backgroundColor = "";
+    emailInput.style.cursor = "";
+    emailInput.style.color = "";
+    emailInput.style.opacity = "";
+    emailInput.title = "";
 
     // Restaura o Select para a criação de um novo funcionário
     const selectTipo = document.getElementById("tipo");
@@ -107,8 +195,20 @@ document.addEventListener("DOMContentLoaded", () => {
     const formFuncionario = document.getElementById("formFuncionario");
     const errorMsg = document.getElementById("funcionarioError");
 
+    // --- APLICAÇÃO DA MÁSCARA DE TELEFONE ---
+    const inputTelefone = document.getElementById("telefone");
+    if (inputTelefone) {
+        inputTelefone.addEventListener("input", function (e) {
+            e.target.value = aplicarMascaraTelefone(e.target.value);
+        });
+        // Formata logo de início caso já tenha valor preenchido ou carregado
+        inputTelefone.value = aplicarMascaraTelefone(inputTelefone.value);
+    }
+
     if (formFuncionario) {
         formFuncionario.addEventListener("submit", function (event) {
+            event.preventDefault(); // Pausa o envio padrão
+
             const salarioInput = document.getElementById("salario").value;
             let errorMessage = "";
             
@@ -120,28 +220,72 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             if (errorMessage !== "") {
-                event.preventDefault(); 
                 errorMsg.textContent = errorMessage;
                 errorMsg.style.display = "block";
                 return;
             }
+            errorMsg.style.display = "none";
 
-            // ═══ CONFIRMAÇÃO DE TRANSFERÊNCIA DE ADMIN ═══
-            const selectTipo = document.getElementById("tipo");
-            if (selectTipo && selectTipo.value === "admin") {
-                const nomeFuncionario = document.getElementById("nome").value;
-                const confirmou = confirm(
-                    "⚠️ ATENÇÃO: TRANSFERÊNCIA DE CARGO\n\n" +
-                    "Ao promover \"" + nomeFuncionario + "\" a Administrador, você PERDERÁ seu cargo de Admin e se tornará Subadministrador.\n\n" +
-                    "Essa ação é imediata. Deseja continuar?"
-                );
-                if (!confirmou) {
-                    event.preventDefault();
-                    return;
+            // Helper para envio final
+            function enviarFormularioFinal() {
+                const modal = document.querySelector('#modalFuncionario');
+                if (modal) modal.classList.remove('active');
+                document.body.classList.remove('modal-open');
+                HTMLFormElement.prototype.submit.call(formFuncionario);
+            }
+
+            // Helper de verificação de admin
+            function verificarAdmin() {
+                const selectTipo = document.getElementById("tipo");
+                if (selectTipo && selectTipo.value === "admin") {
+                    const nomeFuncionario = document.getElementById("nome").value;
+                    Swal.fire({
+                        ...window._swalDefaults,
+                        title: 'Atenção',
+                        text: "⚠️ ATENÇÃO: TRANSFERÊNCIA DE CARGO\n\nAo promover \"" + nomeFuncionario + "\" a Administrador, você PERDERÁ seu cargo de Admin e se tornará Subadministrador.\n\nEssa ação é imediata. Deseja continuar?",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Confirmar',
+                        cancelButtonText: 'Cancelar'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            enviarFormularioFinal();
+                        }
+                    });
+                } else {
+                    enviarFormularioFinal();
                 }
             }
 
-            errorMsg.style.display = "none";
+            // ═══ SALVAGUARDA DE E-MAIL (SWEETALERT2) ═══
+            const idFuncionario = document.getElementById("id_funcionario").value;
+            const emailInput = document.getElementById("email");
+            const emailOriginal = emailInput.getAttribute("data-original") || "";
+            const emailAtual = emailInput.value.trim();
+
+            if (idFuncionario !== "" && emailOriginal !== "" && emailAtual !== emailOriginal) {
+                Swal.fire({
+                    ...window._swalDefaults,
+                    title: 'Confirmar alteração de e-mail?',
+                    html: 'Você está alterando o e-mail de acesso deste usuário.<br>Para confirmar esta alteração crítica, digite <strong>confirmar</strong> abaixo:',
+                    input: 'text',
+                    inputPlaceholder: 'Digite "confirmar" aqui',
+                    showCancelButton: true,
+                    confirmButtonText: 'Confirmar Alteração',
+                    cancelButtonText: 'Cancelar',
+                    inputValidator: (value) => {
+                        if (value !== 'confirmar') {
+                            return 'Você precisa digitar "confirmar" exatamente!';
+                        }
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        verificarAdmin();
+                    }
+                });
+            } else {
+                verificarAdmin();
+            }
         });
     }
 });

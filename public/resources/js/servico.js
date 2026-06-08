@@ -9,47 +9,67 @@ function getCsrfToken() {
 }
 
 // Função para ativar/inativar
-function alterarStatusServico(id, status) {
+function alterarStatusServico(id, nome, status) {
     const acao = status === 'inativo' ? 'inativar' : 'ativar';
-    if (confirm(`Deseja realmente ${acao} o serviço #${id}?`)) {
-        fetch(`${BASE_URL}/admin/servicos/status`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': getCsrfToken() },
-            body: JSON.stringify({ id_servico: id, status: status })
-        })
-        .then(res => res.json())
-        .then(data => {
-            // CORREÇÃO: Lendo 'data.sucesso' em vez de 'data.status'
-            if(data.sucesso === true || data.status === 'sucesso') {
-                alert(data.mensagem);
-                window.location.reload(); // Recarrega a página automaticamente
-            } else {
-                alert('Erro: ' + data.mensagem);
-            }
-        })
-        .catch(err => console.error("Erro na comunicação:", err));
-    }
+    Swal.fire({
+        title: 'Atenção',
+        text: `Deseja realmente ${acao} o serviço "${nome}"?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Confirmar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(`${BASE_URL}/admin/servicos/status`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': getCsrfToken() },
+                body: JSON.stringify({ id_servico: id, status: status })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.sucesso === true || data.status === 'sucesso') {
+                    window.location.reload();
+                } else {
+                    // Se houver erro, podemos usar o alert ou SweetAlert, mas o padrão flashmessage é para sucesso no reload
+                    alert('Erro: ' + data.mensagem);
+                }
+            })
+            .catch(err => console.error("Erro na comunicação:", err));
+        }
+    });
 }
 
 // Função para excluir permanentemente
-function excluirServico(id) {
-    if (confirm(`ATENÇÃO: Deseja realmente excluir permanentemente o serviço #${id}?\n\nEsta ação não pode ser desfeita e removerá os vínculos deste serviço com todos os funcionários.`)) {
-        fetch(`${BASE_URL}/admin/servicos/excluir`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': getCsrfToken() },
-            body: JSON.stringify({ id_servico: id })
-        })
-        .then(res => res.json())
-        .then(data => {
-            if(data.sucesso === true || data.status === 'sucesso') {
-                alert(data.mensagem);
-                window.location.reload(); 
-            } else {
-                alert('Erro: ' + data.mensagem);
-            }
-        })
-        .catch(err => console.error("Erro na comunicação:", err));
-    }
+function excluirServico(id, nome) {
+    Swal.fire({
+        title: 'Atenção',
+        text: `ATENÇÃO: Deseja realmente excluir permanentemente o serviço "${nome}"?\n\nEsta ação não pode ser desfeita e removerá os vínculos deste serviço com todos os funcionários.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Confirmar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(`${BASE_URL}/admin/servicos/excluir`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': getCsrfToken() },
+                body: JSON.stringify({ id_servico: id })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.sucesso === true || data.status === 'sucesso') {
+                    window.location.reload(); 
+                } else {
+                    alert('Erro: ' + data.mensagem);
+                }
+            })
+            .catch(err => console.error("Erro na comunicação:", err));
+        }
+    });
 }
 
 // Preenche o modal ao clicar em Editar
@@ -122,7 +142,6 @@ document.addEventListener("DOMContentLoaded", () => {
             .then(data => {
                 // CORREÇÃO: Lendo 'data.sucesso' em vez de 'data.status'
                 if (data.sucesso === true || data.status === 'sucesso') {
-                    alert(data.mensagem);
                     window.location.reload(); // Recarrega a página automaticamente para exibir a edição/criação
                 } else {
                     errorMsg.textContent = data.mensagem;
