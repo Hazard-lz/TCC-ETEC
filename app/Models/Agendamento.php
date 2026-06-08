@@ -467,7 +467,7 @@ class Agendamento extends BaseModel {
                     COUNT(a.id_agendamento) AS total_geral
                 FROM agendamentos a
                 INNER JOIN itens_agendamento ia ON a.id_agendamento = ia.cod_agendamento
-                INNER JOIN funcionario_servicos fs ON ia.cod_sv_func = fs.id_sv_funcionario
+                LEFT JOIN funcionario_servicos fs ON ia.cod_sv_func = fs.id_sv_funcionario
                 WHERE a.data_agendamento BETWEEN :data_inicio AND :data_fim";
 
         $params = [
@@ -491,7 +491,7 @@ class Agendamento extends BaseModel {
                        COUNT(*) AS quantidade
                 FROM agendamentos a
                 INNER JOIN itens_agendamento ia ON a.id_agendamento = ia.cod_agendamento
-                INNER JOIN funcionario_servicos fs ON ia.cod_sv_func = fs.id_sv_funcionario
+                LEFT JOIN funcionario_servicos fs ON ia.cod_sv_func = fs.id_sv_funcionario
                 WHERE a.data_agendamento BETWEEN :data_inicio AND :data_fim
                   AND a.status = 'concluido'";
 
@@ -520,7 +520,7 @@ class Agendamento extends BaseModel {
                 INNER JOIN clientes c ON a.cod_cliente = c.id_cliente
                 INNER JOIN usuarios u ON c.cod_usuario = u.id_usuario
                 INNER JOIN itens_agendamento ia ON a.id_agendamento = ia.cod_agendamento
-                INNER JOIN funcionario_servicos fs ON ia.cod_sv_func = fs.id_sv_funcionario
+                LEFT JOIN funcionario_servicos fs ON ia.cod_sv_func = fs.id_sv_funcionario
                 WHERE a.data_agendamento BETWEEN :data_inicio AND :data_fim
                   AND a.status = 'concluido'";
 
@@ -548,7 +548,7 @@ class Agendamento extends BaseModel {
                        COUNT(ia.id_item) AS atendimentos
                 FROM agendamentos a
                 INNER JOIN itens_agendamento ia ON a.id_agendamento = ia.cod_agendamento
-                INNER JOIN funcionario_servicos fs ON ia.cod_sv_func = fs.id_sv_funcionario
+                LEFT JOIN funcionario_servicos fs ON ia.cod_sv_func = fs.id_sv_funcionario
                 WHERE a.data_agendamento BETWEEN :data_inicio AND :data_fim
                   AND a.status = 'concluido'";
                   
