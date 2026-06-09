@@ -101,6 +101,29 @@ if (session_status() === PHP_SESSION_NONE) {
     </div>
 
     <script src="<?= BASE_URL ?? '' ?>/public/resources/js/admin.js"></script>
-</body>
+    <script>
+        function aplicarMascaraTelefone(valor) {
+            if (!valor) return "";
+            valor = valor.replace(/\D/g, "").slice(0, 11);
+            if (valor.length <= 10) {
+                valor = valor.replace(/(\d{2})(\d)/, "($1) $2");
+                valor = valor.replace(/(\d{4})(\d{1,4})$/, "$1-$2");
+            } else {
+                valor = valor.replace(/(\d{2})(\d)/, "($1) $2");
+                valor = valor.replace(/(\d{5})(\d{1,4})$/, "$1-$2");
+            }
+            return valor;
+        }
 
+        document.addEventListener("DOMContentLoaded", () => {
+            const inputTelefone = document.getElementById("telefone");
+            if (inputTelefone) {
+                inputTelefone.addEventListener("input", function (e) {
+                    e.target.value = aplicarMascaraTelefone(e.target.value);
+                });
+                inputTelefone.value = aplicarMascaraTelefone(inputTelefone.value);
+            }
+        });
+    </script>
+</body>
 </html>

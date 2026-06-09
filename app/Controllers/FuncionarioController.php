@@ -115,6 +115,15 @@ class FuncionarioController
      */
     public function setupSenha()
     {
+        // Se o usuário já estiver logado, redireciona diretamente para evitar conflito de sessão
+        if (isset($_SESSION['usuario_id'])) {
+            $destino = (isset($_SESSION['is_funcionario']) && $_SESSION['is_funcionario'] === true)
+                ? '/funcionario/dashboard'
+                : '/';
+            header('Location: ' . BASE_URL . $destino);
+            exit;
+        }
+
         // Recebe os parâmetros da URL. Usamos o operador ?? para evitar erros de 'undefined index'.
         $token = $_GET['token'] ?? '';
         $email = $_GET['email'] ?? '';
@@ -122,7 +131,15 @@ class FuncionarioController
         // Validação primária da requisição
         if (empty($token) || empty($email)) {
             $_SESSION['erro_login'] = "Link de configuração inválido ou incompleto.";
-            header('Location: ' . BASE_URL . '/login');
+            header('Location: ' . BASE_URL . '/');
+            exit;
+        }
+
+        // Validação se o token ainda é válido no banco
+        $usuario = $this->usuarioModel->verificarCodigo($email, $token);
+        if (!$usuario) {
+            $_SESSION['erro_login'] = "Este link de configuração é inválido, já foi utilizado ou está expirado.";
+            header('Location: ' . BASE_URL . '/');
             exit;
         }
 
@@ -336,6 +353,7 @@ class FuncionarioController
                         'hora_inicio' => substr($ag['hora_inicio'], 0, 5),
                         'cliente_nome' => $ag['cliente_nome'],
                         'nome_servico' => $ag['nome_servico'],
+                        'profissional_nome' => $ag['profissional_nome'] ?? 'Não definido',
                         'status' => $ag['status'],
                         'status_ucfirst' => ucfirst($ag['status'])
                     ];
@@ -459,72 +477,9 @@ class FuncionarioController
 
     public function sseUpdates()
     {
-        header('Content-Type: text/event-stream');
-        header('Cache-Control: no-cache');
-        header('Connection: keep-alive');
-        
-        // Desativa buffering de saída para permitir streaming imediato
-        while (ob_get_level() > 0) {
-            ob_end_flush();
-        }
-        flush();
-
-        if (!isset($_SESSION['usuario_id'])) {
-            echo "data: " . json_encode(['error' => 'Unauthenticated']) . "\n\n";
-            flush();
-            exit;
-        }
-
-        $id_usuario = $_SESSION['usuario_id'];
-        $funcionario = $this->funcionarioModel->buscarPorCodUsuario($id_usuario);
-        if (!$funcionario) {
-            echo "data: " . json_encode(['error' => 'No profile']) . "\n\n";
-            flush();
-            exit;
-        }
-
-        $idFuncionario = $funcionario['id_funcionario'];
-        $isAdmin = in_array($_SESSION['usuario_tipo'] ?? '', ['admin', 'subadmin']);
-
-        // Libera o lock da sessão para evitar lentidão/bloqueio em outras requisições
-        session_write_close();
-
-        require_once __DIR__ . '/../Models/Agendamento.php';
-        $agendamentoModel = new Agendamento();
-
-        $startTime = time();
-        $lastState = null;
-
-        // Loop de 25 segundos para evitar bloquear conexões Apache indefinidamente
-        while (time() - $startTime < 25) {
-            // Conta agendamentos de hoje e pendentes
-            if ($isAdmin) {
-                $totalHoje = $agendamentoModel->contarAgendamentosHojeGeral();
-                $listaPendentes = $agendamentoModel->listarPendentes('todos');
-            } else {
-                $totalHoje = $agendamentoModel->contarAgendamentosHoje($idFuncionario);
-                $listaPendentes = $agendamentoModel->listarPendentes($idFuncionario);
-            }
-            $qtdPendentes = count($listaPendentes ?: []);
-
-            $stateHash = md5($totalHoje . '_' . $qtdPendentes);
-
-            if ($lastState !== $stateHash) {
-                echo "event: update\n";
-                echo "data: " . json_encode([
-                    'totalHoje' => $totalHoje,
-                    'qtdPendentes' => $qtdPendentes
-                ]) . "\n\n";
-                flush();
-                $lastState = $stateHash;
-            } else {
-                // Heartbeat/keep-alive
-                echo ": heartbeat\n\n";
-                flush();
-            }
-
-            sleep(3);
-        }
+        header('HTTP/1.1 503 Service Unavailable');
+        header('Content-Type: application/json');
+        echo json_encode(['sucesso' => false, 'mensagem' => 'SSE desativado para otimizar os recursos do servidor. Polling AJAX está sendo utilizado.']);
         exit;
     }
 }

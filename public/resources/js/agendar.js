@@ -197,7 +197,7 @@ if (btnVoltarGlobal) {
  * @param {number}  preco    - Preço (float)
  * @param {Element} elemento - Card clicado
  */
-function selecionarServico(id, nome, preco, elemento) {
+async function selecionarServico(id, nome, preco, elemento) {
   limparSelecoesAPartirDoPasso(1);
   document.getElementById('servico_id').value = id;
   document.getElementById('servico_nome').value = nome;
@@ -216,12 +216,16 @@ function selecionarServico(id, nome, preco, elemento) {
   setBotoesPasso(1, true);
 
   // Carrega profissionais
-  buscarProfissionais(id);
+  const temProfissionais = await buscarProfissionais(id);
 
-  // ARQUITETURA UX: Avanço automático após 300ms de delay para a micro-animação rodar
-  setTimeout(() => {
-    irParaPasso(1, 2);
-  }, 300);
+  if (temProfissionais) {
+    // ARQUITETURA UX: Avanço automático após 300ms de delay para a micro-animação rodar
+    setTimeout(() => {
+      if (passoAtivo() === 1 && document.getElementById('servico_id').value === String(id)) {
+        irParaPasso(1, 2);
+      }
+    }, 300);
+  }
 }
 
 async function buscarProfissionais(idServico) {
@@ -235,6 +239,12 @@ async function buscarProfissionais(idServico) {
   try {
     const response = await fetch(`${BASE_URL}/api/profissionais-por-servico?id_servico=${idServico}`);
     const data = await response.json();
+    
+    // Evita condição de corrida se o usuário clicar rápido em outro serviço
+    if (document.getElementById('servico_id').value !== String(idServico)) {
+      return false;
+    }
+
     container.innerHTML = '';
     
     const boxBusca = document.getElementById('box-busca-profissional');
@@ -258,11 +268,12 @@ async function buscarProfissionais(idServico) {
         `;
         container.appendChild(div);
       });
+      return true;
     } else {
       container.innerHTML = '<p style="color: #ef4444; text-align: center;">Não há profissionais para este serviço.</p>';
       Swal.fire({
         title:             'Sem Profissionais',
-        text:              'Nenhum profissional está configurado para realizar este serviço no momento. Por favor, escolha outro.',
+        text:              'Nenhum profissional está apto para realizar este serviço no momento. Por favor, escolha outro.',
         icon:              'info',
         confirmButtonText: 'Entendi',
         customClass: {
@@ -286,9 +297,13 @@ async function buscarProfissionais(idServico) {
       if (elPreco) elPreco.textContent = 'R$ --';
 
       setBotoesPasso(1, false);
+      return false;
     }
   } catch (error) {
     console.error('Erro na API:', error);
+    if (document.getElementById('servico_id').value !== String(idServico)) {
+      return false;
+    }
     container.innerHTML = '<p style="color: #ef4444; text-align: center;">Erro ao carregar profissionais.</p>';
     Swal.fire({
       title:             'Erro de Conexão',
@@ -307,6 +322,7 @@ async function buscarProfissionais(idServico) {
       hideClass: { popup: 'swal-belezou-hide' }
     });
     setBotoesPasso(1, false);
+    return false;
   }
 }
 
@@ -620,7 +636,10 @@ document.addEventListener('DOMContentLoaded', () => {
       cardServico.classList.add('selected');
       setBotoesPasso(1, true);
 
-      buscarProfissionais(paramServico).then(() => {
+      buscarProfissionais(paramServico).then((temProfissionais) => {
+        if (!temProfissionais) {
+          return;
+        }
         if (paramFuncionario) {
           const cardProf = document.querySelector(`[data-id-funcionario="${paramFuncionario}"]`);
           if (cardProf) {

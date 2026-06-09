@@ -134,6 +134,7 @@ foreach ($proximosAgendamentos as $ag) {
                         <th>Horário</th>
                         <th>Cliente</th>
                         <th>Serviço</th>
+                        <th>Profissional</th>
                         <th>Status</th>
                         <th>Ações</th>
                     </tr>
@@ -155,6 +156,7 @@ foreach ($proximosAgendamentos as $ag) {
                                 <td style="font-weight: bold; color: var(--text-main);"><?= $horaFormatada ?></td>
                                 <td><?= htmlspecialchars($ag['cliente_nome']) ?></td>
                                 <td><?= htmlspecialchars($ag['nome_servico']) ?></td>
+                                <td><?= htmlspecialchars($ag['profissional_nome'] ?? 'Não definido') ?></td>
                                 <td><span class="badge <?= $classeBadge ?>"><?= ucfirst($ag['status']) ?></span></td>
 
                                 <td>
@@ -172,7 +174,7 @@ foreach ($proximosAgendamentos as $ag) {
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="6"
+                            <td colspan="7"
                                 style="text-align: center; padding: 2rem; color: var(--text-muted);">
                                 Nenhum agendamento futuro encontrado.
                             </td>
@@ -396,7 +398,7 @@ foreach ($proximosAgendamentos as $ag) {
                 const tbody = document.getElementById('tabela-proximos-corpo');
                 if (!tbody) return;
                 if (!proximos || proximos.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 2rem; color: var(--text-muted);">Nenhum agendamento futuro encontrado.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 2rem; color: var(--text-muted);">Nenhum agendamento futuro encontrado.</td></tr>`;
                     return;
                 }
                 let html = '';
@@ -409,6 +411,7 @@ foreach ($proximosAgendamentos as $ag) {
                         <td style="font-weight: bold; color: var(--text-main);">${ag.hora_inicio}</td>
                         <td>${escapeHtml(ag.cliente_nome)}</td>
                         <td>${escapeHtml(ag.nome_servico)}</td>
+                        <td>${escapeHtml(ag.profissional_nome || 'Não definido')}</td>
                         <td><span class="badge ${badgeClass}">${ag.status_ucfirst}</span></td>
                         <td>
                             <div class="action-buttons">`;
@@ -646,22 +649,19 @@ foreach ($proximosAgendamentos as $ag) {
                 });
             };
 
-            // ─── Conexão Real-time via Server-Sent Events (SSE) ───
-            function inicializarSSE() {
-                const source = new EventSource(baseUrl + '/api/sse-updates');
-                source.addEventListener('update', (event) => {
+            // ─── Atualização Periódica via Polling AJAX (Evita sobrecarga no servidor) ───
+            function inicializarPolling() {
+                // Executa a cada 30 segundos (30000ms)
+                setInterval(() => {
                     atualizarDashboard();
                     atualizarAlertasPendentes();
-                });
-                source.onerror = () => {
-                    console.warn('Conexão SSE instável. O sistema tentará se reconectar automaticamente.');
-                };
+                }, 30000);
             }
 
             // Inicialização
             atualizarDashboard();
             atualizarAlertasPendentes(true); // Flag true impede chime no primeiro load
-            inicializarSSE();
+            inicializarPolling();
         });
     </script>
 </body>

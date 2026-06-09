@@ -301,12 +301,15 @@ class Agendamento extends BaseModel {
     public function listarProximosAgendamentosResumo($idFuncionario, $limite = 5) {
         $sql = "SELECT a.id_agendamento, a.data_agendamento, a.status, 
                        ia.hora_inicio, ia.nome_servico_registrado AS nome_servico,
-                       u_cli.nome AS cliente_nome, u_cli.telefone AS cliente_telefone
+                       u_cli.nome AS cliente_nome, u_cli.telefone AS cliente_telefone,
+                       u_func.nome AS profissional_nome
                 FROM agendamentos a
                 INNER JOIN itens_agendamento ia ON a.id_agendamento = ia.cod_agendamento
                 INNER JOIN funcionario_servicos fs ON ia.cod_sv_func = fs.id_sv_funcionario
                 INNER JOIN clientes c ON a.cod_cliente = c.id_cliente
                 INNER JOIN usuarios u_cli ON c.cod_usuario = u_cli.id_usuario
+                LEFT JOIN funcionarios f ON fs.cod_funcionario = f.id_funcionario
+                LEFT JOIN usuarios u_func ON f.cod_usuario = u_func.id_usuario
                 WHERE fs.cod_funcionario = :id_funcionario
                   AND a.data_agendamento >= CURDATE()
                   AND a.status IN ('pendente', 'marcado')
@@ -348,11 +351,15 @@ class Agendamento extends BaseModel {
     public function listarProximosAgendamentosResumoGeral($limite = 5) {
         $sql = "SELECT a.id_agendamento, a.data_agendamento, a.status, 
                        ia.hora_inicio, ia.nome_servico_registrado AS nome_servico,
-                       u_cli.nome AS cliente_nome, u_cli.telefone AS cliente_telefone
+                       u_cli.nome AS cliente_nome, u_cli.telefone AS cliente_telefone,
+                       u_func.nome AS profissional_nome
                 FROM agendamentos a
                 INNER JOIN itens_agendamento ia ON a.id_agendamento = ia.cod_agendamento
                 INNER JOIN clientes c ON a.cod_cliente = c.id_cliente
                 INNER JOIN usuarios u_cli ON c.cod_usuario = u_cli.id_usuario
+                LEFT JOIN funcionario_servicos fs ON ia.cod_sv_func = fs.id_sv_funcionario
+                LEFT JOIN funcionarios f ON fs.cod_funcionario = f.id_funcionario
+                LEFT JOIN usuarios u_func ON f.cod_usuario = u_func.id_usuario
                 WHERE a.data_agendamento >= CURDATE()
                   AND a.status IN ('pendente', 'marcado')
                 ORDER BY a.data_agendamento ASC, ia.hora_inicio ASC

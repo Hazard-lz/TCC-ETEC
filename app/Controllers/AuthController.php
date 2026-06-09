@@ -46,14 +46,14 @@ class AuthController
                     'expires' => $expira,
                     'path' => '/',
                     'httponly' => true,
-                    'samesite' => 'Strict'
+                    'samesite' => 'Lax'
                 ]);
                 // Força o cookie de sessão com a validade correta (7 dias)
                 setcookie(session_name(), session_id(), [
                     'expires' => $expira,
                     'path' => '/',
                     'httponly' => true,
-                    'samesite' => 'Strict'
+                    'samesite' => 'Lax'
                 ]);
 
                 header("Location: " . BASE_URL . "/funcionario/dashboard");
@@ -64,13 +64,13 @@ class AuthController
                     'expires' => $expira,
                     'path' => '/',
                     'httponly' => true,
-                    'samesite' => 'Strict'
+                    'samesite' => 'Lax'
                 ]);
                 setcookie(session_name(), session_id(), [
                     'expires' => $expira,
                     'path' => '/',
                     'httponly' => true,
-                    'samesite' => 'Strict'
+                    'samesite' => 'Lax'
                 ]);
 
                 header("Location: " . BASE_URL . "/");

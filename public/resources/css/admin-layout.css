@@ -75,10 +75,10 @@ body.sidebar-open-body {
 }
 
 .sidebar-logo {
-    width: auto;
+    width: 100% !important;
     max-width: 100% !important;
     height: auto !important;
-    max-height: 80px !important;
+    max-height: 130px !important;
     object-fit: contain !important;
     border-radius: 12px;
     transition: opacity 0.3s ease;

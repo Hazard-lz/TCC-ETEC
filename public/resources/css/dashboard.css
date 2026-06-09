@@ -213,11 +213,12 @@
   .base-card .data-table tbody tr {
     display: grid !important;
     grid-template-columns: auto auto 1fr auto;
-    /* Ajuste no grid-template-areas para o ícone (action) ocupar as duas linhas de baixo */
+    /* Ajuste no grid-template-areas para incluir profissional e manter ações à direita */
     grid-template-areas: 
       "date time . badge"
       "name name name action"
-      "service service service action";
+      "service service service action"
+      "professional professional professional action";
     width: 100%;
     box-sizing: border-box;
     padding: 1.25rem !important;
@@ -284,16 +285,42 @@
     text-align: left !important;
   }
 
-  /* Badge (td5) */
+  /* Profissional (td5) */
   .base-card .data-table td:nth-child(5) {
+    grid-area: professional;
+    font-size: 0.85rem;
+    color: var(--color-purple);
+    font-weight: 500;
+    text-align: left !important;
+    margin-top: 0.1rem;
+  }
+
+  .base-card .data-table td:nth-child(5)::before {
+    display: inline-block !important;
+    content: "Profissional: ";
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: none !important;
+    margin-right: 0.35rem !important;
+    opacity: 1 !important;
+    font-size: 0.85rem !important;
+  }
+
+  /* Desativa pseudoelementos indesejados das outras colunas */
+  .base-card .data-table td:not(:nth-child(5))::before {
+    display: none !important;
+  }
+
+  /* Badge (td6) */
+  .base-card .data-table td:nth-child(6) {
     grid-area: badge;
     display: flex !important;
     justify-content: flex-end;
     align-self: center;
   }
 
-  /* Ação (td6) */
-  .base-card .data-table td:nth-child(6) {
+  /* Ação (td7) */
+  .base-card .data-table td:nth-child(7) {
     grid-area: action;
     display: flex !important;
     justify-content: flex-end;
@@ -313,17 +340,30 @@
     border: none !important; 
   }
 
-  /* Estilo do botão de ação */
+  /* Reset dos botões de ação e container para não herdar regras de listas.css */
+  .base-card .data-table .action-buttons {
+    width: auto !important;
+    justify-content: flex-end !important;
+    gap: 8px !important;
+    display: flex !important;
+  }
+
   .base-card .data-table .btn-action {
-    background: transparent;
-    border: none;
-    width: auto;
-    height: auto;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-    color: var(--text-muted);
+    border: none !important;
+    width: 32px !important;
+    height: 32px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+    font-size: 0.95rem !important;
+  }
+
+  /* Apenas o botão de agenda (calendário) fica com fundo transparente e cor cinza */
+  .base-card .data-table .btn-edit {
+    background: transparent !important;
+    color: var(--text-muted) !important;
+    font-size: 1.1rem !important;
   }
 
   /* Overrides para Dark Mode */

@@ -38,7 +38,7 @@ session_set_cookie_params([
     'domain' => '',
     'secure' => $isHttps,        // Habilitado automaticamente quando em HTTPS
     'httponly' => true,          // Proteção contra ataques XSS (impede acesso do document.cookie no JS)
-    'samesite' => 'Strict'       // Impede envio de cookies em requisições de sites externos (proteção CSRF)
+    'samesite' => 'Lax'          // Lax permite que o cookie seja enviado em navegações GET de links externos (ex: e-mail)
 ]);
 
 // Inicia a sessão PHP para armazenar estados do usuário conectado
