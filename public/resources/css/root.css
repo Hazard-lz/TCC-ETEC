@@ -105,7 +105,7 @@ body {
   padding: 0.85rem 1rem;
   font-size: 1rem;
   color: var(--text-main);
-  background-color: var(--bg-color); /* Puxa a cor de fundo dinamicamente */
+  background-color: var(--surface-color); /* Fundo branco/claro para campos editáveis */
   border: 1.5px solid var(--border-color);
   border-radius: var(--radius-md);
   transition: all var(--transition-default);
@@ -116,6 +116,16 @@ body {
   background-color: var(--surface-color);
   border-color: var(--color-purple);
   box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.15);
+}
+
+/* Campos desativados ou somente leitura reais (excluindo os editores do Flatpickr) */
+.form-control:disabled,
+.form-control[readonly]:not(.flatpickr-alt-input):not(.flatpickr-input) {
+  background-color: var(--bg-color) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-muted) !important;
+  cursor: not-allowed !important;
+  opacity: 0.7;
 }
 
 /* Botões base */
@@ -406,4 +416,118 @@ body {
 }
 [data-theme="dark"] .swal2-backdrop-show {
   background: rgba(0, 0, 0, 0.65) !important;
+}
+
+/* =========================================
+   ESTILOS CUSTOMIZADOS DO FLATPICKR (GLOBAL)
+   ========================================= */
+.flatpickr-calendar {
+    background: var(--surface-color) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: var(--radius-lg) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08) !important;
+    font-family: inherit !important;
+    color: var(--text-main) !important;
+}
+
+/* Setinhas do calendário */
+.flatpickr-calendar.arrowTop:before,
+.flatpickr-calendar.arrowTop:after {
+    border-bottom-color: var(--surface-color) !important;
+}
+.flatpickr-calendar.arrowBottom:before,
+.flatpickr-calendar.arrowBottom:after {
+    border-top-color: var(--surface-color) !important;
+}
+
+.flatpickr-months .flatpickr-month {
+    color: var(--text-main) !important;
+    fill: var(--text-main) !important;
+}
+
+.flatpickr-months .flatpickr-prev-month,
+.flatpickr-months .flatpickr-next-month {
+    color: var(--text-main) !important;
+    fill: var(--text-main) !important;
+    padding: 10px !important;
+}
+
+.flatpickr-months .flatpickr-prev-month:hover,
+.flatpickr-months .flatpickr-next-month:hover {
+    color: var(--color-purple) !important;
+}
+
+.flatpickr-current-month .flatpickr-monthDropdown-months {
+    font-weight: 700 !important;
+    color: var(--text-main) !important;
+}
+
+.flatpickr-current-month input.numInput.cur-year {
+    color: var(--text-main) !important;
+    font-weight: 700 !important;
+}
+
+span.flatpickr-weekday {
+    color: var(--text-muted) !important;
+    font-weight: 600 !important;
+}
+
+.flatpickr-day {
+    color: var(--text-main) !important;
+    border-radius: var(--radius-md, 8px) !important;
+    transition: all 0.15s ease !important;
+}
+
+.flatpickr-day:hover,
+.flatpickr-day:focus {
+    background: rgba(139, 92, 246, 0.15) !important;
+    color: var(--color-purple) !important;
+    border-color: transparent !important;
+}
+
+.flatpickr-day.today {
+    border-color: var(--color-pink) !important;
+    color: var(--color-pink) !important;
+}
+
+.flatpickr-day.today:hover {
+    background: rgba(244, 91, 105, 0.15) !important;
+    color: var(--color-pink) !important;
+}
+
+.flatpickr-day.selected,
+.flatpickr-day.selected:focus,
+.flatpickr-day.selected:hover {
+    background: var(--gradient-brand, var(--color-purple)) !important;
+    color: #ffffff !important;
+    border-color: transparent !important;
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3) !important;
+}
+
+.flatpickr-day.flatpickr-disabled,
+.flatpickr-day.flatpickr-disabled:hover {
+    color: var(--text-muted) !important;
+    opacity: 0.25 !important;
+    background: transparent !important;
+}
+
+.flatpickr-input,
+.flatpickr-input[readonly],
+.flatpickr-alt-input,
+.flatpickr-alt-input[readonly] {
+    background-color: var(--surface-color) !important;
+    color: var(--text-main) !important;
+    border: 1.5px solid var(--border-color) !important;
+    cursor: pointer !important;
+    transition: all var(--transition-default);
+}
+
+.flatpickr-input:focus,
+.flatpickr-input.active,
+.flatpickr-alt-input:focus,
+.flatpickr-alt-input.active {
+    outline: none !important;
+    background-color: var(--surface-color) !important;
+    border-color: var(--color-purple) !important;
+    box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.15) !important;
 }

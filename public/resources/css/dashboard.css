@@ -55,7 +55,7 @@
 }
 
 .card-info h4 {
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   color: var(--text-muted);
   text-transform: uppercase;
   margin-bottom: 0.2rem;
@@ -63,13 +63,13 @@
 
 .card-value {
   display: block;
-  font-size: 1.8rem;
+  font-size: 2.1rem;
   font-weight: 700;
   color: var(--text-main);
 }
 
 .card-label {
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   color: var(--text-muted);
 }
 
@@ -132,17 +132,17 @@
   }
 
   .card-info h4 {
-    font-size: 0.75rem;
+    font-size: 0.85rem;
     letter-spacing: 0.2px;
     margin-bottom: 0.1rem;
   }
 
   .card-value {
-    font-size: 1.25rem;
+    font-size: 1.55rem;
   }
 
   .card-label {
-    font-size: 0.75rem;
+    font-size: 0.82rem;
   }
 
   /* --- Container da Seção de Agenda --- */

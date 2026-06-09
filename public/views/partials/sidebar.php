@@ -16,7 +16,7 @@ $userData = json_encode([
         if (window.innerWidth > 992 && localStorage.getItem('belezou_sidebar_collapsed') === 'true') {
             var style = document.createElement('style');
             style.id = 'sidebar-preload';
-            style.textContent = '.sidebar { width: 75px !important; } .sidebar .sidebar-logo, .sidebar .nav-link span, .sidebar .nav-title, .sidebar .user-info, .sidebar .sidebar-clock { display: none !important; } .sidebar .nav-link { justify-content: center; padding: 0.85rem 0; } .sidebar .nav-link i { margin-right: 0 !important; } .sidebar .sidebar-footer { justify-content: center; padding: 1rem 0; } .main-wrapper { margin-left: 75px !important; }';
+            style.textContent = '.sidebar { width: 75px !important; } .sidebar .sidebar-logo, .sidebar .nav-link span, .sidebar .nav-title, .sidebar .user-info, .sidebar .sidebar-clock { display: none !important; } .sidebar .sidebar-icon-logo { display: block !important; } .sidebar .nav-link { justify-content: center; padding: 0.85rem 0; } .sidebar .nav-link i { margin-right: 0 !important; } .sidebar .sidebar-footer { justify-content: center; padding: 1rem 0; } .main-wrapper { margin-left: 75px !important; }';
             document.head.appendChild(style);
         }
     })();

@@ -5,7 +5,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 ?>
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="agenda-page-html">
 
 <head>
     <?= CsrfGuard::metaTag() ?>
@@ -29,10 +29,15 @@ if (session_status() === PHP_SESSION_NONE) {
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/agenda.css">
+    
+    <!-- Flatpickr (Calendário Estilizado) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
     <?php require_once __DIR__ . '/../partials/onesignal.php'; ?>
 </head>
 
-<body>
+<body class="agenda-page">
 
     <?php require_once __DIR__ . '/../partials/sidebar.php'; ?>
 
@@ -138,7 +143,7 @@ if (session_status() === PHP_SESSION_NONE) {
                     <div class="form-grid">
                         <div class="form-group">
                             <label>Data</label>
-                            <input type="date" id="data" name="data" class="form-control" value="<?= date('Y-m-d') ?>" required>
+                            <input type="date" id="data" name="data" class="form-control" value="<?= date('Y-m-d') ?>" required placeholder="Selecione uma data">
                         </div>
                         <div class="form-group">
                             <label>Horário</label>
@@ -167,7 +172,7 @@ if (session_status() === PHP_SESSION_NONE) {
                     
                     <div class="form-group" style="margin-bottom:1rem;">
                         <label style="font-weight:600;">Data do Bloqueio</label>
-                        <input type="date" name="data_bloqueio" class="form-control" value="<?= date('Y-m-d') ?>" required>
+                        <input type="date" id="data_bloqueio" name="data_bloqueio" class="form-control" value="<?= date('Y-m-d') ?>" required placeholder="Selecione uma data">
                     </div>
 
                     <div class="form-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem;">
@@ -316,7 +321,7 @@ if (session_status() === PHP_SESSION_NONE) {
                 slotEventOverlap: false, // Evita sobreposição visual de agendamentos próximos (lado a lado puro)
                 expandRows: true, // Faz as linhas preencherem o espaço disponível
                 handleWindowResize: true,
-                height: window.innerWidth < 992 ? 'parent' : 'auto',
+                height: 'auto',
 
                 eventMinHeight: 84, // Força altura mínima para os blocos serem legíveis (cabe cliente, serviço e funcionário)
 
@@ -622,6 +627,28 @@ if (session_status() === PHP_SESSION_NONE) {
                     console.error("Erro ao carregar serviços:", err);
                     selectServico.innerHTML = '<option value="">Erro ao carregar</option>';
                 });
+            });
+
+            // Inicialização do Flatpickr para os calendários da página
+            flatpickr("#data", {
+                locale: "pt",
+                dateFormat: "Y-m-d",
+                altInput: true,
+                altFormat: "d/m/Y",
+                altInputClass: "form-control flatpickr-alt-input",
+                disableMobile: true,
+                onChange: function(selectedDates, dateStr, instance) {
+                    document.getElementById('data').dispatchEvent(new Event('change'));
+                }
+            });
+
+            flatpickr("#data_bloqueio", {
+                locale: "pt",
+                dateFormat: "Y-m-d",
+                altInput: true,
+                altFormat: "d/m/Y",
+                altInputClass: "form-control flatpickr-alt-input",
+                disableMobile: true
             });
 
             // API de Horários Livres

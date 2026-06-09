@@ -92,8 +92,27 @@ if (isset($_SESSION['usuario_id'])):
             OneSignal.Notifications.addEventListener('foregroundWillDisplay', function (event) {
                 let titulo = event.notification.title || "Belezou App";
                 let mensagem = event.notification.body || "Você tem uma nova mensagem.";
-                // Opcional: usar um modal mais bonito em vez de alert
-                alert(titulo + "\n\n" + mensagem);
+                
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        title: titulo,
+                        text: mensagem,
+                        icon: 'info',
+                        customClass: {
+                            popup:         'swal-belezou-popup',
+                            title:         'swal-belezou-title',
+                            htmlContainer: 'swal-belezou-text',
+                            confirmButton: 'swal-belezou-btn-confirm',
+                            icon:          'swal-belezou-icon'
+                        },
+                        buttonsStyling: false,
+                        showClass: { popup: 'swal-belezou-show' },
+                        hideClass: { popup: 'swal-belezou-hide' },
+                        confirmButtonText: 'Entendi'
+                    });
+                } else {
+                    alert(titulo + "\n\n" + mensagem);
+                }
             });
         });
     </script>

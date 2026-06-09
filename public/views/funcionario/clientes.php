@@ -26,6 +26,12 @@ $isGerencia = in_array($tipoUsuario, ['admin', 'subadmin']);
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/listas.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/cliente.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/modal.css">
+    
+    <!-- Flatpickr (Calendário Estilizado) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
+    
     <?php require_once __DIR__ . '/../partials/onesignal.php'; ?>
     <style>
         /* --- ESTILOS DOS BOTÕES DE FILTRO DE STATUS --- */
@@ -196,7 +202,7 @@ $isGerencia = in_array($tipoUsuario, ['admin', 'subadmin']);
 
                     <div class="form-group" id="container_nascimento">
                         <label for="nascimento">Data de Nascimento</label>
-                        <input type="date" id="nascimento" name="nascimento" class="form-control" <?= !$isGerencia ? 'readonly' : '' ?>>
+                        <input type="date" id="nascimento" name="nascimento" class="form-control" <?= !$isGerencia ? 'readonly' : '' ?> placeholder="Selecione uma data">
                     </div>
 
                     <div class="form-group" id="container_observacoes">
@@ -223,6 +229,18 @@ $isGerencia = in_array($tipoUsuario, ['admin', 'subadmin']);
         window.isGerencia = <?= $isGerencia ? 'true' : 'false' ?>;
 
         document.addEventListener("DOMContentLoaded", () => {
+            if (window.isGerencia) {
+                flatpickr("#nascimento", {
+                    locale: "pt",
+                    dateFormat: "Y-m-d",
+                    altInput: true,
+                    altFormat: "d/m/Y",
+                    altInputClass: "form-control flatpickr-alt-input",
+                    disableMobile: true,
+                    maxDate: "today"
+                });
+            }
+
             const inputPesquisa = document.querySelector(".input-pesquisa-tabela");
             const filterButtons = document.querySelectorAll(".btn-filter-status");
             const tableBody = document.querySelector(".data-table tbody");

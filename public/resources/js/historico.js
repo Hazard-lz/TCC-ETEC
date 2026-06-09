@@ -52,6 +52,8 @@ function cancelarAgendamento(idAgendamento) {
 let remarcarFuncionarioId = null;
 let remarcarServicoId = null;
 
+let fpRemarcarInstance = null;
+
 function abrirModalRemarcar(idAgendamento, nomeServico, nomeProfissional, idFuncionario, idServico, status) {
     document.getElementById('remarcar-id-agendamento').value = idAgendamento;
     document.getElementById('remarcar-nome-servico').textContent = nomeServico;
@@ -61,7 +63,6 @@ function abrirModalRemarcar(idAgendamento, nomeServico, nomeProfissional, idFunc
     remarcarServicoId = idServico;
 
     // Reseta campos do form
-    document.getElementById('remarcar-data').value = '';
     document.getElementById('remarcar-box-horarios').style.display = 'none';
     document.getElementById('remarcar-hora-selecionada').value = '';
     document.getElementById('btn-remarcar-confirmar').disabled = true;
@@ -74,12 +75,9 @@ function abrirModalRemarcar(idAgendamento, nomeServico, nomeProfissional, idFunc
     const ano = dataMinima.getFullYear();
     const mes = String(dataMinima.getMonth() + 1).padStart(2, '0');
     const dia = String(dataMinima.getDate()).padStart(2, '0');
-    const elData = document.getElementById('remarcar-data');
-    elData.setAttribute('min', `${ano}-${mes}-${dia}`);
+    const minDataStr = `${ano}-${mes}-${dia}`;
     
-    // Remove limite máximo anterior para evitar lixo de estado
-    elData.removeAttribute('max');
-
+    let maxDataStr = null;
     if (typeof LIMITE_FUTURO_DIAS !== 'undefined' && LIMITE_FUTURO_DIAS !== 'sem_limite') {
         const limiteDias = parseInt(LIMITE_FUTURO_DIAS, 10);
         if (!isNaN(limiteDias)) {
@@ -88,8 +86,28 @@ function abrirModalRemarcar(idAgendamento, nomeServico, nomeProfissional, idFunc
             const maxAno = dataMax.getFullYear();
             const maxMes = String(dataMax.getMonth() + 1).padStart(2, '0');
             const maxDia = String(dataMax.getDate()).padStart(2, '0');
-            elData.setAttribute('max', `${maxAno}-${maxMes}-${maxDia}`);
+            maxDataStr = `${maxAno}-${maxMes}-${maxDia}`;
         }
+    }
+
+    if (!fpRemarcarInstance) {
+        fpRemarcarInstance = flatpickr("#remarcar-data", {
+            locale: "pt",
+            dateFormat: "Y-m-d",
+            altInput: true,
+            altFormat: "d/m/Y",
+            altInputClass: "form-control flatpickr-alt-input",
+            minDate: minDataStr,
+            maxDate: maxDataStr || undefined,
+            disableMobile: true,
+            onChange: function(selectedDates, dateStr, instance) {
+                atualizarHorariosRemarcar();
+            }
+        });
+    } else {
+        fpRemarcarInstance.clear();
+        fpRemarcarInstance.set('minDate', minDataStr);
+        fpRemarcarInstance.set('maxDate', maxDataStr || undefined);
     }
 
     // Exibe o modal
@@ -100,6 +118,9 @@ function abrirModalRemarcar(idAgendamento, nomeServico, nomeProfissional, idFunc
 function fecharModalRemarcar() {
     document.getElementById('modalRemarcar').classList.remove('active');
     document.body.classList.remove('modal-open');
+    if (fpRemarcarInstance) {
+        fpRemarcarInstance.clear();
+    }
 }
 
 async function atualizarHorariosRemarcar() {
@@ -189,6 +210,28 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    // Inicializa Flatpickr para os filtros de data
+    if (document.getElementById('data_inicio')) {
+        flatpickr("#data_inicio", {
+            locale: "pt",
+            dateFormat: "Y-m-d",
+            altInput: true,
+            altFormat: "d/m/Y",
+            altInputClass: "form-control flatpickr-alt-input",
+            disableMobile: true
+        });
+    }
+    if (document.getElementById('data_fim')) {
+        flatpickr("#data_fim", {
+            locale: "pt",
+            dateFormat: "Y-m-d",
+            altInput: true,
+            altFormat: "d/m/Y",
+            altInputClass: "form-control flatpickr-alt-input",
+            disableMobile: true
+        });
+    }
 });
 
 // ── ATUALIZAÇÃO VIA AJAX (POLLING SEM RELOAD) ──
@@ -218,7 +261,12 @@ function renderProximos(proximos, antecedenciaHoras) {
     if (!container) return;
     
     if (proximos.length === 0) {
-        container.innerHTML = `<p style="text-align: center; color: var(--text-muted); margin-top: 2rem; grid-column: 1 / -1; width: 100%;">Não tem agendamentos futuros.</p>`;
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="bi bi-calendar2-x"></i>
+                <p>Não tem agendamentos futuros.</p>
+            </div>
+        `;
         return;
     }
     
@@ -296,7 +344,12 @@ function renderAnteriores(anteriores) {
     if (!container) return;
     
     if (anteriores.length === 0) {
-        container.innerHTML = `<p style="text-align: center; color: var(--text-muted); margin-top: 2rem; grid-column: 1 / -1; width: 100%;">Ainda não tens histórico de visitas.</p>`;
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="bi bi-clock-history"></i>
+                <p>Ainda não tens histórico de visitas.</p>
+            </div>
+        `;
         return;
     }
     

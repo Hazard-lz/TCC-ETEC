@@ -37,3 +37,12 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 });
+
+// Fecha seletores de data (Flatpickr) ao rolar a página ou containers de modais
+window.addEventListener('scroll', function() {
+  document.querySelectorAll('.flatpickr-input').forEach(el => {
+    if (el._flatpickr && el._flatpickr.isOpen) {
+      el._flatpickr.close();
+    }
+  });
+}, true);

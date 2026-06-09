@@ -271,14 +271,18 @@ $mostrarBotaoEditar = (!$isNovaGrade && !empty($idDisponibilidade)) ? 'block' : 
                                         <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: bold;">às</span>
                                         <input type="time" name="dias[<?= $sigla ?>][hora_fim]" value="<?= htmlspecialchars($d['fim']) ?>" class="form-control">
                                     </div>
-
-                                    <div class="time-input-group divider">
-                                        <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: bold;">Pausa:</span>
-                                        <input type="time" id="int_ini_<?= $sigla ?>" name="dias[<?= $sigla ?>][intervalo_inicio]" value="<?= htmlspecialchars($d['int_inicio']) ?>" class="form-control">
-                                        <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: bold;">às</span>
-                                        <input type="time" id="int_fim_<?= $sigla ?>" name="dias[<?= $sigla ?>][intervalo_fim]" value="<?= htmlspecialchars($d['int_fim']) ?>" class="form-control">
-                                        
-                                        <button type="button" class="btn-limpar-pausa" onclick="limparPausa('<?= $sigla ?>')" title="Remover horário de pausa">Limpar</button>
+                                    
+                                    <div class="pause-row-container">
+                                        <div class="pause-header-row">
+                                            <span class="pause-label">Pausa:</span>
+                                            <button type="button" class="btn-limpar-pausa" onclick="limparPausa('<?= $sigla ?>')" title="Remover horário de pausa">Limpar</button>
+                                        </div>
+                                        <div class="time-input-group">
+                                            <span class="pause-text-between">Das</span>
+                                            <input type="time" id="int_ini_<?= $sigla ?>" name="dias[<?= $sigla ?>][intervalo_inicio]" value="<?= htmlspecialchars($d['int_inicio']) ?>" class="form-control">
+                                            <span class="pause-text-between">às</span>
+                                            <input type="time" id="int_fim_<?= $sigla ?>" name="dias[<?= $sigla ?>][intervalo_fim]" value="<?= htmlspecialchars($d['int_fim']) ?>" class="form-control">
+                                        </div>
                                     </div>
                                 </div>
                             <?php endforeach; ?>

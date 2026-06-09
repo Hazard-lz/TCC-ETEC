@@ -63,6 +63,7 @@ function renderizarLayoutGlobal(usuario) {
             <div class="sidebar-header">
                 <a href="${BASE_URL}/funcionario/dashboard">
                     <img src="${BASE_URL}/public/resources/images/Belezou.png?v=2" alt="Belezou App Logo" class="sidebar-logo" onerror="this.style.display='none'">
+                    <img src="${BASE_URL}/public/resources/images/favicon.png" alt="Belezou App Icon" class="sidebar-icon-logo">
                 </a>
             </div>
             

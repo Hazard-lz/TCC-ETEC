@@ -104,4 +104,17 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     }
+
+    // --- 3. INICIALIZAÇÃO DO FLATPICKR ---
+    if (document.getElementById("nascimento")) {
+        flatpickr("#nascimento", {
+            locale: "pt",
+            dateFormat: "Y-m-d",
+            altInput: true,
+            altFormat: "d/m/Y",
+            altInputClass: "form-control flatpickr-alt-input",
+            disableMobile: true,
+            maxDate: "today"
+        });
+    }
 });

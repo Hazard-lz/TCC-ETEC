@@ -18,6 +18,24 @@ class Servico extends BaseModel {
         return $this->executarQuery($sql, [':status' => $status], 'todos') ?: [];
     }
 
+    /**
+     * Lista os serviços ativos mais populares com base na frequência com que são agendados.
+     * Se houver empate ou nenhum agendamento, ordena alfabeticamente.
+     */
+    public function listarPopulares($limite = 4) {
+        $sql = "SELECT s.*, COUNT(a.id_agendamento) AS total_agendamentos
+                FROM servicos s
+                LEFT JOIN funcionario_servicos fs ON s.id_servico = fs.cod_servico
+                LEFT JOIN itens_agendamento ia ON fs.id_sv_funcionario = ia.cod_sv_func
+                LEFT JOIN agendamentos a ON ia.cod_agendamento = a.id_agendamento AND a.status != 'cancelado'
+                WHERE s.status = 'ativo'
+                GROUP BY s.id_servico
+                ORDER BY total_agendamentos DESC, s.nome_servico ASC
+                LIMIT :limite";
+        
+        return $this->executarQuery($sql, [':limite' => (int)$limite], 'todos') ?: [];
+    }
+
     public function buscarPorNome($nome) {
         $sql = "SELECT * FROM servicos WHERE LOWER(TRIM(nome_servico)) = LOWER(TRIM(:nome)) LIMIT 1";
         return $this->executarQuery($sql, [':nome' => $nome], 'unico');

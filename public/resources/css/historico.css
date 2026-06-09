@@ -263,10 +263,6 @@
         display: block !important;
     }
 
-    .tabs-container {
-        margin-left: 0;
-    }
-
     .tab-content.active.history-grid {
         grid-template-columns: 1fr 1fr;
         gap: 1.25rem;
@@ -304,4 +300,27 @@
     background: var(--color-purple);
     color: white;
     border-color: var(--color-purple);
+}
+
+/* =========================================
+   FILTRO DE HISTÓRICO CLIENTE RESPONSIVO
+   ========================================= */
+.client-filter-form {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.8rem;
+    width: 100%;
+}
+
+@media (min-width: 481px) {
+    .client-filter-form {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .client-filter-form button,
+    .client-filter-form a {
+        grid-column: 1 / -1 !important;
+    }
 }

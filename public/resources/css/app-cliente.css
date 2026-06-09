@@ -145,6 +145,7 @@
     
     flex-grow: 1; 
     overflow-y: auto;
+    scrollbar-gutter: stable;
     /* Suporte para scroll suave no iOS */
     -webkit-overflow-scrolling: touch;
 }
@@ -374,3 +375,4 @@
     content: "🌙";
     background-color: #1a202c;
 }
+

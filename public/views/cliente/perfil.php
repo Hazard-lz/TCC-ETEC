@@ -37,6 +37,11 @@
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
         <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/app-cliente.css">
         <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/perfil.css">
+        
+        <!-- Flatpickr (Calendário Estilizado) -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+        <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+        <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
     </head>
 
     <body>
@@ -101,7 +106,7 @@
 
                                         <div class="form-group">
                                             <label for="nascimento">Data de Nascimento</label>
-                                            <input type="date" id="nascimento" name="nascimento" class="form-control" value="<?= $clienteNascimento ?>">
+                                            <input type="date" id="nascimento" name="nascimento" class="form-control" value="<?= $clienteNascimento ?>" placeholder="Selecione...">
                                         </div>
 
                                         <button type="submit" class="btn-primary" style="padding: 0.8rem; font-size: 0.95rem;">Salvar Dados</button>

@@ -117,7 +117,7 @@ $ultimoAgendamento = $ultimoAgendamento ?? null;
                                     R$ <?= number_format($servico['preco'], 2, ',', '.') ?> • <?= $servico['duracao'] ?> min
                                 </p>
                             </div>
-                            <a href="<?= BASE_URL ?>/agendar" class="btn-primary" style="width: auto; margin: 0; padding: 0.5rem 1.2rem; border-radius: 20px; font-size: 0.9rem; text-decoration: none; display: inline-block;">
+                            <a href="<?= BASE_URL ?>/agendar?id_servico=<?= $servico['id_servico'] ?>" class="btn-primary" style="width: auto; margin: 0; padding: 0.5rem 1.2rem; border-radius: 20px; font-size: 0.9rem; text-decoration: none; display: inline-block;">
                                 Agendar
                             </a>
                         </div>

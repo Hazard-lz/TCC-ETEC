@@ -25,6 +25,11 @@ $mostrarAnterioresAtivo = (!empty($_GET['data_inicio']) || !empty($_GET['data_fi
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/app-cliente.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/historico.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/modal.css">
+    
+    <!-- Flatpickr (Calendário Estilizado) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
 
     <script>
         const BASE_URL = '<?= BASE_URL ?>';
@@ -114,23 +119,26 @@ $mostrarAnterioresAtivo = (!empty($_GET['data_inicio']) || !empty($_GET['data_fi
                                 </div>
                             <?php endforeach; ?>
                         <?php else: ?>
-                            <p style="text-align: center; color: var(--text-muted); margin-top: 2rem; grid-column: 1 / -1; width: 100%;">Não tem agendamentos futuros.</p>
+                            <div class="empty-state">
+                                <i class="bi bi-calendar2-x"></i>
+                                <p>Não tem agendamentos futuros.</p>
+                            </div>
                         <?php endif; ?>
                     </div>
                 </div>
                 <div id="aba-anteriores" class="tab-content <?= $mostrarAnterioresAtivo ? 'active' : '' ?> history-grid">
                     <!-- Filtro de Data para Histórico Passado -->
                     <div class="filter-section" style="margin-bottom: 1.5rem; max-width: 100%; grid-column: 1 / -1; width: 100%;">
-                        <form action="<?= BASE_URL ?>/historico" method="GET" class="filter-form" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.8rem; width: 100%;">
+                        <form action="<?= BASE_URL ?>/historico" method="GET" class="client-filter-form">
                             <!-- De: -->
                             <div class="filter-field" style="display: flex; flex-direction: column; gap: 0.3rem; margin-bottom: 0;">
                                 <label for="data_inicio" style="font-weight: 600; font-size: 0.85rem; color: var(--text-main);">De:</label>
-                                <input type="date" name="data_inicio" id="data_inicio" class="form-control" value="<?= htmlspecialchars($_GET['data_inicio'] ?? '') ?>" style="height: 38px; border-radius: 8px; border: 1px solid var(--border-color); padding: 0.5rem; font-family: inherit; font-size: 0.9rem; background: var(--surface-color); color: var(--text-main); width: 100%;">
+                                <input type="date" name="data_inicio" id="data_inicio" class="form-control" value="<?= htmlspecialchars($_GET['data_inicio'] ?? '') ?>" placeholder="Selecione..." style="height: 38px; border-radius: 8px; border: 1px solid var(--border-color); padding: 0.5rem; font-family: inherit; font-size: 0.9rem; background: var(--surface-color); color: var(--text-main); width: 100%;">
                             </div>
                             <!-- Até: -->
                             <div class="filter-field" style="display: flex; flex-direction: column; gap: 0.3rem; margin-bottom: 0;">
                                 <label for="data_fim" style="font-weight: 600; font-size: 0.85rem; color: var(--text-main);">Até:</label>
-                                <input type="date" name="data_fim" id="data_fim" class="form-control" value="<?= htmlspecialchars($_GET['data_fim'] ?? '') ?>" style="height: 38px; border-radius: 8px; border: 1px solid var(--border-color); padding: 0.5rem; font-family: inherit; font-size: 0.9rem; background: var(--surface-color); color: var(--text-main); width: 100%;">
+                                <input type="date" name="data_fim" id="data_fim" class="form-control" value="<?= htmlspecialchars($_GET['data_fim'] ?? '') ?>" placeholder="Selecione..." style="height: 38px; border-radius: 8px; border: 1px solid var(--border-color); padding: 0.5rem; font-family: inherit; font-size: 0.9rem; background: var(--surface-color); color: var(--text-main); width: 100%;">
                             </div>
                             
                             <!-- Botão Filtrar -->
@@ -169,7 +177,10 @@ $mostrarAnterioresAtivo = (!empty($_GET['data_inicio']) || !empty($_GET['data_fi
                                 </div>
                             <?php endforeach; ?>
                         <?php else: ?>
-                            <p style="text-align: center; color: var(--text-muted); margin-top: 2rem; grid-column: 1 / -1; width: 100%;">Ainda não tens histórico de visitas.</p>
+                            <div class="empty-state">
+                                <i class="bi bi-clock-history"></i>
+                                <p>Sem agendamentos anteriores.</p>
+                            </div>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -220,7 +231,7 @@ $mostrarAnterioresAtivo = (!empty($_GET['data_inicio']) || !empty($_GET['data_fi
 
                     <div class="form-group" style="margin-bottom: 1.5rem;">
                         <label for="remarcar-data" style="display: block; margin-bottom: 0.6rem; color: var(--text-main); font-weight: 700; font-size: 0.92rem;">Escolha a nova data:</label>
-                        <input type="date" name="data" id="remarcar-data" onchange="atualizarHorariosRemarcar()" required class="form-control" style="font-weight: 600; font-size: 0.95rem;">
+                        <input type="date" name="data" id="remarcar-data" onchange="atualizarHorariosRemarcar()" required class="form-control" placeholder="Selecione a data..." style="font-weight: 600; font-size: 0.95rem;">
                     </div>
 
                     <div id="remarcar-box-horarios" style="display: none; margin-top: 20px; margin-bottom: 1.5rem;">
@@ -253,9 +264,12 @@ $mostrarAnterioresAtivo = (!empty($_GET['data_inicio']) || !empty($_GET['data_fi
                         popup: 'swal-belezou-popup',
                         title: 'swal-belezou-title',
                         htmlContainer: 'swal-belezou-text',
-                        confirmButton: 'swal-belezou-btn-confirm'
+                        confirmButton: 'swal-belezou-btn-confirm',
+                        icon: 'swal-belezou-icon'
                     },
-                    buttonsStyling: false
+                    buttonsStyling: false,
+                    showClass: { popup: 'swal-belezou-show' },
+                    hideClass: { popup: 'swal-belezou-hide' }
                 });
             <?php endif; ?>
 
@@ -268,9 +282,12 @@ $mostrarAnterioresAtivo = (!empty($_GET['data_inicio']) || !empty($_GET['data_fi
                         popup: 'swal-belezou-popup',
                         title: 'swal-belezou-title',
                         htmlContainer: 'swal-belezou-text',
-                        confirmButton: 'swal-belezou-btn-danger'
+                        confirmButton: 'swal-belezou-btn-danger',
+                        icon: 'swal-belezou-icon'
                     },
-                    buttonsStyling: false
+                    buttonsStyling: false,
+                    showClass: { popup: 'swal-belezou-show' },
+                    hideClass: { popup: 'swal-belezou-hide' }
                 });
             <?php endif; ?>
 

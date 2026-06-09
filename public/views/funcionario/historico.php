@@ -17,6 +17,11 @@ $isGerencia = in_array($tipoUsuario, ['admin', 'subadmin']);
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/admin.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/historico.css">
     
+    <!-- Flatpickr (Calendário Estilizado) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
+    
     <?php require_once __DIR__ . '/../partials/onesignal.php'; ?>
 </head>
 <body>
@@ -120,11 +125,11 @@ $isGerencia = in_array($tipoUsuario, ['admin', 'subadmin']);
                 <?php endif; ?>
                 <div class="filter-field" style="flex: 1; min-width: 150px; margin-bottom: 0;">
                     <label for="data_inicio" style="font-weight: 600; font-size: 0.85rem;">De:</label>
-                    <input type="date" name="data_inicio" id="data_inicio" class="form-control" value="<?= htmlspecialchars($_GET['data_inicio'] ?? '') ?>" style="height: 38px;">
+                    <input type="date" name="data_inicio" id="data_inicio" class="form-control" value="<?= htmlspecialchars($_GET['data_inicio'] ?? '') ?>" placeholder="Selecione uma data" style="height: 38px;">
                 </div>
                 <div class="filter-field" style="flex: 1; min-width: 150px; margin-bottom: 0;">
                     <label for="data_fim" style="font-weight: 600; font-size: 0.85rem;">Até:</label>
-                    <input type="date" name="data_fim" id="data_fim" class="form-control" value="<?= htmlspecialchars($_GET['data_fim'] ?? '') ?>" style="height: 38px;">
+                    <input type="date" name="data_fim" id="data_fim" class="form-control" value="<?= htmlspecialchars($_GET['data_fim'] ?? '') ?>" placeholder="Selecione uma data" style="height: 38px;">
                 </div>
                 <button type="submit" class="btn-primary filter-btn" style="height: 38px; display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; padding: 0 1.25rem;"><i class="bi bi-filter"></i> Filtrar</button>
                 <?php if (!empty($_GET['data_inicio']) || !empty($_GET['data_fim'])): ?>
@@ -233,6 +238,23 @@ $isGerencia = in_array($tipoUsuario, ['admin', 'subadmin']);
         document.addEventListener('DOMContentLoaded', () => {
             renderizarPagina('proximos');
             renderizarPagina('anteriores');
+
+            flatpickr("#data_inicio", {
+                locale: "pt",
+                dateFormat: "Y-m-d",
+                altInput: true,
+                altFormat: "d/m/Y",
+                altInputClass: "form-control flatpickr-alt-input",
+                disableMobile: true
+            });
+            flatpickr("#data_fim", {
+                locale: "pt",
+                dateFormat: "Y-m-d",
+                altInput: true,
+                altFormat: "d/m/Y",
+                altInputClass: "form-control flatpickr-alt-input",
+                disableMobile: true
+            });
         });
     </script>
 </body>

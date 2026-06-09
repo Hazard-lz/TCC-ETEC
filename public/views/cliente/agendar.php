@@ -23,6 +23,11 @@ if (!isset($_SESSION['usuario_id'])) {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/app-cliente.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/agendar.css">
+    
+    <!-- Flatpickr (Calendário Estilizado) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
 
     <script>
         const BASE_URL = '<?= BASE_URL ?>';
@@ -135,7 +140,7 @@ if (!isset($_SESSION['usuario_id'])) {
                             <h3 class="section-title">Data e Horário</h3>
                             <div class="form-group" style="margin-bottom: 1.5rem;">
                                 <label for="data_agendamento" style="display: block; margin-bottom: 0.5rem; color: var(--text-main);">Escolha a data:</label>
-                                <input type="date" name="data" id="data_agendamento" onchange="liberarHorarios()" required style="width: 100%; padding: 0.8rem; border: 1px solid #ccc; border-radius: 10px; font-family: inherit;">
+                                <input type="date" name="data" id="data_agendamento" onchange="liberarHorarios()" required class="form-control" placeholder="Selecione a data..." style="width: 100%; font-family: inherit;">
                             </div>
                             <div id="box-horarios" style="display: none; margin-top: 20px;">
                                 <p style="color: var(--text-main); margin-bottom: 0.8rem;">Horários Disponíveis:</p>

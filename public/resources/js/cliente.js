@@ -47,6 +47,9 @@ function preencherModalEdicaoCliente(id_cliente, id_usuario, nome, telefone, ema
     if (campoNascimento) {
         campoNascimento.value = nascimento || "";
         campoNascimento.disabled = false;
+        if (campoNascimento._flatpickr) {
+            campoNascimento._flatpickr.setDate(nascimento || "");
+        }
     }
     if (campoObservacoes) {
         campoObservacoes.value = observacoes || "";
@@ -80,7 +83,12 @@ function limparModalCliente() {
     if (formCliente) formCliente.reset();
     if (campoIdCliente) campoIdCliente.value = "";
     if (campoIdUsuario) campoIdUsuario.value = "";
-    if (campoNascimento) campoNascimento.disabled = false;
+    if (campoNascimento) {
+        campoNascimento.disabled = false;
+        if (campoNascimento._flatpickr) {
+            campoNascimento._flatpickr.clear();
+        }
+    }
     if (campoObservacoes) campoObservacoes.disabled = false;
     if (campoNome) {
         campoNome.readOnly = false;
@@ -124,6 +132,9 @@ function abrirCadastroRapido() {
     if (campoNascimento) {
         campoNascimento.value = "";
         campoNascimento.disabled = true;
+        if (campoNascimento._flatpickr) {
+            campoNascimento._flatpickr.clear();
+        }
     }
 
     if (containerObservacoes) containerObservacoes.style.display = "none";

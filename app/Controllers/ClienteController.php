@@ -151,12 +151,9 @@ class ClienteController {
         // 3.5 Busca o último agendamento concluído (se existir) para o "Agendar Novamente"
         $ultimoAgendamento = $agendamentoModel->buscarUltimoAgendamentoCliente($cliente['id_cliente']);
 
-        // 4. Busca os Serviços Ativos para listar como "Populares"
+        // 4. Busca os 4 Serviços Ativos mais agendados para listar como "Populares"
         $servicoModel = new Servico();
-        $todosServicos = $servicoModel->listarPorStatus('ativo');
-        
-        // Pega apenas os 3 primeiros para não poluir a página inicial
-        $servicosPopulares = array_slice($todosServicos, 0, 3);
+        $servicosPopulares = $servicoModel->listarPopulares(4);
 
         // 5. Saudação Dinâmica baseada na hora atual
         $horaAtual = (int) date('H');

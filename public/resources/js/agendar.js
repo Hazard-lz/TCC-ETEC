@@ -340,6 +340,8 @@ document.getElementById('btn-next-2').addEventListener('click', () => {
   configurarLimitesData();
 });
 
+let fpInstance = null;
+
 /** Configura os limites min e max da data de agendamento de acordo com as regras */
 function configurarLimitesData() {
   const elData = document.getElementById('data_agendamento');
@@ -350,8 +352,8 @@ function configurarLimitesData() {
   const mes = String(dataLocal.getMonth() + 1).padStart(2, '0');
   const dia = String(dataLocal.getDate()).padStart(2, '0');
   const hoje = `${ano}-${mes}-${dia}`;
-  elData.setAttribute('min', hoje);
 
+  let maxDataStr = null;
   if (typeof LIMITE_FUTURO_DIAS !== 'undefined' && LIMITE_FUTURO_DIAS !== 'sem_limite') {
     const limiteDias = parseInt(LIMITE_FUTURO_DIAS, 10);
     if (!isNaN(limiteDias)) {
@@ -360,9 +362,27 @@ function configurarLimitesData() {
       const maxAno = dataMax.getFullYear();
       const maxMes = String(dataMax.getMonth() + 1).padStart(2, '0');
       const maxDia = String(dataMax.getDate()).padStart(2, '0');
-      const maxDataStr = `${maxAno}-${maxMes}-${maxDia}`;
-      elData.setAttribute('max', maxDataStr);
+      maxDataStr = `${maxAno}-${maxMes}-${maxDia}`;
     }
+  }
+
+  if (!fpInstance) {
+    fpInstance = flatpickr("#data_agendamento", {
+      locale: "pt",
+      dateFormat: "Y-m-d",
+      altInput: true,
+      altFormat: "d/m/Y",
+      altInputClass: "form-control flatpickr-alt-input",
+      minDate: hoje,
+      maxDate: maxDataStr || undefined,
+      disableMobile: true,
+      onChange: function(selectedDates, dateStr, instance) {
+        liberarHorarios();
+      }
+    });
+  } else {
+    fpInstance.set('minDate', hoje);
+    fpInstance.set('maxDate', maxDataStr || undefined);
   }
 }
 
@@ -649,6 +669,7 @@ function limparSelecoesAPartirDoPasso(passo) {
     // Limpa Passo 3
     document.getElementById('horario_selecionado').value = '';
     document.getElementById('data_agendamento').value = '';
+    if (fpInstance) fpInstance.clear();
     const remarcarHora = document.getElementById('remarcar-hora-selecionada');
     if (remarcarHora) remarcarHora.value = '';
     atualizarResumo('lat-datahora', null);
@@ -669,6 +690,7 @@ function limparSelecoesAPartirDoPasso(passo) {
     // Limpa Passo 3
     document.getElementById('horario_selecionado').value = '';
     document.getElementById('data_agendamento').value = '';
+    if (fpInstance) fpInstance.clear();
     const remarcarHora = document.getElementById('remarcar-hora-selecionada');
     if (remarcarHora) remarcarHora.value = '';
     atualizarResumo('lat-datahora', null);

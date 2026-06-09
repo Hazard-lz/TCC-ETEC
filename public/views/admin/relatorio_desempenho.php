@@ -13,6 +13,10 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/admin-layout.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/admin.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/public/resources/css/listas.css">
+    <!-- Flatpickr (Calendário Estilizado) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
     <?php require_once __DIR__ . '/../partials/onesignal.php'; ?>
 
     <style>        .filtro-form {
@@ -320,11 +324,11 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         </div>
         <div class="form-group">
             <label>Data Início</label>
-            <input type="date" name="data_inicio" value="<?= htmlspecialchars($dataInicio) ?>" required>
+            <input type="date" id="data_inicio" name="data_inicio" class="form-control" value="<?= htmlspecialchars($dataInicio) ?>" required placeholder="Selecione uma data">
         </div>
         <div class="form-group">
             <label>Data Fim</label>
-            <input type="date" name="data_fim" id="data_fim" value="<?= htmlspecialchars($dataFim) ?>" required>
+            <input type="date" id="data_fim" name="data_fim" class="form-control" value="<?= htmlspecialchars($dataFim) ?>" required placeholder="Selecione uma data">
         </div>
         
         <div class="filtro-botoes-container">
@@ -548,22 +552,35 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
             const dataFim = document.querySelector('input[name="data_fim"]');
             const hoje = new Date();
             
+            let valInicio, valFim;
             if (tipo === 'hoje') {
                 const hj = formatarDataLocal(hoje);
-                dataInicio.value = hj;
-                dataFim.value = hj;
+                valInicio = hj;
+                valFim = hj;
             } else if (tipo === 'semana') {
                 const dInicio = new Date(hoje);
                 dInicio.setDate(hoje.getDate() - hoje.getDay());
                 const dFim = new Date(hoje);
                 dFim.setDate(hoje.getDate() - hoje.getDay() + 6);
-                dataInicio.value = formatarDataLocal(dInicio);
-                dataFim.value = formatarDataLocal(dFim);
+                valInicio = formatarDataLocal(dInicio);
+                valFim = formatarDataLocal(dFim);
             } else if (tipo === 'mes') {
                 const dInicio = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
                 const dFim = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
-                dataInicio.value = formatarDataLocal(dInicio);
-                dataFim.value = formatarDataLocal(dFim);
+                valInicio = formatarDataLocal(dInicio);
+                valFim = formatarDataLocal(dFim);
+            }
+            
+            if (dataInicio && dataInicio._flatpickr) {
+                dataInicio._flatpickr.setDate(valInicio);
+            } else if (dataInicio) {
+                dataInicio.value = valInicio;
+            }
+            
+            if (dataFim && dataFim._flatpickr) {
+                dataFim._flatpickr.setDate(valFim);
+            } else if (dataFim) {
+                dataFim.value = valFim;
             }
             
             checkFiltroAtivo();
@@ -571,6 +588,30 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
 
         // Quando o documento for carregado e os campos mudarem manualmente
         document.addEventListener("DOMContentLoaded", () => {
+            // Inicialização do Flatpickr
+            flatpickr("#data_inicio", {
+                locale: "pt",
+                dateFormat: "Y-m-d",
+                altInput: true,
+                altFormat: "d/m/Y",
+                altInputClass: "form-control flatpickr-alt-input",
+                disableMobile: true,
+                onChange: function(selectedDates, dateStr, instance) {
+                    document.getElementById('data_inicio').dispatchEvent(new Event('change'));
+                }
+            });
+            flatpickr("#data_fim", {
+                locale: "pt",
+                dateFormat: "Y-m-d",
+                altInput: true,
+                altFormat: "d/m/Y",
+                altInputClass: "form-control flatpickr-alt-input",
+                disableMobile: true,
+                onChange: function(selectedDates, dateStr, instance) {
+                    document.getElementById('data_fim').dispatchEvent(new Event('change'));
+                }
+            });
+
             checkFiltroAtivo();
             
             const dataInicioInput = document.querySelector('input[name="data_inicio"]');
