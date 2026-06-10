@@ -147,6 +147,22 @@ $router->executar($uri);
 // =========================================================================
 $html = ob_get_clean();
 
+// =========================================================================
+// CACHE BUSTING AUTOMÁTICO PARA RECURSOS DO SISTEMA (PWA & Desktop)
+// =========================================================================
+// Adiciona automaticamente um parâmetro de versão (?v=X.X.X) em todos os
+// arquivos locais de CSS e JS na pasta /public/resources/ para evitar que
+// navegadores e celulares (PWA/Standalone) usem arquivos antigos em cache.
+// =========================================================================
+$versaoAtivos = '1.0.3'; // Incrementável a cada alteração de estilo ou lógica
+$html = preg_replace_callback(
+    '/(href|src)="([^"]+?\/public\/resources\/(css|js)\/[^"]+?\.(css|js))(\?[^"]*)?"/i',
+    function ($matches) use ($versaoAtivos) {
+        return $matches[1] . '="' . $matches[2] . '?v=' . $versaoAtivos . '"';
+    },
+    $html
+);
+
 if (strpos($html, '<head>') !== false) {
     $tagsParaInjetar = "";
 
