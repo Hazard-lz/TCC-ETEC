@@ -10,6 +10,8 @@ body {
     height: 100dvh;
     overflow: hidden;
     overscroll-behavior: none;
+    background-color: var(--bg-color);
+    transition: background-color var(--transition-default);
 }
 
 /* Fundo da página e centralizador */

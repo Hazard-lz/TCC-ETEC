@@ -39,11 +39,25 @@ document.addEventListener("DOMContentLoaded", () => {
     const themeToggle = document.getElementById("themeToggle");
     const currentTheme = localStorage.getItem("theme") || "light";
     
+    // Gerenciador dinâmico do theme-color (barra do navegador mobile)
+    function atualizarThemeColor() {
+        const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+        const themeColor = isDark ? "#1a202c" : "#f0f2f5";
+        let metaThemeColor = document.querySelector('meta[name="theme-color"]');
+        if (!metaThemeColor) {
+            metaThemeColor = document.createElement('meta');
+            metaThemeColor.setAttribute('name', 'theme-color');
+            document.head.appendChild(metaThemeColor);
+        }
+        metaThemeColor.setAttribute('content', themeColor);
+    }
+    
     // Verifica qual tema está salvo no PC/Celular do usuário ao carregar a página
     if (currentTheme === "dark") {
         document.documentElement.setAttribute("data-theme", "dark");
         if (themeToggle) themeToggle.checked = true; // Deixa a chavinha visualmente ligada
     }
+    atualizarThemeColor(); // Executa ao carregar
     
     // Evento de mudança (change) na chavinha
     if (themeToggle) {
@@ -55,6 +69,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 document.documentElement.removeAttribute("data-theme");
                 localStorage.setItem("theme", "light"); // Salva tema claro
             }
+            atualizarThemeColor(); // Atualiza a cor no topo do navegador
         });
     }
 
