@@ -84,16 +84,22 @@ class UsuarioService extends BaseService
             $codigo = mt_rand(100000, 999999);
             $this->usuarioModel->salvarCodigo($idNovoUsuario, $codigo, 30);
 
-            $emailService = new EmailService();
-            $assunto = "Seu código de verificação - Belezou App";
-            $html = "<div style='text-align:center; padding: 20px; font-family: sans-serif;'>
-                        <h2>Olá, {$nome}!</h2>
-                        <p>Falta pouco para acessar o sistema.</p>
-                        <p>O seu código de verificação é:</p>
-                        <h1 style='color: #8b5cf6; letter-spacing: 5px; font-size: 2.5rem; background: #f8fafc; padding: 10px; border-radius: 8px; display: inline-block;'>{$codigo}</h1>
-                     </div>";
-
-            $emailService->enviar($email, $nome, $assunto, $html);
+            ignore_user_abort(true);
+            register_shutdown_function(function() use ($email, $nome, $codigo) {
+                try {
+                    $emailService = new EmailService();
+                    $assunto = "Seu código de verificação - Belezou App";
+                    $html = "<div style='text-align:center; padding: 20px; font-family: sans-serif;'>
+                                <h2>Olá, {$nome}!</h2>
+                                <p>Falta pouco para acessar o sistema.</p>
+                                <p>O seu código de verificação é:</p>
+                                <h1 style='color: #8b5cf6; letter-spacing: 5px; font-size: 2.5rem; background: #f8fafc; padding: 10px; border-radius: 8px; display: inline-block;'>{$codigo}</h1>
+                             </div>";
+                    $emailService->enviar($email, $nome, $assunto, $html);
+                } catch (Exception $e) {
+                    error_log("Erro ao enviar email de verificação em background: " . $e->getMessage());
+                }
+            });
 
             return $this->sucesso('Cadastrado com sucesso!', ['id' => $idNovoUsuario]);
         }
@@ -121,30 +127,34 @@ class UsuarioService extends BaseService
             $token = mt_rand(100000, 999999);
             $this->usuarioModel->salvarCodigo($idNovoUsuario, $token, 2880);
 
-            require_once __DIR__ . '/EmailService.php';
-            $emailService = new EmailService();
-            $assunto = "Bem-vindo à equipe - Crie sua senha de acesso";
+            ignore_user_abort(true);
+            register_shutdown_function(function() use ($email, $nome, $token) {
+                try {
+                    $emailService = new EmailService();
+                    $assunto = "Bem-vindo à equipe - Crie sua senha de acesso";
 
-            $host = !empty($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : 'localhost';
-            $protocolo = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? "https" : "http";
-            $urlCompleta = $protocolo . "://" . $host . BASE_URL;
-            $link = $urlCompleta . "/setup-funcionario?token={$token}&email=" . urlencode($email);
+                    $host = !empty($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : 'localhost';
+                    $protocolo = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? "https" : "http";
+                    $urlCompleta = $protocolo . "://" . $host . BASE_URL;
+                    $link = $urlCompleta . "/setup-funcionario?token={$token}&email=" . urlencode($email);
 
-            $html = "<div style='text-align:center; padding: 20px; font-family: sans-serif; color: #333;'>
-                        <h2>Olá, {$nome}!</h2>
-                        <p>Você foi adicionado à equipe do salão.</p>
-                        <p>Para concluir seu cadastro e criar sua senha de acesso, clique no botão abaixo:</p>
-                        <a href='{$link}' style='display:inline-block; padding: 12px 24px; background: #8b5cf6; color: #fff; text-decoration: none; border-radius: 8px; margin-top: 15px; margin-bottom: 20px;'>Criar minha senha</a>
-                        <hr style='border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;'>
-                        <p style='font-size: 0.85rem; color: #64748b;'>Se o botão não funcionar, copie e cole o link abaixo no seu navegador:</p>
-                        <p style='font-size: 0.85rem; color: #8b5cf6; word-break: break-all;'>{$link}</p>
-                     </div>";
+                    $html = "<div style='text-align:center; padding: 20px; font-family: sans-serif; color: #333;'>
+                                <h2>Olá, {$nome}!</h2>
+                                <p>Você foi adicionado à equipe do salão.</p>
+                                <p>Para concluir seu cadastro e criar sua senha de acesso, clique no botão abaixo:</p>
+                                <a href='{$link}' style='display:inline-block; padding: 12px 24px; background: #8b5cf6; color: #fff; text-decoration: none; border-radius: 8px; margin-top: 15px; margin-bottom: 20px;'>Criar minha senha</a>
+                                <hr style='border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;'>
+                                <p style='font-size: 0.85rem; color: #64748b;'>Se o botão não funcionar, copie e cole o link abaixo no seu navegador:</p>
+                                <p style='font-size: 0.85rem; color: #8b5cf6; word-break: break-all;'>{$link}</p>
+                             </div>";
 
-            $textoPuro = "Olá, {$nome}!\n\nVocê foi adicionado à equipe do salão.\n\nPara concluir seu cadastro e criar sua senha de acesso, copie e cole o link abaixo no seu navegador:\n\n{$link}";
+                    $textoPuro = "Olá, {$nome}!\n\nVocê foi adicionado à equipe do salão.\n\nPara concluir seu cadastro e criar sua senha de acesso, copie e cole o link abaixo no seu navegador:\n\n{$link}";
 
-            if (!$emailService->enviar($email, $nome, $assunto, $html, $textoPuro)) {
-                return $this->erro('O funcionário foi salvo, mas houve um erro ao enviar o e-mail.');
-            }
+                    $emailService->enviar($email, $nome, $assunto, $html, $textoPuro);
+                } catch (Exception $e) {
+                    error_log("Erro ao enviar email de equipe em background: " . $e->getMessage());
+                }
+            });
 
             return $this->sucesso('Funcionário cadastrado com sucesso! Um e-mail foi enviado.', ['id' => $idNovoUsuario]);
         }
@@ -255,17 +265,23 @@ class UsuarioService extends BaseService
         $codigo = mt_rand(100000, 999999);
         $this->usuarioModel->salvarCodigo($usuario['id_usuario'], $codigo, 30);
 
-        $emailService = new EmailService();
-        $assunto = "Recuperação de Senha - Belezou App";
-        $html = "<div style='text-align:center; padding: 20px; font-family: sans-serif;'>
-                    <h2>Olá, {$usuario['nome']}!</h2>
-                    <p>Recebemos uma solicitação para redefinir a sua senha.</p>
-                    <p>O seu código de recuperação (válido por 30 minutos) é:</p>
-                    <h1 style='color: #8b5cf6; letter-spacing: 5px; font-size: 2.5rem; background: #f8fafc; padding: 10px; border-radius: 8px; display: inline-block;'>{$codigo}</h1>
-                    <p>Se não pediu esta alteração, ignore este e-mail.</p>
-                 </div>";
-
-        $emailService->enviar($email, $usuario['nome'], $assunto, $html);
+        ignore_user_abort(true);
+        register_shutdown_function(function() use ($email, $usuario, $codigo) {
+            try {
+                $emailService = new EmailService();
+                $assunto = "Recuperação de Senha - Belezou App";
+                $html = "<div style='text-align:center; padding: 20px; font-family: sans-serif;'>
+                            <h2>Olá, {$usuario['nome']}!</h2>
+                            <p>Recebemos uma solicitação para redefinir a sua senha.</p>
+                            <p>O seu código de recuperação (válido por 30 minutos) é:</p>
+                            <h1 style='color: #8b5cf6; letter-spacing: 5px; font-size: 2.5rem; background: #f8fafc; padding: 10px; border-radius: 8px; display: inline-block;'>{$codigo}</h1>
+                            <p>Se não pediu esta alteração, ignore este e-mail.</p>
+                         </div>";
+                $emailService->enviar($email, $usuario['nome'], $assunto, $html);
+            } catch (Exception $e) {
+                error_log("Erro ao enviar email de recuperação em background: " . $e->getMessage());
+            }
+        });
 
         return $this->sucesso('Se o e-mail estiver registado, receberá um código em breve.');
     }
@@ -381,15 +397,21 @@ class UsuarioService extends BaseService
             $mensagemAlerta = 'Um novo código de verificação foi gerado e enviado para o seu e-mail (válido por 30 min).';
         }
 
-        $emailService = new EmailService();
-        $assunto = "Seu código de verificação - Belezou App";
-        $html = "<div style='text-align:center; padding: 20px; font-family: sans-serif;'>
-                    <h2>Olá, {$usuario['nome']}!</h2>
-                    <p>Aqui está o seu código de verificação de acesso:</p>
-                    <h1 style='color: #8b5cf6; letter-spacing: 5px; font-size: 2.5rem; background: #f8fafc; padding: 10px; border-radius: 8px; display: inline-block;'>{$codigoParaEnviar}</h1>
-                 </div>";
-
-        $emailService->enviar($email, $usuario['nome'], $assunto, $html);
+        ignore_user_abort(true);
+        register_shutdown_function(function() use ($email, $usuario, $codigoParaEnviar) {
+            try {
+                $emailService = new EmailService();
+                $assunto = "Seu código de verificação - Belezou App";
+                $html = "<div style='text-align:center; padding: 20px; font-family: sans-serif;'>
+                            <h2>Olá, {$usuario['nome']}!</h2>
+                            <p>Aqui está o seu código de verificação de acesso:</p>
+                            <h1 style='color: #8b5cf6; letter-spacing: 5px; font-size: 2.5rem; background: #f8fafc; padding: 10px; border-radius: 8px; display: inline-block;'>{$codigoParaEnviar}</h1>
+                         </div>";
+                $emailService->enviar($email, $usuario['nome'], $assunto, $html);
+            } catch (Exception $e) {
+                error_log("Erro ao enviar email de reenvio de verificação em background: " . $e->getMessage());
+            }
+        });
 
         return $this->sucesso($mensagemAlerta);
     }
@@ -427,13 +449,18 @@ class UsuarioService extends BaseService
 
         $textoPuro = "Olá, {$usuario['nome']}!\n\nO seu link de acesso foi gerado novamente pelo administrador.\n\nPara concluir seu cadastro e criar sua senha de acesso, copie e cole o link abaixo no seu navegador:\n\n{$link}";
 
-        require_once __DIR__ . '/EmailService.php';
-        $emailService = new EmailService();
-        if ($emailService->enviar($usuario['email'], $usuario['nome'], $assunto, $html, $textoPuro)) {
-            return $this->sucesso('E-mail de configuração reenviado com sucesso!');
-        }
+        ignore_user_abort(true);
+        register_shutdown_function(function() use ($usuario, $assunto, $html, $textoPuro) {
+            try {
+                require_once __DIR__ . '/EmailService.php';
+                $emailService = new EmailService();
+                $emailService->enviar($usuario['email'], $usuario['nome'], $assunto, $html, $textoPuro);
+            } catch (Exception $e) {
+                error_log("Erro ao reenviar email de setup em background: " . $e->getMessage());
+            }
+        });
 
-        return $this->erro('Falha técnica ao tentar enviar o e-mail.');
+        return $this->sucesso('E-mail de configuração reenviado com sucesso!');
     }
 
     public function removerDispositivoOneSignal($id_usuario)

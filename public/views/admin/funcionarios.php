@@ -168,7 +168,7 @@ $totalAdmins = $usuarioModel->contarAdminsAtivos();
                                             data-funcionario='<?= htmlspecialchars(json_encode($func), ENT_QUOTES, 'UTF-8') ?>'
                                             data-is-logado="<?= $isLogado ? 'true' : 'false' ?>"
                                             data-total-admins="<?= $totalAdmins ?>" onclick="abrirEdicaoFuncionario(this)">
-                                            ✏️
+                                            <i class="bi bi-pencil-square"></i>
                                         </button>
 
                                         <?php if (isset($func['email_verificado']) && $func['email_verificado'] == 0): ?>
@@ -177,9 +177,8 @@ $totalAdmins = $usuarioModel->contarAdminsAtivos();
                                                 <?= CsrfGuard::campoHidden() ?>
                                                 <input type="hidden" name="cod_usuario" value="<?= $func['cod_usuario'] ?>">
                                                 <button type="submit" class="btn-action" title="Reenviar E-mail de Configuração"
-                                                    onclick="event.preventDefault(); Swal.fire({title: 'Atenção', text: 'Deseja reenviar o link de criação de senha para o funcionário <?= htmlspecialchars(addslashes($func['nome'])) ?>?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc3545', cancelButtonColor: '#6c757d', confirmButtonText: 'Confirmar', cancelButtonText: 'Cancelar'}).then((result) => { if (result.isConfirmed) { this.closest('form').submit(); } });"
-                                                    style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">
-                                                    📧
+                                                    onclick="event.preventDefault(); Swal.fire({title: 'Atenção', text: 'Deseja reenviar o link de criação de senha para o funcionário <?= htmlspecialchars(addslashes($func['nome'])) ?>?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc3545', cancelButtonColor: '#6c757d', confirmButtonText: 'Confirmar', cancelButtonText: 'Cancelar'}).then((result) => { if (result.isConfirmed) { this.closest('form').submit(); } });">
+                                                    <i class="bi bi-envelope"></i>
                                                 </button>
                                             </form>
                                         <?php endif; ?>
@@ -192,7 +191,7 @@ $totalAdmins = $usuarioModel->contarAdminsAtivos();
                                         <?php if ($isLogado || $bloqueadoPorHierarquia): ?>
                                             <button type="button" class="btn-action btn-disabled"
                                                 title="<?= $isLogado ? 'Você não pode inativar a si mesmo.' : 'Sem permissão para alterar um administrador.' ?>">
-                                                🚫
+                                                <i class="bi bi-slash-circle"></i>
                                             </button>
                                         <?php else: ?>
                                             <form action="<?= BASE_URL ?? '' ?>/admin/funcionarios/status" method="POST"
@@ -202,16 +201,14 @@ $totalAdmins = $usuarioModel->contarAdminsAtivos();
                                                 <input type="hidden" name="status_atual" value="<?= $func['status'] ?>">
 
                                                 <?php if ($func['status'] === 'ativo'): ?>
-                                                    <button type="submit" class="btn-action" title="Inativar Acesso"
-                                                        onclick="event.preventDefault(); Swal.fire({title: 'Atenção', text: 'Deseja realmente INATIVAR o funcionário <?= htmlspecialchars(addslashes($func['nome'])) ?>? Ele não poderá mais acessar o sistema ou receber novos agendamentos.', icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc3545', cancelButtonColor: '#6c757d', confirmButtonText: 'Confirmar', cancelButtonText: 'Cancelar'}).then((result) => { if (result.isConfirmed) { this.closest('form').submit(); } });"
-                                                        style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">
-                                                        🚫
+                                                    <button type="submit" class="btn-action btn-delete" title="Inativar Acesso"
+                                                        onclick="event.preventDefault(); Swal.fire({title: 'Atenção', text: 'Deseja realmente INATIVAR o funcionário <?= htmlspecialchars(addslashes($func['nome'])) ?>? Ele não poderá mais acessar o sistema ou receber novos agendamentos.', icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc3545', cancelButtonColor: '#6c757d', confirmButtonText: 'Confirmar', cancelButtonText: 'Cancelar'}).then((result) => { if (result.isConfirmed) { this.closest('form').submit(); } });">
+                                                        <i class="bi bi-slash-circle"></i>
                                                     </button>
                                                 <?php else: ?>
-                                                    <button type="submit" class="btn-action" title="Reativar Acesso"
-                                                        onclick="event.preventDefault(); Swal.fire({title: 'Atenção', text: 'Deseja ATIVAR o funcionário <?= htmlspecialchars(addslashes($func['nome'])) ?> novamente?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc3545', cancelButtonColor: '#6c757d', confirmButtonText: 'Confirmar', cancelButtonText: 'Cancelar'}).then((result) => { if (result.isConfirmed) { this.closest('form').submit(); } });"
-                                                        style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">
-                                                        ✅
+                                                    <button type="submit" class="btn-action btn-edit" title="Reativar Acesso"
+                                                        onclick="event.preventDefault(); Swal.fire({title: 'Atenção', text: 'Deseja ATIVAR o funcionário <?= htmlspecialchars(addslashes($func['nome'])) ?> novamente?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc3545', cancelButtonColor: '#6c757d', confirmButtonText: 'Confirmar', cancelButtonText: 'Cancelar'}).then((result) => { if (result.isConfirmed) { this.closest('form').submit(); } });">
+                                                        <i class="bi bi-check-circle"></i>
                                                     </button>
                                                 <?php endif; ?>
                                             </form>
@@ -281,7 +278,7 @@ $totalAdmins = $usuarioModel->contarAdminsAtivos();
                             <option value="comum">Profissional Comum</option>
                             <option value="subadmin">Subadministrador (Gestão sem relatórios)</option>
                             <?php if ($_SESSION['usuario_tipo'] === 'admin'): ?>
-                                <option value="admin" id="optionAdmin" style="display: none;">👑 Transferir Cargo de
+                                <option value="admin" id="optionAdmin" style="display: none;">Transferir Cargo de
                                     Administrador</option>
                             <?php endif; ?>
                         </select>

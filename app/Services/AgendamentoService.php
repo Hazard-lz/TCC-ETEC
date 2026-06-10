@@ -141,73 +141,77 @@ class AgendamentoService extends BaseService
             $this->conn->commit();
 
             // =================================================================
-            // DISPARO DE NOTIFICAÇÕES (Em segundo plano)
+            // DISPARO DE NOTIFICAÇÕES (Assíncrono via Shutdown Function)
             // =================================================================
-            try {
-                $agendamentoCompleto = $this->agendamentoModel->buscarPorId($idAgendamento);
-                if ($agendamentoCompleto) {
-                    $oneSignal = new OneSignalService();
-                    $emailService = new EmailService();
-                    
-                    $protocolo = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? "https" : "http";
-                    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
-                    $urlBase = "$protocolo://$host" . BASE_URL;
+            // Permite que o PHP responda e redirecione o cliente imediatamente,
+            // processando os disparos lentos de rede (SMTP e Push) em background.
+            ignore_user_abort(true);
+            register_shutdown_function(function() use ($idAgendamento, $idFuncionarioCriador) {
+                try {
+                    $agendamentoCompleto = $this->agendamentoModel->buscarPorId($idAgendamento);
+                    if ($agendamentoCompleto) {
+                        $oneSignal = new OneSignalService();
+                        $emailService = new EmailService();
+                        
+                        $protocolo = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? "https" : "http";
+                        $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+                        $urlBase = "$protocolo://$host" . BASE_URL;
 
-                    $dataPt = date('d/m/Y', strtotime($agendamentoCompleto['data_agendamento']));
-                    $horaPt = substr($agendamentoCompleto['hora_inicio'], 0, 5);
+                        $dataPt = date('d/m/Y', strtotime($agendamentoCompleto['data_agendamento']));
+                        $horaPt = substr($agendamentoCompleto['hora_inicio'], 0, 5);
 
-                    if ($idFuncionarioCriador === null) {
-                        // Agendado pelo CLIENTE -> Notifica o profissional
-                        if (!empty($agendamentoCompleto['funcionario_cod_usuario'])) {
-                            $msg = "📅 Novo Agendamento: {$agendamentoCompleto['cliente_nome']} solicitou {$agendamentoCompleto['nome_servico']} para o dia $dataPt às $horaPt.";
-                            $oneSignal->enviarNotificacao(
-                                $agendamentoCompleto['funcionario_cod_usuario'], 
-                                $msg, 
-                                $urlBase . '/funcionario/agenda',
-                                "Novo Agendamento"
-                            );
-                        }
-                        if (!empty($agendamentoCompleto['funcionario_email'])) {
-                            $assunto = "Novo Agendamento Solicitado - Belezou App";
-                            $corpoHtml = "<div style='padding: 20px; font-family: sans-serif; color: #333;'>
-                                <h2>Olá, {$agendamentoCompleto['funcionario_nome']}!</h2>
-                                <p>Um novo agendamento foi solicitado por um cliente:</p>
-                                <p><strong>Cliente:</strong> {$agendamentoCompleto['cliente_nome']}</p>
-                                <p><strong>Serviço:</strong> {$agendamentoCompleto['nome_servico']}</p>
-                                <p><strong>Data/Hora:</strong> {$dataPt} às {$horaPt}</p>
-                                <p>Acesse o painel do sistema para gerenciar sua agenda.</p>
-                            </div>";
-                            $emailService->enviar($agendamentoCompleto['funcionario_email'], $agendamentoCompleto['funcionario_nome'], $assunto, $corpoHtml);
-                        }
-                    } else {
-                        // Agendado pelo FUNCIONÁRIO/BALCÃO -> Notifica o cliente
-                        if (!empty($agendamentoCompleto['cliente_cod_usuario'])) {
-                            $msg = "✨ Agendamento Marcado: Um novo horário de {$agendamentoCompleto['nome_servico']} foi reservado para você no dia $dataPt às $horaPt.";
-                            $oneSignal->enviarNotificacao(
-                                $agendamentoCompleto['cliente_cod_usuario'], 
-                                $msg, 
-                                $urlBase . '/historico',
-                                "Novo Agendamento"
-                            );
-                        }
-                        if (!empty($agendamentoCompleto['cliente_email'])) {
-                            $assunto = "Novo Agendamento Confirmado - Belezou App";
-                            $corpoHtml = "<div style='padding: 20px; font-family: sans-serif; color: #333;'>
-                                <h2>Olá, {$agendamentoCompleto['cliente_nome']}!</h2>
-                                <p>Seu agendamento foi cadastrado no sistema:</p>
-                                <p><strong>Serviço:</strong> {$agendamentoCompleto['nome_servico']}</p>
-                                <p><strong>Profissional:</strong> {$agendamentoCompleto['funcionario_nome']}</p>
-                                <p><strong>Data/Hora:</strong> {$dataPt} às {$horaPt}</p>
-                                <p>Agradecemos a preferência!</p>
-                            </div>";
-                            $emailService->enviar($agendamentoCompleto['cliente_email'], $agendamentoCompleto['cliente_nome'], $assunto, $corpoHtml);
+                        if ($idFuncionarioCriador === null) {
+                            // Agendado pelo CLIENTE -> Notifica o profissional
+                            if (!empty($agendamentoCompleto['funcionario_cod_usuario'])) {
+                                $msg = "📅 Novo Agendamento: {$agendamentoCompleto['cliente_nome']} solicitou {$agendamentoCompleto['nome_servico']} para o dia $dataPt às $horaPt.";
+                                $oneSignal->enviarNotificacao(
+                                    $agendamentoCompleto['funcionario_cod_usuario'], 
+                                    $msg, 
+                                    $urlBase . '/funcionario/agenda',
+                                    "Novo Agendamento"
+                                );
+                            }
+                            if (!empty($agendamentoCompleto['funcionario_email'])) {
+                                $assunto = "Novo Agendamento Solicitado - Belezou App";
+                                $corpoHtml = "<div style='padding: 20px; font-family: sans-serif; color: #333;'>
+                                    <h2>Olá, {$agendamentoCompleto['funcionario_nome']}!</h2>
+                                    <p>Um novo agendamento foi solicitado por um cliente:</p>
+                                    <p><strong>Cliente:</strong> {$agendamentoCompleto['cliente_nome']}</p>
+                                    <p><strong>Serviço:</strong> {$agendamentoCompleto['nome_servico']}</p>
+                                    <p><strong>Data/Hora:</strong> {$dataPt} às {$horaPt}</p>
+                                    <p>Acesse o painel do sistema para gerenciar sua agenda.</p>
+                                </div>";
+                                $emailService->enviar($agendamentoCompleto['funcionario_email'], $agendamentoCompleto['funcionario_nome'], $assunto, $corpoHtml);
+                            }
+                        } else {
+                            // Agendado pelo FUNCIONÁRIO/BALCÃO -> Notifica o cliente
+                            if (!empty($agendamentoCompleto['cliente_cod_usuario'])) {
+                                $msg = "✨ Agendamento Marcado: Um novo horário de {$agendamentoCompleto['nome_servico']} foi reservado para você no dia $dataPt às $horaPt.";
+                                $oneSignal->enviarNotificacao(
+                                    $agendamentoCompleto['cliente_cod_usuario'], 
+                                    $msg, 
+                                    $urlBase . '/historico',
+                                    "Novo Agendamento"
+                                );
+                            }
+                            if (!empty($agendamentoCompleto['cliente_email'])) {
+                                $assunto = "Novo Agendamento Confirmado - Belezou App";
+                                $corpoHtml = "<div style='padding: 20px; font-family: sans-serif; color: #333;'>
+                                    <h2>Olá, {$agendamentoCompleto['cliente_nome']}!</h2>
+                                    <p>Seu agendamento foi cadastrado no sistema:</p>
+                                    <p><strong>Serviço:</strong> {$agendamentoCompleto['nome_servico']}</p>
+                                    <p><strong>Profissional:</strong> {$agendamentoCompleto['funcionario_nome']}</p>
+                                    <p><strong>Data/Hora:</strong> {$dataPt} às {$horaPt}</p>
+                                    <p>Agradecemos a preferência!</p>
+                                </div>";
+                                $emailService->enviar($agendamentoCompleto['cliente_email'], $agendamentoCompleto['cliente_nome'], $assunto, $corpoHtml);
+                            }
                         }
                     }
+                } catch (Exception $e) {
+                    error_log("Aviso: Falha ao enviar notificação de novo agendamento em background: " . $e->getMessage());
                 }
-            } catch (Exception $e) {
-                // Notificações falharem não deve reverter o agendamento já persistido
-                error_log("Aviso: Falha ao enviar notificação de novo agendamento: " . $e->getMessage());
-            }
+            });
 
             return [
                 'sucesso' => true,
@@ -311,88 +315,93 @@ class AgendamentoService extends BaseService
 
         if ($atualizou) {
             // =================================================================
-            // DISPARO DE ALERTAS PÓS ALTERAÇÃO DE STATUS
+            // DISPARO DE ALERTAS PÓS ALTERAÇÃO DE STATUS (Assíncrono via Shutdown Function)
             // =================================================================
-            try {
-                $agendamentoAtualizado = $this->agendamentoModel->buscarPorId($idAgendamento);
-                if ($agendamentoAtualizado) {
-                    $oneSignal = new OneSignalService();
-                    $emailService = new EmailService();
-                    
-                    $protocolo = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? "https" : "http";
-                    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
-                    $urlBase = "$protocolo://$host" . BASE_URL;
+            // Permite que o PHP responda e redirecione o cliente imediatamente,
+            // processando os disparos lentos de rede (SMTP e Push) em background.
+            ignore_user_abort(true);
+            register_shutdown_function(function() use ($idAgendamento, $origem, $novoStatus) {
+                try {
+                    $agendamentoAtualizado = $this->agendamentoModel->buscarPorId($idAgendamento);
+                    if ($agendamentoAtualizado) {
+                        $oneSignal = new OneSignalService();
+                        $emailService = new EmailService();
+                        
+                        $protocolo = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? "https" : "http";
+                        $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+                        $urlBase = "$protocolo://$host" . BASE_URL;
 
-                    $dataPt = date('d/m/Y', strtotime($agendamentoAtualizado['data_agendamento']));
-                    $horaPt = substr($agendamentoAtualizado['hora_inicio'], 0, 5);
+                        $dataPt = date('d/m/Y', strtotime($agendamentoAtualizado['data_agendamento']));
+                        $horaPt = substr($agendamentoAtualizado['hora_inicio'], 0, 5);
 
-                    if ($origem === 'cliente' && $novoStatus === 'cancelado') {
-                        // Cliente cancelou -> Notifica o profissional
-                        if (!empty($agendamentoAtualizado['funcionario_cod_usuario'])) {
-                            $msg = "⚠️ Cancelamento: {$agendamentoAtualizado['cliente_nome']} cancelou o agendamento de {$agendamentoAtualizado['nome_servico']} para o dia $dataPt às {$agendamentoAtualizado['hora_inicio']}.";
-                            $oneSignal->enviarNotificacao(
-                                $agendamentoAtualizado['funcionario_cod_usuario'], 
-                                $msg, 
-                                $urlBase . '/funcionario/agenda',
-                                "Agenda Atualizada"
-                            );
-                        }
-                        if (!empty($agendamentoAtualizado['funcionario_email'])) {
-                            $assunto = "Agendamento Cancelado pelo Cliente - Belezou App";
-                            $corpoHtml = "<div style='padding: 20px; font-family: sans-serif; color: #333;'>
-                                <h2>Olá, {$agendamentoAtualizado['funcionario_nome']}!</h2>
-                                <p>O cliente cancelou o agendamento agendado:</p>
-                                <p><strong>Cliente:</strong> {$agendamentoAtualizado['cliente_nome']}</p>
-                                <p><strong>Serviço:</strong> {$agendamentoAtualizado['nome_servico']}</p>
-                                <p><strong>Data/Hora:</strong> {$dataPt} às {$horaPt}</p>
-                                <p>Seu horário foi liberado na agenda.</p>
-                            </div>";
-                            $emailService->enviar($agendamentoAtualizado['funcionario_email'], $agendamentoAtualizado['funcionario_nome'], $assunto, $corpoHtml);
-                        }
-                    } else {
-                        // Funcionário/Admin confirmou ou cancelou -> Notifica o cliente
-                        if (($novoStatus === 'marcado' || $novoStatus === 'cancelado') && !empty($agendamentoAtualizado['cliente_cod_usuario'])) {
-                            $msg = ($novoStatus === 'marcado') 
-                                ? "✅ Seu agendamento de {$agendamentoAtualizado['nome_servico']} foi confirmado!" 
-                                : "❌ Infelizmente seu agendamento de {$agendamentoAtualizado['nome_servico']} foi cancelado. Verifique os motivos no app.";
-                            
-                            $oneSignal->enviarNotificacao(
-                                $agendamentoAtualizado['cliente_cod_usuario'], 
-                                $msg, 
-                                $urlBase . '/historico',
-                                "Status do Agendamento"
-                            );
-                        }
-                        if (!empty($agendamentoAtualizado['cliente_email'])) {
-                            if ($novoStatus === 'marcado') {
-                                $assunto = "Seu Agendamento foi Confirmado! - Belezou App";
+                        if ($origem === 'cliente' && $novoStatus === 'cancelado') {
+                            // Cliente cancelou -> Notifica o profissional
+                            if (!empty($agendamentoAtualizado['funcionario_cod_usuario'])) {
+                                $msg = "⚠️ Cancelamento: {$agendamentoAtualizado['cliente_nome']} cancelou o agendamento de {$agendamentoAtualizado['nome_servico']} para o dia $dataPt às {$agendamentoAtualizado['hora_inicio']}.";
+                                $oneSignal->enviarNotificacao(
+                                    $agendamentoAtualizado['funcionario_cod_usuario'], 
+                                    $msg, 
+                                    $urlBase . '/funcionario/agenda',
+                                    "Agenda Atualizada"
+                                );
+                            }
+                            if (!empty($agendamentoAtualizado['funcionario_email'])) {
+                                $assunto = "Agendamento Cancelado pelo Cliente - Belezou App";
                                 $corpoHtml = "<div style='padding: 20px; font-family: sans-serif; color: #333;'>
-                                    <h2>Olá, {$agendamentoAtualizado['cliente_nome']}!</h2>
-                                    <p>Temos uma ótima notícia! Seu agendamento foi confirmado:</p>
+                                    <h2>Olá, {$agendamentoAtualizado['funcionario_nome']}!</h2>
+                                    <p>O cliente cancelou o agendamento agendado:</p>
+                                    <p><strong>Cliente:</strong> {$agendamentoAtualizado['cliente_nome']}</p>
                                     <p><strong>Serviço:</strong> {$agendamentoAtualizado['nome_servico']}</p>
-                                    <p><strong>Profissional:</strong> {$agendamentoAtualizado['funcionario_nome']}</p>
                                     <p><strong>Data/Hora:</strong> {$dataPt} às {$horaPt}</p>
-                                    <p>Esperamos você!</p>
+                                    <p>Seu horário foi liberado na agenda.</p>
                                 </div>";
-                                $emailService->enviar($agendamentoAtualizado['cliente_email'], $agendamentoAtualizado['cliente_nome'], $assunto, $corpoHtml);
-                            } elseif ($novoStatus === 'cancelado') {
-                                $assunto = "Agendamento Cancelado - Belezou App";
-                                $corpoHtml = "<div style='padding: 20px; font-family: sans-serif; color: #333;'>
-                                    <h2>Olá, {$agendamentoAtualizado['cliente_nome']}!</h2>
-                                    <p>Infelizmente seu agendamento foi cancelado:</p>
-                                    <p><strong>Serviço:</strong> {$agendamentoAtualizado['nome_servico']}</p>
-                                    <p><strong>Profissional:</strong> {$agendamentoAtualizado['funcionario_nome']}</p>
-                                    <p><strong>Data/Hora:</strong> {$dataPt} às {$horaPt}</p>
-                                    <p>Para dúvidas ou para agendar um novo horário, entre em contato conosco.</p>
-                                </div>";
-                                $emailService->enviar($agendamentoAtualizado['cliente_email'], $agendamentoAtualizado['cliente_nome'], $assunto, $corpoHtml);
+                                $emailService->enviar($agendamentoAtualizado['funcionario_email'], $agendamentoAtualizado['funcionario_nome'], $assunto, $corpoHtml);
+                            }
+                        } else {
+                            // Funcionário/Admin confirmou ou cancelou -> Notifica o cliente
+                            if (($novoStatus === 'marcado' || $novoStatus === 'cancelado') && !empty($agendamentoAtualizado['cliente_cod_usuario'])) {
+                                $msg = ($novoStatus === 'marcado') 
+                                    ? "✅ Seu agendamento de {$agendamentoAtualizado['nome_servico']} foi confirmado!" 
+                                    : "❌ Infelizmente seu agendamento de {$agendamentoAtualizado['nome_servico']} foi cancelado. Verifique os motivos no app.";
+                                
+                                $oneSignal->enviarNotificacao(
+                                    $agendamentoAtualizado['cliente_cod_usuario'], 
+                                    $msg, 
+                                    $urlBase . '/historico',
+                                    "Status do Agendamento"
+                                );
+                            }
+                            if (!empty($agendamentoAtualizado['cliente_email'])) {
+                                if ($novoStatus === 'marcado') {
+                                    $assunto = "Seu Agendamento foi Confirmado! - Belezou App";
+                                    $corpoHtml = "<div style='padding: 20px; font-family: sans-serif; color: #333;'>
+                                        <h2>Olá, {$agendamentoAtualizado['cliente_nome']}!</h2>
+                                        <p>Temos uma ótima notícia! Seu agendamento foi confirmado:</p>
+                                        <p><strong>Serviço:</strong> {$agendamentoAtualizado['nome_servico']}</p>
+                                        <p><strong>Profissional:</strong> {$agendamentoAtualizado['funcionario_nome']}</p>
+                                        <p><strong>Data/Hora:</strong> {$dataPt} às {$horaPt}</p>
+                                        <p>Esperamos você!</p>
+                                    </div>";
+                                    $emailService->enviar($agendamentoAtualizado['cliente_email'], $agendamentoAtualizado['cliente_nome'], $assunto, $corpoHtml);
+                                } elseif ($novoStatus === 'cancelado') {
+                                    $assunto = "Agendamento Cancelado - Belezou App";
+                                    $corpoHtml = "<div style='padding: 20px; font-family: sans-serif; color: #333;'>
+                                        <h2>Olá, {$agendamentoAtualizado['cliente_nome']}!</h2>
+                                        <p>Infelizmente seu agendamento foi cancelado:</p>
+                                        <p><strong>Serviço:</strong> {$agendamentoAtualizado['nome_servico']}</p>
+                                        <p><strong>Profissional:</strong> {$agendamentoAtualizado['funcionario_nome']}</p>
+                                        <p><strong>Data/Hora:</strong> {$dataPt} às {$horaPt}</p>
+                                        <p>Para dúvidas ou para agendar um novo horário, entre em contato conosco.</p>
+                                    </div>";
+                                    $emailService->enviar($agendamentoAtualizado['cliente_email'], $agendamentoAtualizado['cliente_nome'], $assunto, $corpoHtml);
+                                }
                             }
                         }
                     }
+                } catch (Exception $e) {
+                    error_log("Aviso: Falha ao enviar notificação push ou e-mail em background: " . $e->getMessage());
                 }
-            } catch (Exception $e) {
-                error_log("Aviso: Falha ao enviar notificação push ou e-mail: " . $e->getMessage());
-            }
+            });
 
             return ['sucesso' => true, 'mensagem' => 'Status do agendamento atualizado.'];
         }
@@ -508,72 +517,75 @@ class AgendamentoService extends BaseService
             $this->conn->commit();
 
             // =================================================================
-            // DISPARO DE NOTIFICAÇÕES DE REMARCAÇÃO
+            // DISPARO DE NOTIFICAÇÕES DE REMARCAÇÃO (Assíncrono via Shutdown Function)
             // =================================================================
-            try {
-                $agendamentoCompleto = $this->agendamentoModel->buscarPorId($idAgendamento);
-                if ($agendamentoCompleto) {
-                    $oneSignal = new OneSignalService();
-                    $emailService = new EmailService();
-                    
-                    $protocolo = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? "https" : "http";
-                    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
-                    $urlBase = "$protocolo://$host" . BASE_URL;
+            ignore_user_abort(true);
+            register_shutdown_function(function() use ($idAgendamento, $origem) {
+                try {
+                    $agendamentoCompleto = $this->agendamentoModel->buscarPorId($idAgendamento);
+                    if ($agendamentoCompleto) {
+                        $oneSignal = new OneSignalService();
+                        $emailService = new EmailService();
+                        
+                        $protocolo = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? "https" : "http";
+                        $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+                        $urlBase = "$protocolo://$host" . BASE_URL;
 
-                    $dataPt = date('d/m/Y', strtotime($agendamentoCompleto['data_agendamento']));
-                    $horaPt = substr($agendamentoCompleto['hora_inicio'], 0, 5);
+                        $dataPt = date('d/m/Y', strtotime($agendamentoCompleto['data_agendamento']));
+                        $horaPt = substr($agendamentoCompleto['hora_inicio'], 0, 5);
 
-                    if ($origem === 'cliente') {
-                        // Remarcado pelo cliente -> Notifica o profissional
-                        if (!empty($agendamentoCompleto['funcionario_cod_usuario'])) {
-                            $msg = "📅 Agendamento Remarcado: {$agendamentoCompleto['cliente_nome']} alterou {$agendamentoCompleto['nome_servico']} para o dia $dataPt às $horaPt.";
-                            $oneSignal->enviarNotificacao(
-                                $agendamentoCompleto['funcionario_cod_usuario'], 
-                                $msg, 
-                                $urlBase . '/funcionario/agenda',
-                                "Agendamento Remarcado"
-                            );
-                        }
-                        if (!empty($agendamentoCompleto['funcionario_email'])) {
-                            $assunto = "Agendamento Remarcado pelo Cliente - Belezou App";
-                            $corpoHtml = "<div style='padding: 20px; font-family: sans-serif; color: #333;'>
-                                <h2>Olá, {$agendamentoCompleto['funcionario_nome']}!</h2>
-                                <p>O cliente remarcou um agendamento existente:</p>
-                                <p><strong>Cliente:</strong> {$agendamentoCompleto['cliente_nome']}</p>
-                                <p><strong>Serviço:</strong> {$agendamentoCompleto['nome_servico']}</p>
-                                <p><strong>Nova Data/Hora:</strong> {$dataPt} às {$horaPt}</p>
-                                <p>Acesse o painel do sistema para gerenciar sua agenda.</p>
-                            </div>";
-                            $emailService->enviar($agendamentoCompleto['funcionario_email'], $agendamentoCompleto['funcionario_nome'], $assunto, $corpoHtml);
-                        }
-                    } else {
-                        // Remarcado pelo profissional/gerência -> Notifica o cliente
-                        if (!empty($agendamentoCompleto['cliente_cod_usuario'])) {
-                            $msg = "✨ Agendamento Remarcado: O seu horário de {$agendamentoCompleto['nome_servico']} foi remarcado para o dia $dataPt às $horaPt.";
-                            $oneSignal->enviarNotificacao(
-                                $agendamentoCompleto['cliente_cod_usuario'], 
-                                $msg, 
-                                $urlBase . '/historico',
-                                "Agendamento Remarcado"
-                            );
-                        }
-                        if (!empty($agendamentoCompleto['cliente_email'])) {
-                            $assunto = "Seu Agendamento foi Remarcado! - Belezou App";
-                            $corpoHtml = "<div style='padding: 20px; font-family: sans-serif; color: #333;'>
-                                <h2>Olá, {$agendamentoCompleto['cliente_nome']}!</h2>
-                                <p>O seu agendamento foi remarcado pelo profissional:</p>
-                                <p><strong>Serviço:</strong> {$agendamentoCompleto['nome_servico']}</p>
-                                <p><strong>Profissional:</strong> {$agendamentoCompleto['funcionario_nome']}</p>
-                                <p><strong>Nova Data/Hora:</strong> {$dataPt} às {$horaPt}</p>
-                                <p>Agradecemos a preferência!</p>
-                            </div>";
-                            $emailService->enviar($agendamentoCompleto['cliente_email'], $agendamentoCompleto['cliente_nome'], $assunto, $corpoHtml);
+                        if ($origem === 'cliente') {
+                            // Remarcado pelo cliente -> Notifica o profissional
+                            if (!empty($agendamentoCompleto['funcionario_cod_usuario'])) {
+                                $msg = "📅 Agendamento Remarcado: {$agendamentoCompleto['cliente_nome']} alterou {$agendamentoCompleto['nome_servico']} para o dia $dataPt às $horaPt.";
+                                $oneSignal->enviarNotificacao(
+                                    $agendamentoCompleto['funcionario_cod_usuario'], 
+                                    $msg, 
+                                    $urlBase . '/funcionario/agenda',
+                                    "Agendamento Remarcado"
+                                );
+                            }
+                            if (!empty($agendamentoCompleto['funcionario_email'])) {
+                                $assunto = "Agendamento Remarcado pelo Cliente - Belezou App";
+                                $corpoHtml = "<div style='padding: 20px; font-family: sans-serif; color: #333;'>
+                                    <h2>Olá, {$agendamentoCompleto['funcionario_nome']}!</h2>
+                                    <p>O cliente remarcou um agendamento existente:</p>
+                                    <p><strong>Cliente:</strong> {$agendamentoCompleto['cliente_nome']}</p>
+                                    <p><strong>Serviço:</strong> {$agendamentoCompleto['nome_servico']}</p>
+                                    <p><strong>Nova Data/Hora:</strong> {$dataPt} às {$horaPt}</p>
+                                    <p>Acesse o painel do sistema para gerenciar sua agenda.</p>
+                                </div>";
+                                $emailService->enviar($agendamentoCompleto['funcionario_email'], $agendamentoCompleto['funcionario_nome'], $assunto, $corpoHtml);
+                            }
+                        } else {
+                            // Remarcado pelo profissional/gerência -> Notifica o cliente
+                            if (!empty($agendamentoCompleto['cliente_cod_usuario'])) {
+                                $msg = "✨ Agendamento Remarcado: O seu horário de {$agendamentoCompleto['nome_servico']} foi remarcado para o dia $dataPt às $horaPt.";
+                                $oneSignal->enviarNotificacao(
+                                    $agendamentoCompleto['cliente_cod_usuario'], 
+                                    $msg, 
+                                    $urlBase . '/historico',
+                                    "Agendamento Remarcado"
+                                );
+                            }
+                            if (!empty($agendamentoCompleto['cliente_email'])) {
+                                $assunto = "Seu Agendamento foi Remarcado! - Belezou App";
+                                $corpoHtml = "<div style='padding: 20px; font-family: sans-serif; color: #333;'>
+                                    <h2>Olá, {$agendamentoCompleto['cliente_nome']}!</h2>
+                                    <p>O seu agendamento foi remarcado pelo profissional:</p>
+                                    <p><strong>Serviço:</strong> {$agendamentoCompleto['nome_servico']}</p>
+                                    <p><strong>Profissional:</strong> {$agendamentoCompleto['funcionario_nome']}</p>
+                                    <p><strong>Nova Data/Hora:</strong> {$dataPt} às {$horaPt}</p>
+                                    <p>Agradecemos a preferência!</p>
+                                </div>";
+                                $emailService->enviar($agendamentoCompleto['cliente_email'], $agendamentoCompleto['cliente_nome'], $assunto, $corpoHtml);
+                            }
                         }
                     }
+                } catch (Exception $e) {
+                    error_log("Aviso: Falha ao enviar notificação de remarcação em background: " . $e->getMessage());
                 }
-            } catch (Exception $e) {
-                error_log("Aviso: Falha ao enviar notificação de remarcação: " . $e->getMessage());
-            }
+            });
 
             return [
                 'sucesso' => true,

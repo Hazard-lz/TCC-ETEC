@@ -26,6 +26,7 @@ class EmailService extends BaseService {
             $this->mail->SMTPAuth   = true;                                   
             $this->mail->Username   = $_ENV['MAIL_USER'];                     
             $this->mail->Password   = $_ENV['MAIL_PASS'];                     
+            $this->mail->Timeout    = 10; // Timeout SMTP de 10 segundos
             
             if ($_ENV['MAIL_PORT'] == 465) {
                 $this->mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;

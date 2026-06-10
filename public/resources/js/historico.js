@@ -42,6 +42,7 @@ function cancelarAgendamento(idAgendamento) {
         hideClass: { popup: 'swal-belezou-hide' }
     }).then(result => {
         if (result.isConfirmed) {
+            Swal.showLoading();
             document.getElementById(`form-cancelar-${idAgendamento}`).submit();
         }
     });
@@ -134,7 +135,11 @@ async function atualizarHorariosRemarcar() {
     }
 
     boxHorarios.style.display = 'block';
-    containerHorarios.innerHTML = '<p style="color: var(--text-muted); grid-column: 1/-1; text-align: center;">Buscando horários disponíveis...</p>';
+    containerHorarios.innerHTML = `
+        <div class="skeleton-slot"></div>
+        <div class="skeleton-slot"></div>
+        <div class="skeleton-slot"></div>
+    `;
     document.getElementById('remarcar-hora-selecionada').value = '';
     document.getElementById('btn-remarcar-confirmar').disabled = true;
 
@@ -316,7 +321,7 @@ function renderProximos(proximos, antecedenciaHoras) {
         html += `
             <div class="history-card ${estilo.card}">
                 <div class="history-header">
-                    <span class="history-date">📅 ${ag.data_formatada} às ${ag.hora_formatada}</span>
+                    <span class="history-date"><i class="bi bi-calendar-event" style="margin-right: 4px;"></i> ${ag.data_formatada} às ${ag.hora_formatada}</span>
                     <span class="history-badge ${estilo.badge}">${estilo.label}</span>
                 </div>
                 <div class="history-body">
@@ -359,7 +364,7 @@ function renderAnteriores(anteriores) {
         html += `
             <div class="history-card ${estilo.card}">
                 <div class="history-header">
-                    <span class="history-date">📅 ${ag.data_formatada} às ${ag.hora_formatada}</span>
+                    <span class="history-date"><i class="bi bi-calendar-event" style="margin-right: 4px;"></i> ${ag.data_formatada} às ${ag.hora_formatada}</span>
                     <span class="history-badge ${estilo.badge}">${estilo.label}</span>
                 </div>
                 <div class="history-body">
@@ -394,3 +399,17 @@ function escapeHtml(string) {
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
 }
+
+// Impede cliques múltiplos na remarcação
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('formRemarcar');
+    if (form) {
+        form.addEventListener('submit', function() {
+            const btn = document.getElementById('btn-remarcar-confirmar');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="bi bi-hourglass-split spinner-loading" style="margin-right: 4px;"></i> Confirmando...';
+            }
+        });
+    }
+});

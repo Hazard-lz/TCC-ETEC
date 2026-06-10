@@ -79,9 +79,9 @@ if (session_status() === PHP_SESSION_NONE) {
             <?php endif; ?>
 
             <div class="action-buttons">
-                <button onclick="window.location.href='<?= BASE_URL ?>/funcionario/disponibilidade'" class="btn-secondary btn-desktop">⏱ Gerenciar Horário</button>
+                <button onclick="window.location.href='<?= BASE_URL ?>/funcionario/disponibilidade'" class="btn-secondary btn-desktop"><i class="bi bi-clock" style="margin-right: 4px;"></i> Gerenciar Horário</button>
                 <button data-modal-target="#modalNovoBloqueio" class="btn-secondary btn-desktop" style="background:#64748b; color:white; border-color:#64748b;"><i class="bi bi-slash-circle"></i> Bloquear Horário</button>
-                <button data-modal-target="#modalNovoAgendamento" class="btn-primary btn-desktop">+ Novo Agendamento</button>
+                <button data-modal-target="#modalNovoAgendamento" class="btn-primary btn-desktop"><i class="bi bi-calendar-plus" style="margin-right: 4px;"></i> Novo Agendamento</button>
             </div>
         </div>
 
@@ -208,42 +208,42 @@ if (session_status() === PHP_SESSION_NONE) {
                 <!-- Info rows com ícones -->
                 <div style="display:flex; flex-direction:column; gap:0.75rem; margin-bottom:1.25rem;">
                     <div style="display:flex; align-items:center; gap:0.75rem;">
-                        <span style="font-size:1.2rem; width:24px; text-align:center;">👤</span>
+                        <span style="font-size:1.2rem; width:24px; text-align:center; color: var(--color-purple);"><i class="bi bi-person-fill"></i></span>
                         <div>
                             <div style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">Cliente</div>
                             <div style="font-weight:600; color:var(--text-main);" id="detalhesCliente"></div>
                         </div>
                     </div>
                     <div style="display:flex; align-items:center; gap:0.75rem;">
-                        <span style="font-size:1.2rem; width:24px; text-align:center;">✂️</span>
+                        <span style="font-size:1.2rem; width:24px; text-align:center; color: var(--color-purple);"><i class="bi bi-scissors"></i></span>
                         <div>
                             <div style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">Serviço</div>
                             <div style="font-weight:600; color:var(--text-main);" id="detalhesServico"></div>
                         </div>
                     </div>
                     <div style="display:flex; align-items:center; gap:0.75rem;">
-                        <span style="font-size:1.2rem; width:24px; text-align:center;">🧑‍💼</span>
+                        <span style="font-size:1.2rem; width:24px; text-align:center; color: var(--color-purple);"><i class="bi bi-briefcase-fill"></i></span>
                         <div>
                             <div style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">Profissional</div>
                             <div style="font-weight:600; color:var(--text-main);" id="detalhesProfissional"></div>
                         </div>
                     </div>
                     <div style="display:flex; align-items:center; gap:0.75rem;">
-                        <span style="font-size:1.2rem; width:24px; text-align:center;">📅</span>
+                        <span style="font-size:1.2rem; width:24px; text-align:center; color: var(--color-purple);"><i class="bi bi-calendar3"></i></span>
                         <div>
                             <div style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">Data</div>
                             <div style="font-weight:600; color:var(--text-main);" id="detalhesData"></div>
                         </div>
                     </div>
                     <div style="display:flex; align-items:center; gap:0.75rem;">
-                        <span style="font-size:1.2rem; width:24px; text-align:center;">🕐</span>
+                        <span style="font-size:1.2rem; width:24px; text-align:center; color: var(--color-purple);"><i class="bi bi-clock-fill"></i></span>
                         <div>
                             <div style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">Horário</div>
                             <div style="font-weight:600; color:var(--text-main);" id="detalhesHorario"></div>
                         </div>
                     </div>
                     <div style="display:flex; align-items:center; gap:0.75rem;">
-                        <span style="font-size:1.2rem; width:24px; text-align:center;">📋</span>
+                        <span style="font-size:1.2rem; width:24px; text-align:center; color: var(--color-purple);"><i class="bi bi-clipboard-data-fill"></i></span>
                         <div>
                             <div style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">Status</div>
                             <span id="detalhesStatus" style="font-size:0.8rem; font-weight:700; padding:0.2rem 0.7rem; border-radius:20px;"></span>
@@ -259,13 +259,13 @@ if (session_status() === PHP_SESSION_NONE) {
                             <?= CsrfGuard::campoHidden() ?>
                             <input type="hidden" name="id_agendamento" class="inputIdAgendamento">
                             <input type="hidden" name="novo_status" value="marcado">
-                            <button type="submit" class="btn-primary" style="background:#10b981; width:100%; box-shadow:0 4px 12px rgba(16,185,129,0.3);">✔ Confirmar Agendamento</button>
+                            <button type="submit" class="btn-primary" style="background:#10b981; width:100%; box-shadow:0 4px 12px rgba(16,185,129,0.3);"><i class="bi bi-check-lg" style="margin-right: 4px;"></i> Confirmar Agendamento</button>
                         </form>
                         <form action="<?= BASE_URL ?>/funcionario/agenda/status" method="POST">
                             <?= CsrfGuard::campoHidden() ?>
                             <input type="hidden" name="id_agendamento" class="inputIdAgendamento">
                             <input type="hidden" name="novo_status" value="cancelado">
-                            <button type="button" class="btn-secondary" style="width:100%; color:#ef4444; border-color:#ef4444;" onclick="event.preventDefault(); Swal.fire({title: 'Atenção', text: 'Deseja realmente recusar este agendamento?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc3545', cancelButtonColor: '#6c757d', confirmButtonText: 'Confirmar', cancelButtonText: 'Cancelar'}).then((result) => { if (result.isConfirmed) { this.closest('form').submit(); } });">✕ Recusar</button>
+                            <button type="button" class="btn-secondary" style="width:100%; color:#ef4444; border-color:#ef4444;" onclick="event.preventDefault(); Swal.fire({title: 'Atenção', text: 'Deseja realmente recusar este agendamento?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc3545', cancelButtonColor: '#6c757d', confirmButtonText: 'Confirmar', cancelButtonText: 'Cancelar'}).then((result) => { if (result.isConfirmed) { this.closest('form').submit(); } });"><i class="bi bi-x-lg" style="margin-right: 4px;"></i> Recusar</button>
                         </form>
                     </div>
 
@@ -274,13 +274,13 @@ if (session_status() === PHP_SESSION_NONE) {
                             <?= CsrfGuard::campoHidden() ?>
                             <input type="hidden" name="id_agendamento" class="inputIdAgendamento">
                             <input type="hidden" name="novo_status" value="concluido">
-                            <button type="submit" class="btn-primary" style="background:#3b82f6; width:100%; box-shadow:0 4px 12px rgba(59,130,246,0.3);">✔ Concluir Atendimento</button>
+                            <button type="submit" class="btn-primary" style="background:#3b82f6; width:100%; box-shadow:0 4px 12px rgba(59,130,246,0.3);"><i class="bi bi-check-lg" style="margin-right: 4px;"></i> Concluir Atendimento</button>
                         </form>
                         <form action="<?= BASE_URL ?>/funcionario/agenda/status" method="POST">
                             <?= CsrfGuard::campoHidden() ?>
                             <input type="hidden" name="id_agendamento" class="inputIdAgendamento">
                             <input type="hidden" name="novo_status" value="cancelado">
-                            <button type="button" class="btn-secondary" style="width:100%; color:#ef4444; border-color:#ef4444;" onclick="event.preventDefault(); Swal.fire({title: 'Atenção', text: 'Deseja realmente cancelar este agendamento?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc3545', cancelButtonColor: '#6c757d', confirmButtonText: 'Confirmar', cancelButtonText: 'Cancelar'}).then((result) => { if (result.isConfirmed) { this.closest('form').submit(); } });">✕ Cancelar Agendamento</button>
+                            <button type="button" class="btn-secondary" style="width:100%; color:#ef4444; border-color:#ef4444;" onclick="event.preventDefault(); Swal.fire({title: 'Atenção', text: 'Deseja realmente cancelar este agendamento?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc3545', cancelButtonColor: '#6c757d', confirmButtonText: 'Confirmar', cancelButtonText: 'Cancelar'}).then((result) => { if (result.isConfirmed) { this.closest('form').submit(); } });"><i class="bi bi-x-lg" style="margin-right: 4px;"></i> Cancelar Agendamento</button>
                         </form>
                     </div>
                 </div>

@@ -142,7 +142,7 @@ $isGerencia = in_array($tipoUsuario, ['admin', 'subadmin']);
                                         <button type="button" data-modal-target="#modalCliente" class="btn-action btn-edit"
                                             title="<?= $isGerencia ? 'Editar' : 'Adicionar Observações' ?>"
                                             onclick='preencherModalEdicaoCliente(<?= $cli["id_cliente"] ?>, <?= $cli["cod_usuario"] ?>, <?= json_encode($cli["nome"]) ?>, <?= json_encode($cli["telefone"]) ?>, <?= json_encode($cli["data_nascimento"] ?? "") ?>, <?= json_encode($cli["observacoes"] ?? "") ?>)'>
-                                            ✏️
+                                            <i class="bi bi-pencil-square"></i>
                                         </button>
 
                                         <?php if ($isGerencia): ?>
@@ -156,7 +156,11 @@ $isGerencia = in_array($tipoUsuario, ['admin', 'subadmin']);
                                                     class="btn-action <?= $cli['status'] === 'ativo' ? 'btn-delete' : 'btn-success' ?>"
                                                     title="<?= $cli['status'] === 'ativo' ? 'Inativar' : 'Ativar' ?>"
                                                     onclick="event.preventDefault(); Swal.fire({title: 'Atenção', text: 'Tem certeza que deseja <?= $cli['status'] === 'ativo' ? 'inativar' : 'ativar' ?> o cliente <?= htmlspecialchars(addslashes($cli['nome'])) ?>?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc3545', cancelButtonColor: '#6c757d', confirmButtonText: 'Confirmar', cancelButtonText: 'Cancelar'}).then((result) => { if (result.isConfirmed) { this.closest('form').submit(); } });">
-                                                    <?= $cli['status'] === 'ativo' ? '🚫' : '✅' ?>
+                                                    <?php if ($cli['status'] === 'ativo'): ?>
+                                                        <i class="bi bi-person-x-fill"></i>
+                                                    <?php else: ?>
+                                                        <i class="bi bi-person-check-fill"></i>
+                                                    <?php endif; ?>
                                                 </button>
                                             </form>
                                         <?php endif; ?>
@@ -185,6 +189,14 @@ $isGerencia = in_array($tipoUsuario, ['admin', 'subadmin']);
                                         <?= CsrfGuard::campoHidden() ?>
                     <input type="hidden" id="id_cliente" name="id_cliente" value="">
                     <input type="hidden" id="id_usuario" name="id_usuario" value="">
+
+                    <div class="alert alert-info" id="container_explicacao_cadastro" style="font-size: 0.85rem; line-height: 1.45; margin-bottom: 1.25rem; background-color: rgba(139, 92, 246, 0.08); border: 1px dashed rgba(139, 92, 246, 0.3); color: var(--text-main); border-radius: 8px; padding: 0.75rem 1rem; display: flex; gap: 0.5rem; align-items: start;">
+                        <i class="bi bi-info-circle-fill" style="color: var(--color-purple); font-size: 1.1rem; flex-shrink: 0; margin-top: 1px;"></i>
+                        <span>
+                            <strong>O que é o Cadastro Rápido?</strong><br>
+                            Permite registrar clientes que entram em contato por telefone ou WhatsApp para que você possa realizar agendamentos manuais para eles. O cadastro exige apenas o telefone do cliente. Quando ele criar uma conta completa no app no futuro com o mesmo número, o sistema unificará todo o histórico de agendamentos dele automaticamente!
+                        </span>
+                    </div>
 
                     <h3 class="section-title">Dados Pessoais</h3>
 

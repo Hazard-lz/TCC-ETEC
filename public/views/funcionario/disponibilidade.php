@@ -106,7 +106,9 @@ $mostrarBotaoEditar = (!$isNovaGrade && !empty($idDisponibilidade)) ? 'block' : 
     </div>
 
     <div class="status-banner <?= $nomeGradePrincipal !== 'Nenhuma' ? 'status-ativo' : 'status-inativo' ?>">
-        <span class="status-icon">📅</span>
+        <span class="status-icon" style="color: <?= $nomeGradePrincipal !== 'Nenhuma' ? '#22c55e' : '#ef4444' ?>;">
+            <i class="bi <?= $nomeGradePrincipal !== 'Nenhuma' ? 'bi-calendar-check-fill' : 'bi-calendar-x-fill' ?>"></i>
+        </span>
         <div>
             <span class="status-label">Status da Grade no App</span>
             <?php if($nomeGradePrincipal !== 'Nenhuma'): ?>
@@ -125,6 +127,35 @@ $mostrarBotaoEditar = (!$isNovaGrade && !empty($idDisponibilidade)) ? 'block' : 
     <?php if (isset($_SESSION['msg_erro'])): ?>
         <div class="alert alert-danger">
             <?= $_SESSION['msg_erro']; unset($_SESSION['msg_erro']); ?>
+        </div>
+    <?php endif; ?>
+
+    <?php if(!empty($idDisponibilidade) && !$isNovaGrade): ?>
+        <div class="base-card card-antecedencia">
+            <form action="<?= BASE_URL ?>/funcionario/disponibilidade/salvar_antecedencia" method="POST" class="antecedencia-form-externo">
+                <?= CsrfGuard::campoHidden() ?>
+                <input type="hidden" name="id_disponibilidade" value="<?= $idDisponibilidade ?>">
+                
+                <div class="antecedencia-info-wrapper">
+                    <span class="antecedencia-icon-badge">
+                        <i class="bi bi-clock-fill"></i>
+                    </span>
+                    <div>
+                        <strong class="antecedencia-title">Antecedência Mínima para Agendamento</strong>
+                        <span class="antecedencia-subtitle">Defina com quanta antecedência os clientes podem reservar horários. 
+                            <a href="javascript:void(0)" onclick="abrirExplicacaoAntecedencia()" class="antecedencia-help-link">
+                                Como funciona? <i class="bi bi-info-circle-fill"></i>
+                            </a>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="antecedencia-input-wrapper">
+                    <input type="number" name="antecedencia_horas" value="<?= htmlspecialchars($antecedenciaHorasAtual) ?>" min="0" max="24" class="form-control" title="Bloqueia agendamentos de última hora nesta grade.">
+                    <span class="antecedencia-unit">horas</span>
+                    <button type="submit" class="btn-primary">Salvar</button>
+                </div>
+            </form>
         </div>
     <?php endif; ?>
 
@@ -157,16 +188,6 @@ $mostrarBotaoEditar = (!$isNovaGrade && !empty($idDisponibilidade)) ? 'block' : 
             </div>
 
             <div class="header-secondary-actions">
-                <?php if(!empty($idDisponibilidade) && !$isNovaGrade): ?>
-                    <form action="<?= BASE_URL ?>/funcionario/disponibilidade/salvar_antecedencia" method="POST" class="antecedencia-form">
-                                        <?= CsrfGuard::campoHidden() ?>
-                        <input type="hidden" name="id_disponibilidade" value="<?= $idDisponibilidade ?>">
-                        <label>Antecedência <small>(Horas)</small>:</label>
-                        <input type="number" name="antecedencia_horas" value="<?= htmlspecialchars($antecedenciaHorasAtual) ?>" min="0" max="24" class="form-control" title="Bloqueia agendamentos de última hora nesta grade.">
-                        <button type="submit" class="btn-primary">Salvar</button>
-                    </form>
-                <?php endif; ?>
-                
                 <?php if(!empty($idDisponibilidade) && !$isGradeAtiva): ?>
                     <form action="<?= BASE_URL ?>/funcionario/disponibilidade/ativar" method="POST" style="margin: 0;">
                                         <?= CsrfGuard::campoHidden() ?>
@@ -186,14 +207,14 @@ $mostrarBotaoEditar = (!$isNovaGrade && !empty($idDisponibilidade)) ? 'block' : 
                     <div class="day-card <?= $ativo ? 'active' : 'inactive' ?>">
                         <h4><?= $rotulo ?></h4>
                         <?php if($ativo): ?>
-                            <p>🕒 <?= htmlspecialchars($d['inicio']) ?> às <?= htmlspecialchars($d['fim']) ?></p>
+                            <p><i class="bi bi-clock-fill" style="color: var(--color-purple); margin-right: 4px;"></i> <?= htmlspecialchars($d['inicio']) ?> às <?= htmlspecialchars($d['fim']) ?></p>
                             <?php if(!empty($d['int_inicio'])): ?>
-                                <p class="pausa">☕ Pausa: <?= htmlspecialchars($d['int_inicio']) ?> às <?= htmlspecialchars($d['int_fim']) ?></p>
+                                <p class="pausa"><i class="bi bi-cup-hot-fill" style="color: var(--color-purple); opacity: 0.8; margin-right: 4px;"></i> Pausa: <?= htmlspecialchars($d['int_inicio']) ?> às <?= htmlspecialchars($d['int_fim']) ?></p>
                             <?php else: ?>
                                 <p class="pausa">Sem pausa</p>
                             <?php endif; ?>
                         <?php else: ?>
-                            <p class="fechado">❌ Sem horário</p>
+                            <p class="fechado"><i class="bi bi-x-circle-fill" style="color: #ef4444; margin-right: 4px;"></i> Sem horário</p>
                         <?php endif; ?>
                     </div>
                 <?php endforeach; ?>
@@ -202,7 +223,7 @@ $mostrarBotaoEditar = (!$isNovaGrade && !empty($idDisponibilidade)) ? 'block' : 
 
         <div id="box-botao-editar" class="grade-actions" style="display: <?= $mostrarBotaoEditar ?>;">
             <button type="button" class="btn-editar-grade" data-modal-target="#modalEdicaoGrade">
-                ✏️ Editar Horários Desta Grade
+                <i class="bi bi-pencil-square"></i> Editar Horários Desta Grade
             </button>
             
             <?php if (!empty($idDisponibilidade)): ?>
@@ -215,7 +236,13 @@ $mostrarBotaoEditar = (!$isNovaGrade && !empty($idDisponibilidade)) ? 'block' : 
         <div class="modal-overlay <?= $isNovaGrade ? 'active' : '' ?>" id="modalEdicaoGrade">
             <div class="modal-content" style="max-width: 800px;">
                 <div class="modal-header">
-                    <h3><?= empty($idDisponibilidade) ? 'Criar Nova Grade' : '✏️ Editar Grade' ?></h3>
+                    <h3>
+                        <?php if (empty($idDisponibilidade)): ?>
+                            <i class="bi bi-plus-circle-fill" style="color: var(--color-purple); margin-right: 6px;"></i> Criar Nova Grade
+                        <?php else: ?>
+                            <i class="bi bi-pencil-square" style="color: var(--color-purple); margin-right: 6px;"></i> Editar Grade
+                        <?php endif; ?>
+                    </h3>
                     <button class="btn-close" type="button" <?= $isNovaGrade ? 'onclick="cancelarNovaGrade()"' : 'data-close-modal' ?>>&times;</button>
                 </div>
                 

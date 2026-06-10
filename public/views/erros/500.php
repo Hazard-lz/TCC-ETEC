@@ -200,7 +200,7 @@
 
         <!-- Ícone com gradiente da marca -->
         <div class="error-icon">
-            ⚙️
+            <i class="bi bi-exclamation-octagon-fill" style="color: white;"></i>
         </div>
 
         <!-- Código do erro -->

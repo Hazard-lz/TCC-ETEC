@@ -218,17 +218,17 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
 
             <nav class="bottom-nav">
                 <a href="<?= BASE_URL ?>/" class="nav-item">
-                    <span class="nav-icon">🏠</span><span>Início</span>
+                    <span class="nav-icon"><i class="bi bi-house-door-fill" style="font-size: 1.2rem;"></i></span><span>Início</span>
                 </a>
                 <!-- Botão Agendar bloqueado com modal informativo para evitar loops de redirecionamento -->
                 <a href="javascript:void(0)" class="nav-item" style="opacity: 0.5; cursor: not-allowed;" onclick="mostrarAvisoSuspenso()">
-                    <span class="nav-icon">📅</span><span>Agendar</span>
+                    <span class="nav-icon"><i class="bi bi-calendar-plus-fill" style="font-size: 1.2rem;"></i></span><span>Agendar</span>
                 </a>
                 <a href="<?= BASE_URL ?>/historico" class="nav-item">
-                    <span class="nav-icon">🕒</span><span>Histórico</span>
+                    <span class="nav-icon"><i class="bi bi-clock-history" style="font-size: 1.2rem;"></i></span><span>Histórico</span>
                 </a>
                 <a href="<?= BASE_URL ?>/perfil" class="nav-item">
-                    <span class="nav-icon">👤</span><span>Perfil</span>
+                    <span class="nav-icon"><i class="bi bi-person-fill" style="font-size: 1.2rem;"></i></span><span>Perfil</span>
                 </a>
                 <a href="<?= BASE_URL ?>/cliente/ajuda" class="nav-item">
                     <span class="nav-icon"><i class="bi bi-question-circle" style="font-size: 1.2rem;"></i></span><span>Ajuda</span>

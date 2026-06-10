@@ -75,11 +75,11 @@ $mapaLink = $configModel->obterValor('salao_mapa_link', 'https://maps.google.com
                             <div id="ag1" class="accordion-collapse collapse show" data-bs-parent="#accordionAgendamento">
                                 <div class="accordion-body">
                                     <ol>
-                                        <li>No menu inferior, toque em <strong>📅 Agendar</strong>.</li>
+                                        <li>No menu inferior, toque em <strong><i class="bi bi-calendar-plus-fill"></i> Agendar</strong>.</li>
                                         <li>Escolha o <strong>serviço desejado</strong> na lista (use a busca para filtrar).</li>
                                         <li>Selecione o <strong>profissional</strong> de sua preferência.</li>
                                         <li>Escolha a <strong>data</strong> e um dos <strong>horários disponíveis</strong>.</li>
-                                        <li>Na etapa final, revise o resumo e clique em <strong>"✅ Confirmar"</strong>.</li>
+                                        <li>Na etapa final, revise o resumo e clique em <strong>"Confirmar"</strong>.</li>
                                     </ol>
                                     <div class="ajuda-tip">
                                         <i class="bi bi-info-circle-fill"></i>
@@ -151,7 +151,7 @@ $mapaLink = $configModel->obterValor('salao_mapa_link', 'https://maps.google.com
                             <div id="ca1" class="accordion-collapse collapse" data-bs-parent="#accordionCancelamento">
                                 <div class="accordion-body">
                                     <ol>
-                                        <li>Acesse o menu <strong>🕒 Histórico</strong>.</li>
+                                        <li>Acesse o menu <strong><i class="bi bi-clock-history"></i> Histórico</strong>.</li>
                                         <li>Na aba <strong>"Próximos"</strong>, localize o agendamento que deseja cancelar.</li>
                                         <li>Clique no botão <strong>"Cancelar Agendamento"</strong> (aparece em vermelho).</li>
                                         <li>Confirme a ação na janela de confirmação.</li>
@@ -175,7 +175,7 @@ $mapaLink = $configModel->obterValor('salao_mapa_link', 'https://maps.google.com
                                 <div class="accordion-body">
                                     Sim! Você pode remarcar seu agendamento de forma simples e direta pelo aplicativo:
                                     <ol>
-                                        <li>Acesse o menu <strong>🕒 Histórico</strong> no menu inferior.</li>
+                                        <li>Acesse o menu <strong><i class="bi bi-clock-history"></i> Histórico</strong> no menu inferior.</li>
                                         <li>Na aba <strong>"Próximos"</strong>, localize o agendamento desejado e toque no botão roxo <strong>"Remarcar"</strong>.</li>
                                         <li>Selecione a <strong>nova data</strong> e o <strong>novo horário disponível</strong> na tela que se abrir.</li>
                                         <li>Toque em <strong>"Confirmar Remarcação"</strong> para salvar o novo horário.</li>
@@ -206,7 +206,7 @@ $mapaLink = $configModel->obterValor('salao_mapa_link', 'https://maps.google.com
                             </h2>
                             <div id="pe1" class="accordion-collapse collapse" data-bs-parent="#accordionPerfil">
                                 <div class="accordion-body">
-                                    Toque em <strong>🕒 Histórico</strong> no menu inferior. A tela é dividida em duas abas:
+                                    Toque em <strong><i class="bi bi-clock-history"></i> Histórico</strong> no menu inferior. A tela é dividida em duas abas:
                                     <ul>
                                         <li><strong>Próximos</strong> — agendamentos com status <span class="status-pill pendente" style="font-size:0.75rem;">Pendente</span> ou <span class="status-pill marcado" style="font-size:0.75rem;">Marcado</span>.</li>
                                         <li><strong>Anteriores</strong> — serviços <span class="status-pill concluido" style="font-size:0.75rem;">Concluídos</span> ou <span class="status-pill cancelado" style="font-size:0.75rem;">Cancelados</span>.</li>
@@ -225,7 +225,7 @@ $mapaLink = $configModel->obterValor('salao_mapa_link', 'https://maps.google.com
                             <div id="pe2" class="accordion-collapse collapse" data-bs-parent="#accordionPerfil">
                                 <div class="accordion-body">
                                     <ol>
-                                        <li>Toque em <strong>👤 Perfil</strong> no menu inferior.</li>
+                                        <li>Toque em <strong><i class="bi bi-person-fill"></i> Perfil</strong> no menu inferior.</li>
                                         <li>Na aba <strong>"Dados Gerais"</strong>, edite seu nome, telefone e data de nascimento.</li>
                                         <li>Clique em <strong>"Salvar Dados"</strong> para confirmar.</li>
                                     </ol>
@@ -248,7 +248,7 @@ $mapaLink = $configModel->obterValor('salao_mapa_link', 'https://maps.google.com
                                 <div class="accordion-body">
                                     <strong>Se você lembra a senha atual:</strong>
                                     <ol>
-                                        <li>Vá em <strong>👤 Perfil → aba "Segurança"</strong>.</li>
+                                        <li>Vá em <strong><i class="bi bi-person-fill"></i> Perfil → aba "Segurança"</strong>.</li>
                                         <li>Digite a senha atual e a nova senha (mínimo <strong>8 caracteres</strong>).</li>
                                         <li>Clique em <strong>"Alterar Senha"</strong>.</li>
                                     </ol>
@@ -335,16 +335,16 @@ $mapaLink = $configModel->obterValor('salao_mapa_link', 'https://maps.google.com
             <!-- Bottom Navigation -->
             <nav class="bottom-nav">
                 <a href="<?= BASE_URL ?>/" class="nav-item">
-                    <span class="nav-icon">🏠</span><span>Início</span>
+                    <span class="nav-icon"><i class="bi bi-house-door-fill" style="font-size: 1.2rem;"></i></span><span>Início</span>
                 </a>
                 <a href="<?= BASE_URL ?>/agendar" class="nav-item">
-                    <span class="nav-icon">📅</span><span>Agendar</span>
+                    <span class="nav-icon"><i class="bi bi-calendar-plus-fill" style="font-size: 1.2rem;"></i></span><span>Agendar</span>
                 </a>
                 <a href="<?= BASE_URL ?>/historico" class="nav-item">
-                    <span class="nav-icon">🕒</span><span>Histórico</span>
+                    <span class="nav-icon"><i class="bi bi-clock-history" style="font-size: 1.2rem;"></i></span><span>Histórico</span>
                 </a>
                 <a href="<?= BASE_URL ?>/perfil" class="nav-item">
-                    <span class="nav-icon">👤</span><span>Perfil</span>
+                    <span class="nav-icon"><i class="bi bi-person-fill" style="font-size: 1.2rem;"></i></span><span>Perfil</span>
                 </a>
                 <a href="<?= BASE_URL ?>/cliente/ajuda" class="nav-item active">
                     <span class="nav-icon"><i class="bi bi-question-circle" style="font-size: 1.2rem;"></i></span><span>Ajuda</span>

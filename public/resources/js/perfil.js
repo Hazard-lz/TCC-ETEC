@@ -101,6 +101,23 @@ document.addEventListener("DOMContentLoaded", () => {
                 errorMsg.style.display = "block";
             } else {
                 errorMsg.style.display = "none";
+                const btn = this.querySelector('button[type="submit"]');
+                if (btn) {
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="bi bi-hourglass-split spinner-loading" style="margin-right: 4px;"></i> Alterando...';
+                }
+            }
+        });
+    }
+
+    // --- 2.5 BLOQUEADOR DE DUPLO CLIQUE EM DADOS GERAIS ---
+    const formDados = document.getElementById("formDados");
+    if (formDados) {
+        formDados.addEventListener("submit", function () {
+            const btn = this.querySelector('button[type="submit"]');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="bi bi-hourglass-split spinner-loading" style="margin-right: 4px;"></i> Salvando...';
             }
         });
     }

@@ -269,27 +269,34 @@ function iniciarRelogio() {
 }
 
 function fazerLogout() {
-    if (confirm("Deseja realmente sair do sistema?")) {
-        // Limpeza OneSignal no Cliente: desvincula este dispositivo do usuário
-        if (window.OneSignalDeferred) {
-            OneSignalDeferred.push(async function (OneSignal) {
-                await OneSignal.logout();
-            });
-        }
-
-        Swal.fire({
-            text: 'Deseja realmente sair do sistema?',
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonText: 'Sim, sair',
-            cancelButtonText: 'Cancelar',
-            confirmButtonColor: '#28a745',
-            cancelButtonColor: '#dc3545'
-        }).then(result => {
-            if (result.isConfirmed) {
-                localStorage.removeItem('belezou_user');
-                window.location.href = BASE_URL + "/login/sair";
+    Swal.fire({
+        text: 'Deseja realmente sair do sistema?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Sim, sair',
+        cancelButtonText: 'Cancelar',
+        customClass: {
+            popup:         'swal-belezou-popup',
+            title:         'swal-belezou-title',
+            htmlContainer: 'swal-belezou-text',
+            confirmButton: 'swal-belezou-btn-confirm',
+            cancelButton:  'swal-belezou-btn-cancel',
+            icon:          'swal-belezou-icon'
+        },
+        buttonsStyling: false,
+        showClass: { popup: 'swal-belezou-show' },
+        hideClass: { popup: 'swal-belezou-hide' }
+    }).then(result => {
+        if (result.isConfirmed) {
+            Swal.showLoading();
+            // Limpeza OneSignal no Cliente: desvincula este dispositivo do usuário
+            if (window.OneSignalDeferred) {
+                OneSignalDeferred.push(async function (OneSignal) {
+                    await OneSignal.logout();
+                });
             }
-        });
-    }
+            localStorage.removeItem('belezou_user');
+            window.location.href = BASE_URL + "/login/sair";
+        }
+    });
 }

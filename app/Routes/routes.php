@@ -254,6 +254,13 @@ $router->post('/funcionario/servicos/salvar', function () {
 
     $funcionarioModel->atualizarServicos($dadosFunc['id_funcionario'], $servicosSelecionados);
 
+    $isAjax = (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest');
+    if ($isAjax) {
+        header('Content-Type: application/json');
+        echo json_encode(['sucesso' => true, 'mensagem' => 'Especialidades salvas com sucesso!']);
+        exit;
+    }
+
     $_SESSION['flash_sucesso'] = "Especialidades salvas com sucesso!";
 
     header("Location: " . BASE_URL . "/funcionario/servicos");

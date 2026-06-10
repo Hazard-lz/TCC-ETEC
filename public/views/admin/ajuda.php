@@ -89,7 +89,7 @@ $isAdmin = ($_SESSION['usuario_tipo'] ?? '') === 'admin';
                 </h2>
                 <div id="sv2" class="accordion-collapse collapse" data-bs-parent="#accordionServicos">
                     <div class="accordion-body">
-                        Na lista de serviços, clique no ícone de <strong>edição ✏️</strong> do serviço desejado. Um modal será aberto com os campos editáveis. Altere o valor e salve. As mesmas validações do cadastro se aplicam:
+                        Na lista de serviços, clique no ícone de <strong>edição <i class="bi bi-pencil-square"></i></strong> do serviço desejado. Um modal será aberto com os campos editáveis. Altere o valor e salve. As mesmas validações do cadastro se aplicam:
                         <ul>
                             <li>Preço não pode ser negativo.</li>
                             <li>Duração deve ser múltiplo de 5, máximo 480 min.</li>
@@ -179,7 +179,7 @@ $isAdmin = ($_SESSION['usuario_tipo'] ?? '') === 'admin';
                 </h2>
                 <div id="eq3" class="accordion-collapse collapse" data-bs-parent="#accordionEquipe">
                     <div class="accordion-body">
-                        Na lista de funcionários, clique no ícone <strong>✅</strong> ao lado do funcionário inativo. O sistema alternará o status para <strong>Ativo</strong> e o funcionário poderá fazer login novamente.
+                        Na lista de funcionários, clique no ícone <strong><i class="bi bi-check-circle"></i></strong> ao lado do funcionário inativo. O sistema alternará o status para <strong>Ativo</strong> e o funcionário poderá fazer login novamente.
                     </div>
                 </div>
             </div>
@@ -193,7 +193,7 @@ $isAdmin = ($_SESSION['usuario_tipo'] ?? '') === 'admin';
                 </h2>
                 <div id="eq4" class="accordion-collapse collapse" data-bs-parent="#accordionEquipe">
                     <div class="accordion-body">
-                        Na lista de funcionários, se o ícone de <strong>📧 envelope</strong> estiver visível, significa que o e-mail ainda não foi verificado. Clique no ícone para <strong>reenviar o link de criação de senha</strong>. Um novo token (válido por 48 horas) será gerado.
+                        Na lista de funcionários, se o ícone de <strong><i class="bi bi-envelope"></i> envelope</strong> estiver visível, significa que o e-mail ainda não foi verificado. Clique no ícone para <strong>reenviar o link de criação de senha</strong>. Um novo token (válido por 48 horas) será gerado.
                         <div class="ajuda-tip">
                             <i class="bi bi-lightbulb-fill"></i>
                             <span>Peça ao funcionário para verificar a pasta de <strong>Spam</strong> caso o e-mail não apareça na caixa de entrada.</span>
@@ -214,7 +214,7 @@ $isAdmin = ($_SESSION['usuario_tipo'] ?? '') === 'admin';
                     <div class="accordion-body">
                         <ol>
                             <li>Abra o formulário de edição de um funcionário existente.</li>
-                            <li>No campo <strong>"Nível de Acesso"</strong>, selecione <strong>"👑 Transferir Cargo de Administrador"</strong>.</li>
+                            <li>No campo <strong>"Nível de Acesso"</strong>, selecione <strong>"Transferir Cargo de Administrador"</strong>.</li>
                             <li>Salve o formulário.</li>
                         </ol>
                         <div class="ajuda-warning">

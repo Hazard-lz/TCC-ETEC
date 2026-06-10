@@ -314,7 +314,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
             <label>Funcionário</label>
             <select name="id_funcionario" required>
                 <option value="">Selecione...</option>
-                <option value="todos" <?= ($idFuncionario === 'todos') ? 'selected' : '' ?>>🌟 Visão Geral do Salão</option>
+                <option value="todos" <?= ($idFuncionario === 'todos') ? 'selected' : '' ?>>Visão Geral do Salão</option>
                 <?php foreach ($listaFuncionarios as $func): ?>
                     <option value="<?= $func['id_funcionario'] ?>" <?= ($idFuncionario == $func['id_funcionario']) ? 'selected' : '' ?>>
                         <?= htmlspecialchars($func['nome']) ?>
@@ -338,7 +338,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
         </div>
 
         <div class="filtro-botoes-container" style="margin-top: 0.5rem;">
-            <button type="submit" class="btn-gerar">📊 Gerar Relatório</button>
+            <button type="submit" class="btn-gerar"><i class="bi bi-bar-chart-line-fill"></i> Gerar Relatório</button>
 
             <?php if ($metricas): ?>
                 <button type="button" class="btn-exportar" onclick="exportarPDF()">
@@ -482,7 +482,7 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
 
         <?php else: ?>
             <div class="estado-vazio">
-                <div class="icone">📊</div>
+                <div class="icone"><i class="bi bi-graph-up"></i></div>
                 <p>Selecione um funcionário e o período para gerar o relatório.</p>
             </div>
         <?php endif; ?>

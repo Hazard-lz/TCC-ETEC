@@ -63,6 +63,9 @@ function preencherModalEdicaoCliente(id_cliente, id_usuario, nome, telefone, ema
     if (containerNascimento) containerNascimento.style.display = "block";
     if (containerObservacoes) containerObservacoes.style.display = "block";
 
+    const containerExplicacao = document.getElementById("container_explicacao_cadastro");
+    if (containerExplicacao) containerExplicacao.style.display = "none";
+
     // Gerência (admin + subadmin) edita nome; somente admin edita telefone
     if (campoNome) campoNome.readOnly = !isGerencia;
     if (campoTelefone) campoTelefone.readOnly = !isAdmin;
@@ -102,6 +105,8 @@ function limparModalCliente() {
         campoEmail.readOnly = false;
         campoEmail.style.backgroundColor = "";
     }
+    const containerExplicacao = document.getElementById("container_explicacao_cadastro");
+    if (containerExplicacao) containerExplicacao.style.display = "none";
     if (errorMsg) {
         errorMsg.textContent = "";
         errorMsg.style.display = "none";
@@ -153,6 +158,9 @@ function abrirCadastroRapido() {
         campoTelefone.style.backgroundColor = "";
         campoTelefone.value = aplicarMascaraTelefone(campoTelefone.value);
     }
+
+    const containerExplicacao = document.getElementById("container_explicacao_cadastro");
+    if (containerExplicacao) containerExplicacao.style.display = "flex";
 
     if (errorMsg) {
         errorMsg.textContent = "";

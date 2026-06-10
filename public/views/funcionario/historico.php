@@ -72,12 +72,12 @@ $isGerencia = in_array($tipoUsuario, ['admin', 'subadmin']);
     <?php 
     function getBadgeCss($status) {
         $map = [
-            'pendente' => ['card' => 'status-pendente', 'badge' => 'badge-orange', 'label' => 'Pendente', 'icon' => '⏳'],
-            'marcado'  => ['card' => 'status-marcado', 'badge' => 'badge-purple', 'label' => 'Marcado', 'icon' => '📅'],
-            'concluido'=> ['card' => 'status-concluido', 'badge' => 'badge-green', 'label' => 'Concluído', 'icon' => '✅'],
-            'cancelado'=> ['card' => 'status-cancelado', 'badge' => 'badge-pink', 'label' => 'Cancelado', 'icon' => '❌']
+            'pendente' => ['card' => 'status-pendente', 'badge' => 'badge-orange', 'label' => 'Pendente', 'icon' => '<i class="bi bi-hourglass-split"></i>'],
+            'marcado'  => ['card' => 'status-marcado', 'badge' => 'badge-purple', 'label' => 'Marcado', 'icon' => '<i class="bi bi-calendar-event"></i>'],
+            'concluido'=> ['card' => 'status-concluido', 'badge' => 'badge-green', 'label' => 'Concluído', 'icon' => '<i class="bi bi-check-circle-fill"></i>'],
+            'cancelado'=> ['card' => 'status-cancelado', 'badge' => 'badge-pink', 'label' => 'Cancelado', 'icon' => '<i class="bi bi-x-circle-fill"></i>']
         ];
-        return $map[$status] ?? ['card' => '', 'badge' => '', 'label' => ucfirst($status), 'icon' => '📋'];
+        return $map[$status] ?? ['card' => '', 'badge' => '', 'label' => ucfirst($status), 'icon' => '<i class="bi bi-clipboard-data"></i>'];
     }
     ?>
 

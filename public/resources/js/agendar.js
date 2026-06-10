@@ -44,11 +44,11 @@ function setBotoesPasso(passo, habilitado) {
     btnGlobal.disabled = !habilitado;
 
     if (passo === 4) {
-      btnGlobal.textContent = '✅ Confirmar Agendamento';
+      btnGlobal.innerHTML = '<i class="bi bi-check-circle-fill" style="margin-right: 4px;"></i> Confirmar Agendamento';
     } else if (passo === 3) {
-      btnGlobal.textContent = 'Revisar agendamento';
+      btnGlobal.innerHTML = 'Revisar agendamento';
     } else {
-      btnGlobal.textContent = 'Continuar';
+      btnGlobal.innerHTML = 'Continuar';
     }
   }
 
@@ -727,4 +727,24 @@ function limparSelecoesAPartirDoPasso(passo) {
     setBotoesPasso(3, false);
   }
 }
+
+// Impede cliques múltiplos no agendamento, desabilitando os botões e exibindo animação de carregamento
+document.addEventListener('DOMContentLoaded', () => {
+  const form = document.getElementById('formWizardAgendamento');
+  if (form) {
+    form.addEventListener('submit', function() {
+      const btnConfirmar = document.getElementById('btn-confirmar-desktop-mobile');
+      const btnGlobal = document.getElementById('btn-continuar-global');
+
+      if (btnConfirmar) {
+        btnConfirmar.disabled = true;
+        btnConfirmar.innerHTML = '<i class="bi bi-hourglass-split spinner-loading" style="margin-right: 4px;"></i> Aguarde...';
+      }
+      if (btnGlobal) {
+        btnGlobal.disabled = true;
+        btnGlobal.innerHTML = '<i class="bi bi-hourglass-split spinner-loading" style="margin-right: 4px;"></i> Aguarde...';
+      }
+    });
+  }
+});
 

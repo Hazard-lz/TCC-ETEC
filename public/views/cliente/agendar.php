@@ -164,7 +164,7 @@ if (!isset($_SESSION['usuario_id'])) {
                                 <div style="position: absolute; right: -10px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; border-radius: 50%; background: var(--bg-color); border-left: 2px dashed var(--border-color); z-index: 2;"></div>
                                 
                                 <div class="ticket-header" style="text-align: center; border-bottom: 2px dashed var(--border-color); padding-bottom: 1.25rem; margin-bottom: 1.5rem;">
-                                    <span style="font-size: 1.5rem;">✨</span>
+                                    <span style="font-size: 1.5rem; color: var(--color-purple);"><i class="bi bi-sparkles"></i></span>
                                     <h4 style="margin: 0.5rem 0 0 0; color: var(--color-purple); font-size: 1.3rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Belezou App</h4>
                                     <p style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: var(--text-muted);">TICKET DE RESERVA</p>
                                 </div>
@@ -207,7 +207,7 @@ if (!isset($_SESSION['usuario_id'])) {
                     <!-- ══ COLUNA DIREITA: RESUMO LATERAL ══ -->
                     <aside id="resumo-lateral">
                         <div class="resumo-lateral-inner">
-                            <h3 class="resumo-lateral-titulo">📋 Resumo do Agendamento</h3>
+                            <h3 class="resumo-lateral-titulo"><i class="bi bi-clipboard-data-fill" style="margin-right: 4px;"></i> Resumo do Agendamento</h3>
 
                             <div class="resumo-item">
                                 <span class="resumo-label">Serviço</span>
@@ -246,16 +246,16 @@ if (!isset($_SESSION['usuario_id'])) {
 
             <nav class="bottom-nav">
                 <a href="<?= BASE_URL ?>/" class="nav-item">
-                    <span class="nav-icon">🏠</span><span>Início</span>
+                    <span class="nav-icon"><i class="bi bi-house-door-fill" style="font-size: 1.2rem;"></i></span><span>Início</span>
                 </a>
                 <a href="<?= BASE_URL ?>/agendar" class="nav-item active">
-                    <span class="nav-icon">📅</span><span>Agendar</span>
+                    <span class="nav-icon"><i class="bi bi-calendar-plus-fill" style="font-size: 1.2rem;"></i></span><span>Agendar</span>
                 </a>
                 <a href="<?= BASE_URL ?>/historico" class="nav-item">
-                    <span class="nav-icon">🕒</span><span>Histórico</span>
+                    <span class="nav-icon"><i class="bi bi-clock-history" style="font-size: 1.2rem;"></i></span><span>Histórico</span>
                 </a>
                 <a href="<?= BASE_URL ?>/perfil" class="nav-item">
-                    <span class="nav-icon">👤</span><span>Perfil</span>
+                    <span class="nav-icon"><i class="bi bi-person-fill" style="font-size: 1.2rem;"></i></span><span>Perfil</span>
                 </a>
                 <a href="<?= BASE_URL ?>/cliente/ajuda" class="nav-item">
                     <span class="nav-icon"><i class="bi bi-question-circle" style="font-size: 1.2rem;"></i></span><span>Ajuda</span>

@@ -97,6 +97,7 @@ window.confirmarSaida = window.confirmarSaida || function(urlSair) {
             hideClass: { popup: 'swal-belezou-hide' }
         }).then(result => {
             if (result.isConfirmed) {
+                Swal.showLoading();
                 window.location.href = urlSair;
             }
         });

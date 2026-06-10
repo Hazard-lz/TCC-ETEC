@@ -91,7 +91,7 @@ $mostrarAnterioresAtivo = (!empty($_GET['data_inicio']) || !empty($_GET['data_fi
                                 ?>
                                 <div class="history-card <?= $estilo['card'] ?>">
                                     <div class="history-header">
-                                        <span class="history-date">📅 <?= $ag['data_formatada'] ?> às
+                                        <span class="history-date"><i class="bi bi-calendar-event" style="margin-right: 4px;"></i> <?= $ag['data_formatada'] ?> às
                                             <?= $ag['hora_formatada'] ?></span>
                                         <span class="history-badge <?= $estilo['badge'] ?>"><?= $estilo['label'] ?></span>
                                     </div>
@@ -121,7 +121,8 @@ $mostrarAnterioresAtivo = (!empty($_GET['data_inicio']) || !empty($_GET['data_fi
                         <?php else: ?>
                             <div class="empty-state">
                                 <i class="bi bi-calendar2-x"></i>
-                                <p>Não tem agendamentos futuros.</p>
+                                <p style="margin-bottom: 1rem;">Você não possui agendamentos futuros.</p>
+                                <a href="<?= BASE_URL ?>/agendar" class="btn-primary" style="display: inline-flex; width: auto; padding: 0.5rem 1.5rem; border-radius: 20px; text-decoration: none; font-size: 0.9rem; align-items: center; justify-content: center; height: 36px;">Agendar Serviço</a>
                             </div>
                         <?php endif; ?>
                     </div>
@@ -163,7 +164,7 @@ $mostrarAnterioresAtivo = (!empty($_GET['data_inicio']) || !empty($_GET['data_fi
                                 ?>
                                 <div class="history-card <?= $estilo['card'] ?>">
                                     <div class="history-header">
-                                        <span class="history-date">📅 <?= $ag['data_formatada'] ?> às
+                                        <span class="history-date"><i class="bi bi-calendar-event" style="margin-right: 4px;"></i> <?= $ag['data_formatada'] ?> às
                                             <?= $ag['hora_formatada'] ?></span>
                                         <span class="history-badge <?= $estilo['badge'] ?>"><?= $estilo['label'] ?></span>
                                     </div>
@@ -179,7 +180,8 @@ $mostrarAnterioresAtivo = (!empty($_GET['data_inicio']) || !empty($_GET['data_fi
                         <?php else: ?>
                             <div class="empty-state">
                                 <i class="bi bi-clock-history"></i>
-                                <p>Sem agendamentos anteriores.</p>
+                                <p style="margin-bottom: 1rem;">Você não possui atendimentos anteriores.</p>
+                                <a href="<?= BASE_URL ?>/agendar" class="btn-primary" style="display: inline-flex; width: auto; padding: 0.5rem 1.5rem; border-radius: 20px; text-decoration: none; font-size: 0.9rem; align-items: center; justify-content: center; height: 36px;">Agendar Primeiro Serviço</a>
                             </div>
                         <?php endif; ?>
                     </div>
@@ -188,16 +190,16 @@ $mostrarAnterioresAtivo = (!empty($_GET['data_inicio']) || !empty($_GET['data_fi
 
             <nav class="bottom-nav">
                 <a href="<?= BASE_URL ?>/" class="nav-item">
-                    <span class="nav-icon">🏠</span><span>Início</span>
+                    <span class="nav-icon"><i class="bi bi-house-door-fill" style="font-size: 1.2rem;"></i></span><span>Início</span>
                 </a>
                 <a href="<?= BASE_URL ?>/agendar" class="nav-item">
-                    <span class="nav-icon">📅</span><span>Agendar</span>
+                    <span class="nav-icon"><i class="bi bi-calendar-plus-fill" style="font-size: 1.2rem;"></i></span><span>Agendar</span>
                 </a>
                 <a href="<?= BASE_URL ?>/historico" class="nav-item active">
-                    <span class="nav-icon">🕒</span><span>Histórico</span>
+                    <span class="nav-icon"><i class="bi bi-clock-history" style="font-size: 1.2rem;"></i></span><span>Histórico</span>
                 </a>
                 <a href="<?= BASE_URL ?>/perfil" class="nav-item">
-                    <span class="nav-icon">👤</span><span>Perfil</span>
+                    <span class="nav-icon"><i class="bi bi-person-fill" style="font-size: 1.2rem;"></i></span><span>Perfil</span>
                 </a>
                 <a href="<?= BASE_URL ?>/cliente/ajuda" class="nav-item">
                     <span class="nav-icon"><i class="bi bi-question-circle" style="font-size: 1.2rem;"></i></span><span>Ajuda</span>

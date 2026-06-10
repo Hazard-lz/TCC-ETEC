@@ -12,6 +12,7 @@ require_once __DIR__ . '/../Models/Usuario.php';
 require_once __DIR__ . '/../Services/EmailService.php';
 require_once __DIR__ . '/../Services/OneSignalService.php';
 require_once __DIR__ . '/../Helpers/CsrfGuard.php';
+require_once __DIR__ . '/../Helpers/Helpers.php';
 
 class ConfiguracaoController {
 
@@ -166,61 +167,74 @@ class ConfiguracaoController {
             exit;
         }
 
-        // Instancia os serviços de envio de notificações e e-mails
-        $oneSignal = new OneSignalService();
-        $emailService = new EmailService();
-
-        $enviadosPush = 0;
-        $enviadosEmail = 0;
-
-        // Textos padrões informativos para o comunicado de encerramento temporário
-        $mensagemPush = "⚠️ Comunicado Importante: O salão Belezou App está temporariamente fechado para novos agendamentos. Agradecemos a compreensão.";
-        $assuntoEmail = "Aviso Importante: Alteração no Funcionamento - Belezou App";
-
-        // Itera sobre todos os clientes ativos disparando os alertas
-        foreach ($clientes as $cliente) {
-            $nomeCliente = $cliente['nome'];
-            $emailCliente = $cliente['email'];
-            $codUsuario = $cliente['id_usuario'];
-
-            // 1. Envia a notificação Push via OneSignal (se o dispositivo do cliente estiver cadastrado)
-            try {
-                $retornoPush = $oneSignal->enviarNotificacao($codUsuario, $mensagemPush, BASE_URL . '/', "Comunicado Oficial");
-                if ($retornoPush && isset($retornoPush['http_code']) && $retornoPush['http_code'] == 200) {
-                    $enviadosPush++;
-                }
-            } catch (Exception $e) {
-                error_log("Erro ao enviar push em lote para ID {$codUsuario}: " . $e->getMessage());
-            }
-
-            // 2. Envia e-mail estruturado em HTML via EmailService (se o cliente tiver e-mail válido cadastrado)
-            if (!empty($emailCliente)) {
-                $corpoHtml = "<div style='padding: 20px; font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 8px; background-color: #ffffff;'>
-                    <h2 style='color: #8b5cf6; margin-top: 0;'>Olá, {$nomeCliente}!</h2>
-                    <p style='line-height: 1.6; font-size: 15px;'>Gostaríamos de informar que o salão <strong>Belezou App</strong> estará temporariamente fechado para novos agendamentos por motivos de força maior ou manutenção.</p>
-                    <p style='line-height: 1.6; font-size: 15px;'>Os agendamentos já marcados para este período podem sofrer alterações. Nossa equipe entrará em contato caso seja necessário reagendar seu horário.</p>
-                    <p style='line-height: 1.6; font-size: 15px;'>Agradecemos a sua valiosa compreensão e estamos à disposição para qualquer dúvida adicional.</p>
-                    <hr style='border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0;'>
-                    <p style='font-size: 13px; color: #718096; line-height: 1.4;'>Atenciosamente,<br><strong>Equipe Belezou App</strong></p>
-                </div>";
-
-                try {
-                    $retornoEmail = $emailService->enviar($emailCliente, $nomeCliente, $assuntoEmail, $corpoHtml);
-                    if ($retornoEmail['sucesso']) {
-                        $enviadosEmail++;
-                    }
-                } catch (Exception $e) {
-                    error_log("Erro ao enviar e-mail em lote para {$emailCliente}: " . $e->getMessage());
-                }
-            }
-        }
-
-        // Retorna o sumário de envios bem sucedidos para exibição no front-end
-        echo json_encode([
+        // Responder imediatamente para o front-end e fechar a conexão HTTP
+        Helpers::responderJson([
             'sucesso' => true,
-            'mensagem' => "Comunicado enviado! {$enviadosPush} push notifications e {$enviadosEmail} e-mails disparados."
+            'mensagem' => 'O envio do comunicado em lote foi iniciado em segundo plano. Os clientes ativos receberão as notificações e e-mails em breve.'
         ]);
-        exit;
+
+        // Registrar função de shutdown para processar o envio em segundo plano
+        ignore_user_abort(true);
+        register_shutdown_function(function() use ($clientes) {
+            try {
+                // Aumentar o limite de tempo de execução, caso o loop demore
+                set_time_limit(1800); // 30 minutos
+
+                // Instancia os serviços de envio de notificações e e-mails
+                $oneSignal = new OneSignalService();
+                $emailService = new EmailService();
+
+                $enviadosPush = 0;
+                $enviadosEmail = 0;
+
+                // Textos padrões informativos para o comunicado de encerramento temporário
+                $mensagemPush = "⚠️ Comunicado Importante: O salão Belezou App está temporariamente fechado para novos agendamentos. Agradecemos a compreensão.";
+                $assuntoEmail = "Aviso Importante: Alteração no Funcionamento - Belezou App";
+
+                // Itera sobre todos os clientes ativos disparando os alertas
+                foreach ($clientes as $cliente) {
+                    $nomeCliente = $cliente['nome'];
+                    $emailCliente = $cliente['email'];
+                    $codUsuario = $cliente['id_usuario'];
+
+                    // 1. Envia a notificação Push via OneSignal (se o dispositivo do cliente estiver cadastrado)
+                    try {
+                        $retornoPush = $oneSignal->enviarNotificacao($codUsuario, $mensagemPush, BASE_URL . '/', "Comunicado Oficial");
+                        if ($retornoPush && isset($retornoPush['http_code']) && $retornoPush['http_code'] == 200) {
+                            $enviadosPush++;
+                        }
+                    } catch (Exception $e) {
+                        error_log("Erro ao enviar push em lote para ID {$codUsuario}: " . $e->getMessage());
+                    }
+
+                    // 2. Envia e-mail estruturado em HTML via EmailService (se o cliente tiver e-mail válido cadastrado)
+                    if (!empty($emailCliente)) {
+                        $corpoHtml = "<div style='padding: 20px; font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 8px; background-color: #ffffff;'>
+                            <h2 style='color: #8b5cf6; margin-top: 0;'>Olá, {$nomeCliente}!</h2>
+                            <p style='line-height: 1.6; font-size: 15px;'>Gostaríamos de informar que o salão <strong>Belezou App</strong> estará temporariamente fechado para novos agendamentos por motivos de força maior ou manutenção.</p>
+                            <p style='line-height: 1.6; font-size: 15px;'>Os agendamentos já marcados para este período podem sofrer alterações. Nossa equipe entrará em contato caso seja necessário reagendar seu horário.</p>
+                            <p style='line-height: 1.6; font-size: 15px;'>Agradecemos a sua valiosa compreensão e estamos à disposição para qualquer dúvida adicional.</p>
+                            <hr style='border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0;'>
+                            <p style='font-size: 13px; color: #718096; line-height: 1.4;'>Atenciosamente,<br><strong>Equipe Belezou App</strong></p>
+                        </div>";
+
+                        try {
+                            $retornoEmail = $emailService->enviar($emailCliente, $nomeCliente, $assuntoEmail, $corpoHtml);
+                            if ($retornoEmail['sucesso']) {
+                                $enviadosEmail++;
+                            }
+                        } catch (Exception $e) {
+                            error_log("Erro ao enviar e-mail em lote para {$emailCliente}: " . $e->getMessage());
+                        }
+                    }
+                }
+
+                error_log("Envio em lote concluído com sucesso em background. Pushs enviados: {$enviadosPush}, E-mails enviados: {$enviadosEmail}");
+
+            } catch (Exception $e) {
+                error_log("Erro crítico ao rodar envio em lote em background: " . $e->getMessage());
+            }
+        });
     }
 }
 

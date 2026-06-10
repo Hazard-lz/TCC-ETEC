@@ -4,6 +4,7 @@ require_once __DIR__ . '/../Services/AgendamentoService.php';
 require_once __DIR__ . '/../Models/Cliente.php';
 require_once __DIR__ . '/../Models/Funcionario.php';
 require_once __DIR__ . '/../Models/Disponibilidade.php';
+require_once __DIR__ . '/../Helpers/Helpers.php';
 
 class AgendamentoController
 {
@@ -114,13 +115,11 @@ class AgendamentoController
         if ($resultado['sucesso']) {
             $_SESSION['flash_sucesso'] = $resultado['mensagem'];
 
-            // Redireciona para as novas rotas limpas
-            if ($tipo_usuario_logado === 'comum') {
-                header('Location: ' . BASE_URL . '/historico');
-            } else {
-                header('Location: ' . BASE_URL . '/funcionario/agenda');
-            }
-            exit;
+            // Redireciona fechando a conexão imediatamente para processamento assíncrono em background
+            $url = ($tipo_usuario_logado === 'comum') 
+                ? BASE_URL . '/historico' 
+                : BASE_URL . '/funcionario/agenda';
+            Helpers::responderERedirecionar($url);
         } else {
             $_SESSION['flash_erro'] = $resultado['mensagem'];
             $this->redirecionarAposErro();
@@ -151,11 +150,14 @@ class AgendamentoController
 
         if ($resultado['sucesso']) {
             $_SESSION['flash_sucesso'] = $resultado['mensagem'];
+            $url = (isset($_SESSION['usuario_tipo']) && $_SESSION['usuario_tipo'] === 'comum')
+                ? BASE_URL . '/agendar'
+                : ($_SERVER['HTTP_REFERER'] ?? BASE_URL . '/funcionario/agenda');
+            Helpers::responderERedirecionar($url);
         } else {
             $_SESSION['flash_erro'] = $resultado['mensagem'];
+            $this->redirecionarAposErro();
         }
-
-        $this->redirecionarAposErro();
     }
 
     /**
@@ -485,12 +487,12 @@ class AgendamentoController
 
         if ($resultado['sucesso']) {
             $_SESSION['flash_sucesso'] = "Agendamento cancelado com sucesso!";
+            Helpers::responderERedirecionar(BASE_URL . '/historico');
         } else {
             $_SESSION['flash_erro'] = $resultado['mensagem'];
+            header('Location: ' . BASE_URL . '/historico');
+            exit;
         }
-
-        header('Location: ' . BASE_URL . '/historico');
-        exit;
     }
 
     /**
@@ -559,12 +561,12 @@ class AgendamentoController
 
         if ($resultado['sucesso']) {
             $_SESSION['flash_sucesso'] = "Agendamento remarcado com sucesso!";
+            Helpers::responderERedirecionar(BASE_URL . '/historico');
         } else {
             $_SESSION['flash_erro'] = $resultado['mensagem'];
+            header('Location: ' . BASE_URL . '/historico');
+            exit;
         }
-
-        header('Location: ' . BASE_URL . '/historico');
-        exit;
     }
 
     public function historicoFuncionario()

@@ -77,13 +77,13 @@ $ultimoAgendamento = $ultimoAgendamento ?? null;
                 <div class="home-hero" style="grid-column: 1 / -1; width: 100%;">
                     <?php if ($proximoAgendamento): ?>
                         <div class="next-appointment-card">
-                            <span class="appointment-date">📅 <?= $proximoAgendamento['data_display'] ?></span>
+                            <span class="appointment-date"><i class="bi bi-calendar-event-fill" style="margin-right: 4px;"></i> <?= $proximoAgendamento['data_display'] ?></span>
                             <h4 class="appointment-service"><?= htmlspecialchars($proximoAgendamento['nome_servico']) ?></h4>
                             <span class="appointment-pro">com <?= htmlspecialchars($proximoAgendamento['funcionario_nome']) ?></span>
                         </div>
                     <?php else: ?>
                         <div style="text-align: center; padding: 2rem 0; color: var(--text-muted);">
-                            <p style="font-size: 2rem; margin-bottom: 0.5rem;">💅</p>
+                            <p style="font-size: 2.2rem; margin-bottom: 0.5rem; color: var(--color-purple);"><i class="bi bi-sparkles"></i></p>
                             <p>Você não possui agendamentos futuros.</p>
                         </div>
                     <?php endif; ?>
@@ -91,7 +91,7 @@ $ultimoAgendamento = $ultimoAgendamento ?? null;
                     <?php if ($ultimoAgendamento): ?>
                         <div class="agendar-novamente-card" style="background: var(--surface-color); border: 1px solid var(--border-color); border-radius: var(--radius-lg, 12px); padding: 1.25rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; box-shadow: 0 4px 15px rgba(0,0,0,0.02); margin-bottom: 1.5rem; border-left: 4px solid var(--color-purple);">
                             <div style="text-align: left;">
-                                <span style="font-size: 0.75rem; color: var(--color-purple); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; display: block; margin-bottom: 0.25rem;">✨ Agendar Novamente</span>
+                                <span style="font-size: 0.75rem; color: var(--color-purple); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; display: block; margin-bottom: 0.25rem;"><i class="bi bi-arrow-clockwise" style="margin-right: 4px;"></i> Agendar Novamente</span>
                                 <h4 style="margin: 0; font-size: 1.05rem; color: var(--text-main); font-weight: 600;"><?= htmlspecialchars($ultimoAgendamento['nome_servico']) ?></h4>
                                 <span style="font-size: 0.85rem; color: var(--text-muted);">com <?= htmlspecialchars($ultimoAgendamento['funcionario_nome']) ?></span>
                             </div>
@@ -130,16 +130,16 @@ $ultimoAgendamento = $ultimoAgendamento ?? null;
 
             <nav class="bottom-nav">
                 <a href="<?= BASE_URL ?>/" class="nav-item active">
-                    <span class="nav-icon">🏠</span><span>Início</span>
+                    <span class="nav-icon"><i class="bi bi-house-door-fill" style="font-size: 1.2rem;"></i></span><span>Início</span>
                 </a>
                 <a href="<?= BASE_URL ?>/agendar" class="nav-item">
-                    <span class="nav-icon">📅</span><span>Agendar</span>
+                    <span class="nav-icon"><i class="bi bi-calendar-plus-fill" style="font-size: 1.2rem;"></i></span><span>Agendar</span>
                 </a>
                 <a href="<?= BASE_URL ?>/historico" class="nav-item">
-                    <span class="nav-icon">🕒</span><span>Histórico</span>
+                    <span class="nav-icon"><i class="bi bi-clock-history" style="font-size: 1.2rem;"></i></span><span>Histórico</span>
                 </a>
                 <a href="<?= BASE_URL ?>/perfil" class="nav-item">
-                    <span class="nav-icon">👤</span><span>Perfil</span>
+                    <span class="nav-icon"><i class="bi bi-person-fill" style="font-size: 1.2rem;"></i></span><span>Perfil</span>
                 </a>
                 <a href="<?= BASE_URL ?>/cliente/ajuda" class="nav-item">
                     <span class="nav-icon"><i class="bi bi-question-circle" style="font-size: 1.2rem;"></i></span><span>Ajuda</span>

@@ -70,8 +70,8 @@
 
                     <div class="tabs-container">
                         <div class="tabs-header">
-                            <button type="button" class="tab-btn <?= $abaAtiva === 'dados' ? 'active' : '' ?>" onclick="abrirAba('dados', this)">👤 Dados Gerais</button>
-                            <button type="button" class="tab-btn <?= $abaAtiva === 'senha' ? 'active' : '' ?>" onclick="abrirAba('senha', this)">🔒 Segurança</button>
+                            <button type="button" class="tab-btn <?= $abaAtiva === 'dados' ? 'active' : '' ?>" onclick="abrirAba('dados', this)"><i class="bi bi-person-circle" style="margin-right: 4px;"></i> Dados Gerais</button>
+                            <button type="button" class="tab-btn <?= $abaAtiva === 'senha' ? 'active' : '' ?>" onclick="abrirAba('senha', this)"><i class="bi bi-shield-lock-fill" style="margin-right: 4px;"></i> Segurança</button>
                         </div>
 
                         <div class="tab-content">
@@ -155,23 +155,23 @@
                             </div>
 
                         </div> </div> <button class="btn-logout" onclick="confirmarSaida('<?= BASE_URL ?>/login/sair')">
-                        <span>🚪</span> Sair da Conta
+                        <span><i class="bi bi-box-arrow-right" style="margin-right: 4px;"></i></span> Sair da Conta
                     </button>
 
                 </main>
 
                 <nav class="bottom-nav">
                     <a href="<?= BASE_URL ?>/" class="nav-item">
-                        <span class="nav-icon">🏠</span><span>Início</span>
+                        <span class="nav-icon"><i class="bi bi-house-door-fill" style="font-size: 1.2rem;"></i></span><span>Início</span>
                     </a>
                     <a href="<?= BASE_URL ?>/agendar" class="nav-item">
-                        <span class="nav-icon">📅</span><span>Agendar</span>
+                        <span class="nav-icon"><i class="bi bi-calendar-plus-fill" style="font-size: 1.2rem;"></i></span><span>Agendar</span>
                     </a>
                     <a href="<?= BASE_URL ?>/historico" class="nav-item">
-                        <span class="nav-icon">🕒</span><span>Histórico</span>
+                        <span class="nav-icon"><i class="bi bi-clock-history" style="font-size: 1.2rem;"></i></span><span>Histórico</span>
                     </a>
                     <a href="<?= BASE_URL ?>/perfil" class="nav-item active">
-                        <span class="nav-icon">👤</span><span>Perfil</span>
+                        <span class="nav-icon"><i class="bi bi-person-fill" style="font-size: 1.2rem;"></i></span><span>Perfil</span>
                     </a>
                     <a href="<?= BASE_URL ?>/cliente/ajuda" class="nav-item">
                         <span class="nav-icon"><i class="bi bi-question-circle" style="font-size: 1.2rem;"></i></span><span>Ajuda</span>

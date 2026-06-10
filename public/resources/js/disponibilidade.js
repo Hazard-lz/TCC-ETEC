@@ -106,3 +106,20 @@ window.addEventListener("beforeunload", function () {
         // ignora se sessionStorage estiver indisponível
     }
 });
+
+function abrirExplicacaoAntecedencia() {
+    Swal.fire({
+        ...window._swalDefaults,
+        title: 'Antecedência Mínima',
+        html: `
+            <p style="margin-bottom: 1rem; text-align: left; line-height: 1.5;">
+                A <strong>antecedência mínima</strong> define o tempo limite de antecedência com que um cliente pode realizar um agendamento.
+            </p>
+            <div style="background-color: var(--bg-disabled); padding: 1rem; border-radius: 8px; border-left: 4px solid var(--color-purple); text-align: left; line-height: 1.5;">
+                <strong>Exemplo:</strong> Se você definir <strong>2 horas</strong> de antecedência, um cliente que queira agendar um horário para às 14:00 só conseguirá realizar a reserva se o fizer até às 12:00 do mesmo dia. Isso impede agendamentos surpresas de última hora!
+            </div>
+        `,
+        icon: 'info',
+        confirmButtonText: 'Entendi'
+    });
+}

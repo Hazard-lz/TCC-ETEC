@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/../../../app/Helpers/Helpers.php';
+
 // Descobre se quem está logado é gerência (admin ou subadmin)
 $isGerencia = in_array($_SESSION['usuario_tipo'] ?? '', ['admin', 'subadmin']);
 
@@ -50,39 +52,49 @@ foreach ($proximosAgendamentos as $ag) {
 
     <?php require_once __DIR__ . '/../partials/sidebar.php'; ?>
 
-    <div class="dashboard-header" style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
-        <div>
-            <h3 style="display: flex; align-items: center; gap: 0.75rem; margin: 0; flex-wrap: wrap;">
-                <span>Olá, <?= htmlspecialchars($nomePrimeiro) ?>! 👋</span>
-                <span id="alerta-pendentes" style="display: none;">
-                    <i class="bi bi-bell-fill"></i> <span id="contador-pendentes">0</span> pendente(s)
-                </span>
-            </h3>
-            <p style="margin: 0; margin-top: 0.5rem; color: var(--text-muted);">
-                <?= $isGerencia ? 'Acompanhe o desempenho geral do salão em tempo real.' : 'Aqui está o resumo do seu dia de trabalho.' ?>
-            </p>
+    <div class="dashboard-banner">
+        <div class="banner-overlay"></div>
+        <div class="banner-content">
+            <div class="banner-text">
+                <span class="banner-greeting">Olá, <?= htmlspecialchars($nomePrimeiro) ?>! <span class="wave-emoji">👋</span></span>
+                <h2 class="banner-title"><?= $isGerencia ? 'Bem-vindo ao seu painel administrativo' : 'Pronto para mais um dia de sucesso?' ?></h2>
+                <p class="banner-subtitle">
+                    <?= $isGerencia ? 'Acompanhe o desempenho geral do salão, gerencie agendamentos e analise métricas em tempo real.' : 'Aqui está o resumo da sua agenda e o andamento do seu dia de trabalho.' ?>
+                </p>
+            </div>
+            <div class="banner-stats">
+                <div class="banner-date-badge">
+                    <i class="bi bi-calendar-check-fill"></i>
+                    <span><?= Helpers::dataExtenso(date('Y-m-d')) ?></span>
+                </div>
+                <div id="alerta-pendentes" class="banner-pending-badge" style="display: none;">
+                    <span class="pulse-ring"></span>
+                    <i class="bi bi-bell-fill"></i>
+                    <span><span id="contador-pendentes">0</span> pendente(s)</span>
+                </div>
+            </div>
         </div>
     </div>
 
     <div class="summary-grid">
         <?php if ($isGerencia): ?>
             <div class="summary-card">
-                <div class="card-icon" style="background-color: rgba(139, 92, 246, 0.1); color: var(--color-purple);">📅
+                <div class="card-icon" style="background-color: rgba(139, 92, 246, 0.1); color: var(--color-purple);"><i class="bi bi-calendar3"></i>
                 </div>
                 <div class="card-info">
                     <h4>Geral Hoje</h4><span class="card-value" id="val-total-hoje"><?= $totalAgendamentosHoje ?></span><span
-                        class="card-label">agendamentos totais</span>
+                        class="card-label">agendamentos totals</span>
                 </div>
             </div>
             <div class="summary-card">
-                <div class="card-icon" style="background-color: rgba(46, 204, 113, 0.1); color: #2ecc71;">💰</div>
+                <div class="card-icon" style="background-color: rgba(46, 204, 113, 0.1); color: #2ecc71;"><i class="bi bi-currency-dollar"></i></div>
                 <div class="card-info">
                     <h4>Faturamento</h4><span class="card-value">R$ <span id="val-faturamento"><?= $faturamentoFormatado ?></span></span><span
                         class="card-label">neste mês</span>
                 </div>
             </div>
             <div class="summary-card">
-                <div class="card-icon" style="background-color: rgba(52, 152, 219, 0.1); color: #3498db;">👥</div>
+                <div class="card-icon" style="background-color: rgba(52, 152, 219, 0.1); color: #3498db;"><i class="bi bi-people-fill"></i></div>
                 <div class="card-info">
                     <h4>Clientes</h4><span class="card-value" id="val-total-clientes"><?= $totalClientes ?></span><span
                         class="card-label">registados no total</span>
@@ -90,7 +102,7 @@ foreach ($proximosAgendamentos as $ag) {
             </div>
         <?php else: ?>
             <div class="summary-card">
-                <div class="card-icon" style="background-color: rgba(139, 92, 246, 0.1); color: var(--color-purple);">📅
+                <div class="card-icon" style="background-color: rgba(139, 92, 246, 0.1); color: var(--color-purple);"><i class="bi bi-calendar3"></i>
                 </div>
                 <div class="card-info">
                     <h4>Meus Hoje</h4><span class="card-value" id="val-total-hoje"><?= $totalAgendamentosHoje ?></span><span
@@ -98,14 +110,14 @@ foreach ($proximosAgendamentos as $ag) {
                 </div>
             </div>
             <div class="summary-card">
-                <div class="card-icon" style="background-color: rgba(245, 158, 11, 0.1); color: #d97706;">⏳</div>
+                <div class="card-icon" style="background-color: rgba(245, 158, 11, 0.1); color: #d97706;"><i class="bi bi-hourglass-split"></i></div>
                 <div class="card-info">
                     <h4>Pendentes</h4><span class="card-value" id="val-pendentes"><?= $qtdPendentes ?></span><span
                         class="card-label">aguardando ação</span>
                 </div>
             </div>
             <div class="summary-card">
-                <div class="card-icon" style="background-color: rgba(46, 204, 113, 0.1); color: #2ecc71;">💵</div>
+                <div class="card-icon" style="background-color: rgba(46, 204, 113, 0.1); color: #2ecc71;"><i class="bi bi-wallet2"></i></div>
                 <div class="card-info">
                     <h4>Faturado</h4><span class="card-value">R$ <span id="val-faturamento"><?= $faturamentoFormatado ?></span></span><span
                         class="card-label">neste mês</span>
@@ -162,11 +174,11 @@ foreach ($proximosAgendamentos as $ag) {
                                 <td>
                                     <div class="action-buttons">
                                         <?php if ($ag['status'] === 'pendente'): ?>
-                                            <button onclick="confirmarAgendamentoDireto(<?= $ag['id_agendamento'] ?>)" class="btn-action" style="background:#10b981; color:white; border-radius:6px; border:none; width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; padding: 0; font-size:0.8rem;" title="Confirmar">✔</button>
-                                            <button onclick="recusarAgendamentoDireto(<?= $ag['id_agendamento'] ?>)" class="btn-action" style="background:#ef4444; color:white; border-radius:6px; border:none; width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; padding: 0; font-size:0.8rem;" title="Recusar">✕</button>
+                                            <button onclick="confirmarAgendamentoDireto(<?= $ag['id_agendamento'] ?>)" class="btn-action" style="background:#10b981; color:white; border-radius:6px; border:none; width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; padding: 0; font-size:0.8rem;" title="Confirmar"><i class="bi bi-check-lg"></i></button>
+                                            <button onclick="recusarAgendamentoDireto(<?= $ag['id_agendamento'] ?>)" class="btn-action" style="background:#ef4444; color:white; border-radius:6px; border:none; width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; padding: 0; font-size:0.8rem;" title="Recusar"><i class="bi bi-x-lg"></i></button>
                                         <?php elseif ($isGerencia): ?>
                                             <button onclick="window.location.href='<?= BASE_URL ?>/funcionario/agenda?data=<?= $ag['data_agendamento'] ?>'"
-                                                class="btn-action btn-edit" title="Ver na Agenda">📅</button>
+                                                class="btn-action btn-edit" title="Ver na Agenda"><i class="bi bi-calendar-event"></i></button>
                                         <?php endif; ?>
                                     </div>
                                 </td>
@@ -210,42 +222,42 @@ foreach ($proximosAgendamentos as $ag) {
             <div class="modal-body">
                 <div style="display:flex; flex-direction:column; gap:0.75rem; margin-bottom:1.25rem;">
                     <div style="display:flex; align-items:center; gap:0.75rem;">
-                        <span style="font-size:1.2rem; width:24px; text-align:center;">👤</span>
+                        <span style="font-size:1.2rem; width:24px; text-align:center; color: var(--color-purple);"><i class="bi bi-person-fill"></i></span>
                         <div>
                             <div style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">Cliente</div>
                             <div style="font-weight:600; color:var(--text-main);" id="detalhesCliente"></div>
                         </div>
                     </div>
                     <div style="display:flex; align-items:center; gap:0.75rem;">
-                        <span style="font-size:1.2rem; width:24px; text-align:center;">✂️</span>
+                        <span style="font-size:1.2rem; width:24px; text-align:center; color: var(--color-purple);"><i class="bi bi-scissors"></i></span>
                         <div>
                             <div style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">Serviço</div>
                             <div style="font-weight:600; color:var(--text-main);" id="detalhesServico"></div>
                         </div>
                     </div>
                     <div style="display:flex; align-items:center; gap:0.75rem;">
-                        <span style="font-size:1.2rem; width:24px; text-align:center;">🧑‍💼</span>
+                        <span style="font-size:1.2rem; width:24px; text-align:center; color: var(--color-purple);"><i class="bi bi-briefcase-fill"></i></span>
                         <div>
                             <div style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">Profissional</div>
                             <div style="font-weight:600; color:var(--text-main);" id="detalhesProfissional"></div>
                         </div>
                     </div>
                     <div style="display:flex; align-items:center; gap:0.75rem;">
-                        <span style="font-size:1.2rem; width:24px; text-align:center;">📅</span>
+                        <span style="font-size:1.2rem; width:24px; text-align:center; color: var(--color-purple);"><i class="bi bi-calendar3"></i></span>
                         <div>
                             <div style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">Data</div>
                             <div style="font-weight:600; color:var(--text-main);" id="detalhesData"></div>
                         </div>
                     </div>
                     <div style="display:flex; align-items:center; gap:0.75rem;">
-                        <span style="font-size:1.2rem; width:24px; text-align:center;">🕐</span>
+                        <span style="font-size:1.2rem; width:24px; text-align:center; color: var(--color-purple);"><i class="bi bi-clock-fill"></i></span>
                         <div>
                             <div style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">Horário</div>
                             <div style="font-weight:600; color:var(--text-main);" id="detalhesHorario"></div>
                         </div>
                     </div>
                     <div style="display:flex; align-items:center; gap:0.75rem;">
-                        <span style="font-size:1.2rem; width:24px; text-align:center;">📋</span>
+                        <span style="font-size:1.2rem; width:24px; text-align:center; color: var(--color-purple);"><i class="bi bi-clipboard-data-fill"></i></span>
                         <div>
                             <div style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">Status</div>
                             <span id="detalhesStatus" style="font-size:0.8rem; font-weight:700; padding:0.2rem 0.7rem; border-radius:20px;"></span>
@@ -417,11 +429,11 @@ foreach ($proximosAgendamentos as $ag) {
                             <div class="action-buttons">`;
                     if (ag.status === 'pendente') {
                         html += `
-                            <button onclick="confirmarAgendamentoDireto(${ag.id_agendamento})" class="btn-action" style="background:#10b981; color:white; border-radius:6px; border:none; width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; padding: 0; font-size:0.8rem;" title="Confirmar">✔</button>
-                            <button onclick="recusarAgendamentoDireto(${ag.id_agendamento})" class="btn-action" style="background:#ef4444; color:white; border-radius:6px; border:none; width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; padding: 0; font-size:0.8rem;" title="Recusar">✕</button>
+                            <button onclick="confirmarAgendamentoDireto(${ag.id_agendamento})" class="btn-action" style="background:#10b981; color:white; border-radius:6px; border:none; width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; padding: 0; font-size:0.8rem;" title="Confirmar"><i class="bi bi-check-lg"></i></button>
+                            <button onclick="recusarAgendamentoDireto(${ag.id_agendamento})" class="btn-action" style="background:#ef4444; color:white; border-radius:6px; border:none; width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; padding: 0; font-size:0.8rem;" title="Recusar"><i class="bi bi-x-lg"></i></button>
                         `;
                     } else if (isGerencia) {
-                        html += `<button onclick="window.location.href='${baseUrl}/funcionario/agenda?data=${ag.data_agendamento_raw}'" class="btn-action btn-edit" title="Ver na Agenda">📅</button>`;
+                        html += `<button onclick="window.location.href='${baseUrl}/funcionario/agenda?data=${ag.data_agendamento_raw}'" class="btn-action btn-edit" title="Ver na Agenda"><i class="bi bi-calendar-event"></i></button>`;
                     }
                     html += `</div></td></tr>`;
                 });
@@ -524,7 +536,7 @@ foreach ($proximosAgendamentos as $ag) {
                 const oldCacheDashboard = localStorage.getItem('belezou_dashboard_cache');
 
                 // Alteração otimista de forma instantânea
-                const row = document.querySelector('.row-agendamento-' + id);
+                    const row = document.querySelector('.row-agendamento-' + id);
                 if (row) {
                     row.className = 'row-marcado row-agendamento-' + id;
                     const badge = row.querySelector('.badge');
@@ -543,7 +555,7 @@ foreach ($proximosAgendamentos as $ag) {
                                     if (ag) dataRaw = ag.data_agendamento_raw;
                                 } catch(e){}
                             }
-                            actionContainer.innerHTML = `<button onclick="window.location.href='${baseUrl}/funcionario/agenda?data=${dataRaw}'" class="btn-action btn-edit" title="Ver na Agenda">📅</button>`;
+                            actionContainer.innerHTML = `<button onclick="window.location.href='${baseUrl}/funcionario/agenda?data=${dataRaw}'" class="btn-action btn-edit" title="Ver na Agenda"><i class="bi bi-calendar-event"></i></button>`;
                         } else {
                             actionContainer.innerHTML = '';
                         }

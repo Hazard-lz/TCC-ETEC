@@ -136,19 +136,24 @@ $servicos = array_merge($ativos, $inativos);
                             <td data-label="Ações">
                                 <div class="action-buttons">
                                     <button data-modal-target="#modalServico" class="btn-action btn-edit" title="Editar"
-                                        onclick="preencherModalEdicao(<?= $servico['id_servico'] ?>, '<?= htmlspecialchars(addslashes($servico['nome_servico'])) ?>', '<?= htmlspecialchars(addslashes($servico['descricao'])) ?>', <?= $servico['preco'] ?>, <?= $servico['duracao'] ?>, '<?= $servico['status'] ?>')">✏️</button>
+                                        onclick="preencherModalEdicao(<?= $servico['id_servico'] ?>, '<?= htmlspecialchars(addslashes($servico['nome_servico'])) ?>', '<?= htmlspecialchars(addslashes($servico['descricao'])) ?>', <?= $servico['preco'] ?>, <?= $servico['duracao'] ?>, '<?= $servico['status'] ?>')">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </button>
 
                                     <?php if ($servico['status'] === 'ativo'): ?>
                                         <button class="btn-action btn-delete" title="Inativar"
-                                            onclick="alterarStatusServico(<?= $servico['id_servico'] ?>, '<?= htmlspecialchars(addslashes($servico['nome_servico'])) ?>', 'inativo')"
-                                            style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">🚫</button>
+                                            onclick="alterarStatusServico(<?= $servico['id_servico'] ?>, '<?= htmlspecialchars(addslashes($servico['nome_servico'])) ?>', 'inativo')">
+                                            <i class="bi bi-slash-circle"></i>
+                                        </button>
                                     <?php else: ?>
                                         <button class="btn-action btn-edit" title="Ativar"
-                                            onclick="alterarStatusServico(<?= $servico['id_servico'] ?>, '<?= htmlspecialchars(addslashes($servico['nome_servico'])) ?>', 'ativo')"
-                                            style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">✅</button>
+                                            onclick="alterarStatusServico(<?= $servico['id_servico'] ?>, '<?= htmlspecialchars(addslashes($servico['nome_servico'])) ?>', 'ativo')">
+                                            <i class="bi bi-check-circle"></i>
+                                        </button>
                                         <button class="btn-action btn-delete" title="Excluir Permanentemente"
-                                            onclick="excluirServico(<?= $servico['id_servico'] ?>, '<?= htmlspecialchars(addslashes($servico['nome_servico'])) ?>')"
-                                            style="background: none; border: none; cursor: pointer; font-size: 1.2rem; color: var(--color-pink);">🗑️</button>
+                                            onclick="excluirServico(<?= $servico['id_servico'] ?>, '<?= htmlspecialchars(addslashes($servico['nome_servico'])) ?>')">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
                                     <?php endif; ?>
                                 </div>
                             </td>
