@@ -2,6 +2,14 @@
    APP-CLIENTE.CSS - VISUAL MOBILE E DESKTOP (APP SHELL)
    ========================================= */
 
+/* Trava a rolagem externa e o efeito bounce no mobile (App Shell) */
+html,
+body {
+    height: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
+}
+
 /* Fundo da página e centralizador */
 .app-wrapper {
     background-color: var(--bg-color);
