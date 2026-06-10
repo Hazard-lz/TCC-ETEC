@@ -6,6 +6,8 @@
 html,
 body {
     height: 100%;
+    height: -webkit-fill-available;
+    height: 100dvh;
     overflow: hidden;
     overscroll-behavior: none;
 }
@@ -13,8 +15,9 @@ body {
 /* Fundo da página e centralizador */
 .app-wrapper {
     background-color: var(--bg-color);
-    min-height: 100vh;
-    min-height: 100dvh;
+    height: 100%;
+    height: -webkit-fill-available;
+    height: 100dvh;
     display: flex;
     justify-content: center;
     align-items: center; /* No PC, centra o ecrã na vertical */
@@ -30,8 +33,9 @@ body {
     /* TRANSFORMA O CONTAINER NUMA CAIXA FLEXÍVEL */
     display: flex;
     flex-direction: column;
-    height: 100vh; /* Fallback */
-    height: 100dvh; /* Altura dinâmica para mobile (evita que a barra suma) */
+    height: 100%;
+    height: -webkit-fill-available;
+    height: 100dvh;
     
     /* Trava o scroll no container principal para não dar "salto" */
     overflow: hidden; 
